@@ -83,8 +83,10 @@ function createForm(type) {
             <div class="card p-3 mb-3">
                 <h4>Add Employee</h4>
                 <form action="/addEmployee" method="POST">
-                    ${inputField("Employee Name", "text", "name")}
-                    ${selectField("Role", "role", ["User", "Admin"])}
+                    ${inputField("Employee Name", "text", "E-name")}
+					${inputField("Employee Email", "text", "E-mail")}
+					${inputField("Employee Password", "text", "E-pass")}
+                    ${selectField("Role", "E-role", ["Admin", "Team Lead","Employee"])}
                     ${formButtons()}
                 </form>
             </div>
@@ -93,8 +95,9 @@ function createForm(type) {
             <div class="card p-3 mb-3">
                 <h4>Add Sub-Admin</h4>
                 <form action="/addSubAdmin" method="POST">
-                    ${inputField("Sub-Admin Name", "text", "name")}
-                    ${inputField("Email", "email", "email")}
+                    ${inputField("Sub-Admin Name", "text", "SA-name")}
+                    ${inputField("Email", "email", "SA-email")}
+					${inputField("Password", "text", "SA-pass")}
                     ${formButtons()}
                 </form>
             </div>
@@ -103,8 +106,11 @@ function createForm(type) {
             <div class="card p-3 mb-3">
                 <h4>Add Charge Code</h4>
                 <form action="/addChargeCode" method="POST">
-                    ${inputField("Charge Code", "text", "code")}
-                    ${textareaField("Description", "description")}
+                    ${inputField("Charge Code", "text", "C-code")}
+					${inputField("Client", "text", "C-clientname")}
+					${inputField("Contact Number", "number", "C-contact")}
+					${inputField("Country/Region", "text", "C-country")}
+                    ${textareaField("Description", "C-desc")}
                     ${formButtons()}
                 </form>
             </div>
@@ -113,8 +119,8 @@ function createForm(type) {
             <div class="card p-3 mb-3">
                 <h4>Add Leave Code</h4>
                 <form action="/addLeaveCode" method="POST">
-                    ${inputField("Leave Code", "text", "code")}
-                    ${textareaField("Description", "description")}
+                    ${inputField("Leave Code", "number", "L-code")}
+					${inputField("Leave Name", "text", "L-name")}
                     ${formButtons()}
                 </form>
             </div>
@@ -124,8 +130,8 @@ function createForm(type) {
 		   <div class="card p-3 mb-3">
 		        <h4>Add Expense Code</h4>
 		        <form action="/addExpenseCode" method="POST">
-		            ${inputField("Expense Code", "text", "code")}
-		            ${textareaField("Description", "description")}
+		            ${inputField("Expense Code", "text", "Ex-code")}
+					${selectField("Expense Name", "Ex-name", ["Network Expense", "Travel"])}
 		            ${formButtons()}
 		        </form>
 		   </div>
@@ -135,11 +141,26 @@ function createForm(type) {
     return forms[type] || "<p>Form Not Found</p>";
 }
 
+
+function generatePassword(inputId) {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let randomPassword = "";
+    for (let i = 0; i < 8; i++) {
+        randomPassword += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+	const inputField = document.getElementById(inputId);
+	    inputField.value = randomPassword;
+	    inputField.setAttribute("readonly", true); // Prevent manual typing
+	    inputField.onkeydown = function(event) { event.preventDefault(); };
+}
+
 function inputField(label, type, name) {
+	const isPasswordField = name === "E-pass" || name === "SA-pass" || name === "C-code";
     return `
         <div class="mb-3">
             <label class="form-label">${label}</label>
-            <input type="${type}" class="form-control" name="${name}" required>
+            <input type="${type}" class="form-control" name="${name}" id="${name}" required>
+			${isPasswordField ? `<button class="btn btn-outline-primary" type="button" onclick="generatePassword('${name}')" style="margin-top: 10px;">Generate</button>` : ""}
         </div>
     `;
 }
@@ -169,6 +190,12 @@ function formButtons() {
         <button class="btn btn-success" type="submit">Save</button>
         <button class="btn btn-secondary" type="button" onclick="hideForm()">Cancel</button>
     `;
+}
+
+function generatebtn() {
+	return `
+	        <button class="btn btn-success" type="button">Generate Password</button>
+	    `;
 }
 
 function hideForm() {
