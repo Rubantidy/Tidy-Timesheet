@@ -9,7 +9,9 @@ public class Controller {
 	
 	@RequestMapping("/landing")
 	public String M1() {
+		System.out.println("Landing Page");
 		return "Admin/Admin_panel.html";
+		
 	}
 	
 	
