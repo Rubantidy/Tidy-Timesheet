@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/Admin/admin_style.css">
+</head>
+<body>
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <nav class="bg-dark text-white p-3 sidebar collapse show" id="sidebar">
+            <button class="btn btn-outline-light d-md-none mb-3" onclick="toggleSidebar()">☰ Menu</button>
+            <h2 class="mb-4 text-center">Admin Panel</h2>
+            <ul class="nav flex-column">
+                <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('dashboard')"><i class="bi bi-house me-2"></i> Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('manage-user')"><i class="bi bi-people me-2"></i> Manage Users</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('manage-admin')"><i class="bi bi-person-check me-2"></i> Manage Admins</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('charge-code')"><i class="bi bi-credit-card me-2"></i> Charge Code Manage</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('leave-code')"><i class="bi bi-calendar-check me-2"></i> Leave Code Manage</a></li>
+				<li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('Expense-code')"><i class="bi bi-receipt"></i> Expense Code Manage</a></li>
+            </ul>
+        </nav>
+        
+        <!-- Main Content -->
+        <div class="flex-grow-1 p-3 main-content">
+            <!-- Top Bar -->
+            <div class="top-bar d-flex justify-content-between align-items-center">
+                <button class="btn btn-outline-dark d-md-none" onclick="toggleSidebar()">☰</button>
+                <img src="logo.png" alt="Logo" height="40">
+                <div>
+                    <i class="bi bi-bell"></i>
+                    <i class="bi bi-person-circle"></i>
+                </div>
+            </div>
+            
+            <!-- Dynamic Content -->
+            <h2 id="content-title" class="mb-3">Dashboard</h2>
+            <div id="content-box" class="p-4 border rounded shadow bg-white">
+                <p>Welcome to the Dashboard</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/Admin/admin_script.js"></script>
+</body>
+</html>
