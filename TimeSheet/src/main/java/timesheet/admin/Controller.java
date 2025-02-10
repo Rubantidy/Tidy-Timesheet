@@ -8,6 +8,7 @@ public class Controller {
 	 
 	@GetMapping("/landing")
 	public String M1() {
+		System.out.println("Hello world");
 		return "Admin/Admin_panel.html";
 	}
 	
