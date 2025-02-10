@@ -150,7 +150,7 @@ function generatePassword(inputId) {
     }
 	const inputField = document.getElementById(inputId);
 	    inputField.value = randomPassword;
-	    inputField.setAttribute("readonly", true); // Prevent manual typing
+	    inputField.setAttribute("readonly", true); 
 	    inputField.onkeydown = function(event) { event.preventDefault(); };
 }
 
