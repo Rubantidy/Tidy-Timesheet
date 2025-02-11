@@ -117,16 +117,47 @@ function handleChargeTypeSelection() {
 function showForm(type) {
     const formContainer = document.getElementById("form-container");
     formContainer.innerHTML = createForm(type);
+	
+	document.querySelector("#form-container form").addEventListener("submit", handleFormSubmit);
 }
+
+function handleFormSubmit(event) {
+    event.preventDefault(); // Prevent default form submission behavior
+
+    const form = event.target;
+    const formData = new FormData(form);
+    const jsonData = Object.fromEntries(formData.entries());
+
+    fetch(form.action, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(jsonData)
+    })
+    .then(response => response.text())
+    .then(data => {
+        alert(data); // Show success message
+        hideForm(); // Hide the form after successful submission
+    })
+    .catch(error => {
+        console.error("Error:", error);
+    });
+}
+
+function hideForm() {
+    document.getElementById("form-container").innerHTML = "";
+}
+
 
 function createForm(type) {
     const forms = {
         "employee": `
             <div class="card p-3 mb-3">
                 <h4>Add Employee</h4>
-                <form action="/addEmployee" method="POST" autocomplete="off" >
+                <form action="/addEmployee" method="POST" autocomplete="off">
                     ${inputField("Employee Name", "text", "E-name")}
-					${inputField("Employee Email", "text", "E-mail")}
+					${inputField("Employee Email", "email", "E-mail")}
 					${inputField("Employee Password", "text", "E-pass")}
                     ${selectField("Role", "E-role", ["Admin", "Team Lead","Employee"])}
                     ${formButtons()}
