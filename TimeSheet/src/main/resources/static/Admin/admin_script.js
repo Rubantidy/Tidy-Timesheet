@@ -121,8 +121,9 @@ function showForm(type) {
 	document.querySelector("#form-container form").addEventListener("submit", handleFormSubmit);
 }
 
+/*Function for sending data into backend (Java) */
 function handleFormSubmit(event) {
-    event.preventDefault(); // Prevent default form submission behavior
+    event.preventDefault(); 
 
     const form = event.target;
     const formData = new FormData(form);
