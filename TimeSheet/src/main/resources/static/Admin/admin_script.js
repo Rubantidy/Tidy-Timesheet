@@ -36,11 +36,9 @@ function showContent(section) {
 				${createCard("bi bi-receipt", "Expense Codes", "50")}
             </div>
         `,
-        "manage-user": `<button class="btn btn-primary mb-3" id="addEmployeeBtn">Add Employee</button><div id="form-container"></div>`,
-        "manage-admin": `<button class="btn btn-warning mb-3" id="addAdminBtn">Add Sub-Admin</button><div id="form-container"></div>`,
-        "charge-code": `<button class="btn btn-info mb-3" id="addChargeCodeBtn">Add Charge Code</button><div id="form-container"></div>`,
-        "leave-code": `<button class="btn btn-success mb-3" id="addLeaveCodeBtn">Add Leave Code</button><div id="form-container"></div>`,
-		"Expense-code": `<button class="btn btn-success mb-3" id="addExpenseCodeBtn">Add Expense Code</button><div id="form-container"></div>`
+		"manage-user": `<button class="btn btn-primary mb-3" id="addEmployeeBtn">Add Employee</button><div id="form-container"></div>`,
+		 "delegates": `<button class="btn btn-warning mb-3" id="addDelegateBtn">Add Delegates</button><div id="form-container"></div>`,
+		 "charge-code": `<button class="btn btn-info mb-3" id="addChargeCodeBtn">Add Code</button><div id="form-container"></div>`
     };
 
     title.innerText = section.replace("-", " ").replace(/\b\w/g, l => l.toUpperCase());
@@ -66,10 +64,54 @@ function createCard(icon, title, value) {
 
 function attachFormListeners() {
     document.getElementById("addEmployeeBtn")?.addEventListener("click", () => showForm("employee"));
-    document.getElementById("addAdminBtn")?.addEventListener("click", () => showForm("sub-admin"));
-    document.getElementById("addChargeCodeBtn")?.addEventListener("click", () => showForm("charge-code"));
-    document.getElementById("addLeaveCodeBtn")?.addEventListener("click", () => showForm("leave-code"));
-	document.getElementById("addExpenseCodeBtn")?.addEventListener("click", () => showForm("Expense-code"));
+    document.getElementById("addDelegateBtn")?.addEventListener("click", () => showForm("delegates"));
+    document.getElementById("addChargeCodeBtn")?.addEventListener("click", showDropdown);
+}
+
+function showDropdown() {
+    const formContainer = document.getElementById("form-container");
+    formContainer.innerHTML = `
+        <div class="mb-3">
+            <label class="form-label">Select Code Type</label>
+            <select class="form-control" id="codeType" onchange="handleCodeSelection()">
+                <option value="">Select</option>
+                <option value="charge-code">Charge Code</option>
+                <option value="leave-code">Leave Code</option>
+                <option value="Expense-code">Expense Code</option>
+            </select>
+        </div>
+    `;
+}
+
+function handleCodeSelection() {
+    const selectedValue = document.getElementById("codeType").value;
+	const formContainer = document.getElementById("form-container");
+	if (selectedValue === "charge-code") {
+	        formContainer.innerHTML += `
+	            <div class="mb-3">
+	                <label class="form-label">Select Type</label>
+	                <select class="form-control" id="chargeType" onchange="handleChargeTypeSelection()">
+	                    <option value="">Select</option>
+	                    <option value="external">External</option>
+	                    <option value="internal">Internal</option>
+	                </select>
+	            </div>
+	            <div id="chargeFormContainer"></div>
+	        `;
+	    } else if (selectedValue) {
+	        showForm(selectedValue);
+	    }
+}
+
+function handleChargeTypeSelection() {
+    const selectedType = document.getElementById("chargeType").value;
+    const chargeFormContainer = document.getElementById("chargeFormContainer");
+
+    if (selectedType === "external") {
+        chargeFormContainer.innerHTML = createForm("charge-code");
+    } else if (selectedType === "internal") {
+        chargeFormContainer.innerHTML = createForm("internal-charge-code");
+    }
 }
 
 function showForm(type) {
@@ -82,7 +124,7 @@ function createForm(type) {
         "employee": `
             <div class="card p-3 mb-3">
                 <h4>Add Employee</h4>
-                <form action="/addEmployee" method="POST">
+                <form action="/addEmployee" method="POST" autocomplete="off" >
                     ${inputField("Employee Name", "text", "E-name")}
 					${inputField("Employee Email", "text", "E-mail")}
 					${inputField("Employee Password", "text", "E-pass")}
@@ -91,7 +133,7 @@ function createForm(type) {
                 </form>
             </div>
         `,
-        "sub-admin": `
+        "delegates": `
             <div class="card p-3 mb-3">
                 <h4>Add Sub-Admin</h4>
                 <form action="/addSubAdmin" method="POST">
@@ -105,16 +147,29 @@ function createForm(type) {
         "charge-code": `
             <div class="card p-3 mb-3">
                 <h4>Add Charge Code</h4>
-                <form action="/addChargeCode" method="POST">
-                    ${inputField("Charge Code", "text", "C-code")}
-					${inputField("Client", "text", "C-clientname")}
-					${inputField("Contact Number", "number", "C-contact")}
-					${inputField("Country/Region", "text", "C-country")}
-                    ${textareaField("Description", "C-desc")}
-                    ${formButtons()}
+                <form action="/addChargeCode" method="POST">             
+				${selectField("Type", "C-type", ["External"])}
+				${inputField("Client", "text", "C-clientname")}
+				${inputField("Onboard Date", "date", "C-onboard")}
+				${inputField("Country/Region", "text", "C-country")}
+				${textareaField("Description", "C-desc")}
+				${inputField("Charge Code", "text", "C-code")}
+				${formButtons()}
                 </form>
             </div>
         `,
+		"internal-charge-code": `
+		            <div class="card p-3 mb-3">
+		                <h4>Add Internal Project Code</h4>
+		                <form action="/addInternalCode" method="POST">
+		                    ${selectField("Type", "C-type", ["Internal"])}
+		                    ${inputField("Project Name", "text", "P-name")}
+		                    ${inputField("Start Date", "date", "P-start")}
+		                    ${inputField("Project Code", "text", "P-code")}
+		                    ${formButtons()}
+		                </form>
+		            </div>
+		        `,
         "leave-code": `
             <div class="card p-3 mb-3">
                 <h4>Add Leave Code</h4>
@@ -155,7 +210,7 @@ function generatePassword(inputId) {
 }
 
 function inputField(label, type, name) {
-	const isPasswordField = name === "E-pass" || name === "SA-pass" || name === "C-code";
+	const isPasswordField = name === "E-pass" || name === "SA-pass" || name === "C-code" || name === "P-code";
     return `
         <div class="mb-3">
             <label class="form-label">${label}</label>
