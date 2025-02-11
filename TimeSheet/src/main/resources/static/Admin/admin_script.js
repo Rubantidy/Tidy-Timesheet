@@ -152,7 +152,7 @@ function hideForm() {
 
 function createForm(type) {
     const forms = {
-        "employee": `
+        "employee": ` 
             <div class="card p-3 mb-3">
                 <h4>Add Employee</h4>
                 <form action="/addEmployee" method="POST" autocomplete="off">
