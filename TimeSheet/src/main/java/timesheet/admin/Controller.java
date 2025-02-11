@@ -20,6 +20,7 @@ public class Controller {
 	public String M1() {
 		
 		System.out.println("Hello world");
+		System.out.println("World Hello");
 		return "Admin/Admin_panel";
 		
 	}
