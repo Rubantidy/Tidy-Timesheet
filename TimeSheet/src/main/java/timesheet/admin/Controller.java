@@ -10,16 +10,10 @@ public class Controller {
 	public String M1() {
 		
 		System.out.println("Hello world");
-		return "Admin/Admin_panel.html";
+		return "Admin/Admin_panel";
 		
 	}
 	
-	
-	 @GetMapping("/addEmployee")
-	    public String addEmployee() {  
-	        // Save to DB (use a service layer)
-	        System.out.println("Saving Employee");
-	        return "redirect:/Admin/Admin_panel";
-	    }
+ 
 	
 }
