@@ -8,18 +8,15 @@ public class Controller {
 	 
 	@GetMapping("/landing")
 	public String M1() {
-
-		System.out.println("Landing Page");
-
+		
 		System.out.println("Hello world");
-
 		return "Admin/Admin_panel.html";
 		
 	}
 	
 	
 	 @GetMapping("/addEmployee")
-	    public String addEmployee() {
+	    public String addEmployee() {  
 	        // Save to DB (use a service layer)
 	        System.out.println("Saving Employee");
 	        return "redirect:/Admin/Admin_panel";
