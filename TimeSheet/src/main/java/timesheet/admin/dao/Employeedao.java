@@ -26,16 +26,16 @@ public class Employeedao {
 	
 	@NotEmpty(message = "Name is Required")
 	@JsonProperty("E-name")
-    private String eName;
+    private String E_Name;
 
     @JsonProperty("E-mail")
-    private String eMail;
+    private String E_Mail;
 
     @JsonProperty("E-pass")
-    private String ePass;
+    private String E_Password;
 
     @JsonProperty("E-role")
-    private String eRole;
+    private String E_Role;
 
     
 }

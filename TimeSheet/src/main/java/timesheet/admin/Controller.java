@@ -14,7 +14,7 @@ import timesheet.admin.repo.EmployeeRepo;
 public class Controller {
 	 
 	@Autowired
-	private EmployeeRepo EmpRepo;
+	private EmployeeRepo EmpRepo;  
 	
 	@GetMapping("/landing")
 	public String M1() {
