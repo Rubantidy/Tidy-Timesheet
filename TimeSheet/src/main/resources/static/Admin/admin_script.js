@@ -167,9 +167,9 @@ function createForm(type) {
         `,
         "delegates": `
             <div class="card p-3 mb-3">
-                <h4>Add Sub-Admin</h4>
-                <form action="/addSubAdmin" method="POST">
-                    ${inputField("Sub-Admin Name", "text", "SA-name")}
+                <h4>Add Delegate</h4>
+                <form action="/addDelegate" method="POST">
+                    ${inputField("Delegates Name", "text", "De-name")}
                     ${inputField("Email", "email", "SA-email")}
 					${inputField("Password", "text", "SA-pass")}
                     ${formButtons()}
@@ -218,7 +218,7 @@ function createForm(type) {
 		        <h4>Add Expense Code</h4>
 		        <form action="/addExpenseCode" method="POST">
 		            ${inputField("Expense Code", "text", "Ex-code")}
-					${selectField("Expense Name", "Ex-name", ["Network Expense", "Travel"])}
+					${selectField("Expense Name", "Ex-name", ["Select", "Network Expense", "Travel"])}
 		            ${formButtons()}
 		        </form>
 		   </div>
@@ -226,6 +226,41 @@ function createForm(type) {
     };
 
     return forms[type] || "<p>Form Not Found</p>";
+}
+
+function codeGenerate() {
+    const clientNameInput = document.getElementById("C-clientname");
+    const onboardDateInput = document.getElementById("C-onboard");
+    const chargeCodeInput = document.getElementById("C-code");
+    
+    if (!clientNameInput || !onboardDateInput || !chargeCodeInput) {
+        console.error("Missing input fields for Charge Code generation.");
+        return;
+    }
+    
+    if (chargeCodeInput.value) {
+        return; // Prevent regenerating if already generated
+    }
+    
+    const clientName = clientNameInput.value.trim().replace(/\s+/g, "").toUpperCase();
+    const onboardDate = onboardDateInput.value.replace(/-/g, "");
+    
+    if (!clientName || !onboardDate) {
+        alert("Please enter both Client Name and Onboard Date to generate the Charge Code.");
+        return;
+    }
+    
+    const codeKey = `${clientName}${onboardDate}`;
+    let lastIncrement = parseInt(localStorage.getItem(codeKey)) || 1;
+    const incrementedValue = String(lastIncrement).padStart(3, '0');
+    
+    const generatedCode = `${clientName}${onboardDate}td${incrementedValue}`;
+    chargeCodeInput.value = generatedCode;
+    chargeCodeInput.setAttribute("readonly", true);
+    chargeCodeInput.onkeydown = function(event) { event.preventDefault(); };
+    
+    lastIncrement++;
+    localStorage.setItem(codeKey, lastIncrement);
 }
 
 
@@ -242,12 +277,14 @@ function generatePassword(inputId) {
 }
 
 function inputField(label, type, name) {
-	const isPasswordField = name === "E-pass" || name === "SA-pass" || name === "C-code" || name === "P-code";
+    const isPasswordField = name === "E-pass" || name === "SA-pass" || name === "P-code";
+    const isChargeCodeField = name === "C-code";
     return `
         <div class="mb-3">
             <label class="form-label">${label}</label>
             <input type="${type}" class="form-control" name="${name}" id="${name}" required>
-			${isPasswordField ? `<button class="btn btn-outline-primary" type="button" onclick="generatePassword('${name}')" style="margin-top: 10px;">Generate</button>` : ""}
+            ${isPasswordField ? `<button class="btn btn-outline-primary" type="button" onclick="generatePassword('${name}')" style="margin-top: 10px;">Generate</button>` : ""}
+            ${isChargeCodeField ? `<button class="btn btn-outline-primary" type="button" onclick="codeGenerate()" style="margin-top: 10px;">Generate Charge Code</button>` : ""}
         </div>
     `;
 }
