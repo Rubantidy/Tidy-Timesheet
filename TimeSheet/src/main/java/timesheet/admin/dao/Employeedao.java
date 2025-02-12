@@ -27,10 +27,8 @@ public class Employeedao {
 
     @PrePersist
     protected void onCreate() {
-        createdDate = LocalDate.now(); // Set only date
+        createdDate = LocalDate.now(); 
     }
-
-   
 
 	public LocalDate getCreatedDate() {
 		return createdDate;
@@ -39,9 +37,6 @@ public class Employeedao {
 	public void setCreatedDate(LocalDate createdDate) {
 		this.createdDate = createdDate;
 	}
-
-
-
 
 	@JsonProperty("E-name")
     private String E_Name;

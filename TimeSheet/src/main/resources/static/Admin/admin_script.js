@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
             event.preventDefault();
             showContent(this.dataset.section);
             setActiveNavLink(this);
-            closeSidebarOnMobile(); // Hide sidebar after clicking a menu item (on mobile)
+            closeSidebarOnMobile(); 
         });
     });
 
