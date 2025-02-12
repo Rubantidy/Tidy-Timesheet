@@ -52,6 +52,7 @@ public class EmpController {
 
     private void sendEmployeeEmail(Employeedao EmpData) throws MessagingException, IOException {
 
+
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
@@ -61,10 +62,12 @@ public class EmpController {
         
         String emailContent = "<html><body>"
                 + "<h2>Welcome " + EmpData.getE_Name() + "!</h2>"
-                + "<p>Here are your Login Credentials:</p>"
+                + "<p>Here are your Temproray Login Credentials:</p>"
                 + "<p><b>Email:</b> " + EmpData.getE_Mail() + "</p>"
                 + "<p><b>Password:</b> " + EmpData.getE_Password() + "</p>"
-                + "<p><b>Role:</b> " + EmpData.getE_Role() + "</p>"
+                + "<p><b>Role:</b> " + EmpData.getE_Role() + "</p><br>"
+                + "<p><b>Tidy Timesheet URL - </b><a href=\"https://rm.tidyds.com\">https://rm.tidyds.com</a></p>\r\n"
+                + "<h3>Note*<p>After Login into Timesheet, Please update the User details</p>"
                 + "<img src='cid:logoImage' width='200'/>"
                 + "<p>Best Regards, <br>Tidy Digital Solutions</p>"
                 + "</body></html>";

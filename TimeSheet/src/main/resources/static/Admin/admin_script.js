@@ -69,7 +69,7 @@ function showContent(section) {
 }
 
 function fetchEmployeeData() {
-    fetch("/getEmployees") // Endpoint to fetch employee details
+    fetch("/getEmployees") 
         .then(response => response.json())
         .then(data => {
             const tableBody = document.getElementById("employee-table-body");
