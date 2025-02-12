@@ -1,17 +1,17 @@
 package timesheet.admin.dao;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 
+
+import java.time.LocalDate;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotEmpty;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
 
 @Entity
 @Table(name = "Employee")
@@ -21,7 +21,28 @@ public class Employeedao {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 	
-	@NotEmpty(message = "Name is Required")
+
+    private LocalDate createdDate; 
+
+
+    @PrePersist
+    protected void onCreate() {
+        createdDate = LocalDate.now(); // Set only date
+    }
+
+   
+
+	public LocalDate getCreatedDate() {
+		return createdDate;
+	}
+
+	public void setCreatedDate(LocalDate createdDate) {
+		this.createdDate = createdDate;
+	}
+
+
+
+
 	@JsonProperty("E-name")
     private String E_Name;
 
@@ -31,8 +52,10 @@ public class Employeedao {
     @JsonProperty("E-pass")
     private String E_Password;
 
-    @JsonProperty("E-role")
+	@JsonProperty("E-role")
     private String E_Role;
+    
+//    private boolean disabled = false;
 
 	public int getId() {
 		return id;
@@ -73,6 +96,14 @@ public class Employeedao {
 	public void setE_Role(String e_Role) {
 		E_Role = e_Role;
 	}
+	
+//	 public boolean isDisabled() {
+//			return disabled;
+//		}
+//
+//		public void setDisabled(boolean disabled) {
+//			this.disabled = disabled;
+//		}
 
 	@Override
 	public String toString() {

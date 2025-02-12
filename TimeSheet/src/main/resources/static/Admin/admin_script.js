@@ -36,7 +36,24 @@ function showContent(section) {
 				${createCard("bi bi-receipt", "Expense Codes", "50")}
             </div>
         `,
-		"manage-user": `<button class="btn btn-primary mb-3" id="addEmployeeBtn">Add Employee</button><div id="form-container"></div>`,
+		"manage-user": `<button class="btn btn-primary mb-3" id="addEmployeeBtn">Add Employee</button><div id="form-container"></div>
+		     <div id="form-container"></div>
+		           <h4>Employee List</h4>
+		           <table class="table table-striped">
+		               <thead>
+		                   <tr>
+						   		<th>ID</th>
+						   	  <th>Registered Date</th>
+		                       <th>Name</th>
+		                       <th>Email</th>
+							   <th>Password</th>
+		                       <th>Role</th>
+		                       <th>Action</th>
+		                   </tr>
+		               </thead>
+		               <tbody id="employee-table-body"></tbody>
+		           </table>
+		   `,
 		 "delegates": `<button class="btn btn-warning mb-3" id="addDelegateBtn">Add Delegates</button><div id="form-container"></div>`,
 		 "charge-code": `<button class="btn btn-info mb-3" id="addChargeCodeBtn">Add Code</button><div id="form-container"></div>`
     };
@@ -45,7 +62,37 @@ function showContent(section) {
     contentBox.innerHTML = sections[section] || "<p>Content Not Found</p>";
 
     attachFormListeners();
+	
+	if (section === "manage-user") {
+	        fetchEmployeeData();
+	    }
 }
+
+function fetchEmployeeData() {
+    fetch("/getEmployees") 
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById("employee-table-body");
+            tableBody.innerHTML = ""; 
+            data.forEach(employee => {
+                tableBody.innerHTML += `
+                    <tr>
+						<td>${employee.id}</td>
+					    <td>${employee.createdDate}</td>
+                        <td>${employee.e_Name}</td>
+                        <td>${employee.e_Mail}</td>
+						<td>${employee.e_Password}</td>
+                        <td>${employee.e_Role}</td>
+                        <td>
+                            <button class="btn btn-secondary btn-sm" onclick="deleteEmployee('${employee.id}')">Disable</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        })
+        .catch(error => console.error("Error fetching employees:", error));
+}
+
 
 function setActiveNavLink(activeLink) {
     document.querySelectorAll(".nav-link").forEach(link => link.classList.remove("active"));
