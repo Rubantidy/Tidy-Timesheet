@@ -264,6 +264,9 @@ function codeGenerate() {
 }
 
 
+
+
+
 function generatePassword(inputId) {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let randomPassword = "";
