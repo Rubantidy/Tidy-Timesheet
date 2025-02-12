@@ -1,6 +1,8 @@
 package timesheet.admin;
 
 import java.io.IOException;
+import java.time.LocalDate;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -17,7 +19,7 @@ import timesheet.admin.dao.Employeedao;
 import timesheet.admin.repo.EmployeeRepo;
 
 @org.springframework.stereotype.Controller
-public class Controller {
+public class EmpController {
 
     @Autowired
     private EmployeeRepo EmpRepo;
@@ -35,7 +37,7 @@ public class Controller {
     @PostMapping("/addEmployee")
     public ResponseEntity<String> addEmployee(@RequestBody Employeedao EmpData) throws IOException {
         System.out.println("Received Employee Data: " + EmpData);
-
+        EmpData.setCreatedDate(LocalDate.now());
         EmpRepo.save(EmpData);
 
         try {
@@ -59,11 +61,10 @@ public class Controller {
         
         String emailContent = "<html><body>"
                 + "<h2>Welcome " + EmpData.getE_Name() + "!</h2>"
-                + "<p>Here are your login details:</p>"
+                + "<p>Here are your Login Credentials:</p>"
                 + "<p><b>Email:</b> " + EmpData.getE_Mail() + "</p>"
                 + "<p><b>Password:</b> " + EmpData.getE_Password() + "</p>"
                 + "<p><b>Role:</b> " + EmpData.getE_Role() + "</p>"
-                + "<h3><b>This is Your Credentials for Login to Timesheet</b></h3><br>"
                 + "<img src='cid:logoImage' width='200'/>"
                 + "<p>Best Regards, <br>Tidy Digital Solutions</p>"
                 + "</body></html>";
@@ -75,5 +76,11 @@ public class Controller {
          
         // Send the email
         mailSender.send(message);
+    }
+
+    @GetMapping("/getEmployees")
+    public ResponseEntity<List<Employeedao>> getEmployees() {
+        List<Employeedao> employees = EmpRepo.findAll();
+        return ResponseEntity.ok(employees);
     }
 }
