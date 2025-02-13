@@ -323,7 +323,7 @@ function codeGenerate2() {
     }
     
     if (ProjectcodeInput.value) {
-        return; 
+        return;   
     }
     
     const ProjectName = ProjectNameInput.value.trim().replace(/\s+/g, "").toUpperCase();
