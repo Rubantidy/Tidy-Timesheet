@@ -84,6 +84,7 @@ public class EmpController {
     @GetMapping("/getEmployees")
     public ResponseEntity<List<Employeedao>> getEmployees() {
         List<Employeedao> employees = EmpRepo.findAll();
+        System.out.println(employees);
         return ResponseEntity.ok(employees);
     }
 }

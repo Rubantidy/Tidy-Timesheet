@@ -23,7 +23,6 @@
                 <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('manage-user')"><i class="bi bi-people me-2"></i> Manage Users</a></li>
                 <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('delegates')"><i class="bi bi-person-check me-2"></i> Delegates</a></li>
                 <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('charge-code')"><i class="bi bi-credit-card me-2"></i> Code Manage</a></li>
-               
             </ul>
         </nav>
         
@@ -35,7 +34,14 @@
                 <img src="img/logo.png" alt="Logo" height="40">
                 <div>
                     <i class="bi bi-bell"></i>
-                    <i class="bi bi-person-circle"></i>
+                    
+                    <i class="bi bi-person-circle" id="userIcon" onclick="toggleDropdown()"></i>
+                    
+                    
+                    <div id="userDropdown" class="dropdown-menu">
+                        <a href="#" class="dropdown-item">Change Password</a>
+                        <a href="#" class="dropdown-item">Super Admin</a>
+                    </div>
                 </div>
             </div>
             
@@ -50,5 +56,22 @@
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/Admin/admin_script.js"></script>
+
+    <script>
+        // Function to toggle the dropdown menu visibility
+        function toggleDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.style.display = (dropdown.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // Optional: Close dropdown when clicking outside of it
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('userDropdown');
+            const userIcon = document.getElementById('userIcon');
+            if (!userIcon.contains(event.target) && !dropdown.contains(event.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    </script>
 </body>
 </html>

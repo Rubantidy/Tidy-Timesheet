@@ -23,6 +23,10 @@ public class Codesdao {
 	@JsonProperty("C-clientname")
     private String clientName;
 	
+	@JsonProperty("P-type")
+	private String Project;
+	
+
 	@JsonProperty("C-onboard")
     private String onboardDate;
 	
@@ -33,16 +37,16 @@ public class Codesdao {
     private String description;
 	
 	@JsonProperty("C-code")
-    private String chargeCode;  
-
-    // Leave Code specific fields
+    private String chargeCode; 
 	
+    // Leave Code specific fields	
 	@JsonProperty("L-code")
     private String leaveCode;
 	
 	@JsonProperty("L-name")
     private String leaveName;
 
+	
 	public Long getId() {
 		return id;
 	}
@@ -59,6 +63,7 @@ public class Codesdao {
 		this.codeType = codeType;
 	}
 
+	
 	public String getClientName() {
 		return clientName;
 	}
@@ -67,6 +72,14 @@ public class Codesdao {
 		this.clientName = clientName;
 	}
 
+	public String getProject() {
+		return Project;
+	}
+
+	public void setProject(String project) {
+		Project = project;
+	}
+	
 	public String getOnboardDate() {
 		return onboardDate;
 	}
@@ -117,10 +130,18 @@ public class Codesdao {
 
 	@Override
 	public String toString() {
-		return "Codesdao [id=" + id + ", codeType=" + codeType + ", clientName=" + clientName + ", onboardDate="
-				+ onboardDate + ", country=" + country + ", description=" + description + ", chargeCode=" + chargeCode
-				+ ", leaveCode=" + leaveCode + ", leaveName=" + leaveName + "]";
-	} 
+		return "Codesdao [id=" + id + ", codeType=" + codeType + ", clientName=" + clientName + ", Project=" + Project
+				+ ", onboardDate=" + onboardDate + ", country=" + country + ", description=" + description
+				+ ", chargeCode=" + chargeCode + ", leaveCode=" + leaveCode + ", leaveName=" + leaveName + "]";
+	}
+
+	
+	
+	
+	
+	
+
+
 	
 	
 	

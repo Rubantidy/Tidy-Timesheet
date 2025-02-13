@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", function () {
             event.preventDefault();
             showContent(this.dataset.section);
             setActiveNavLink(this);
-            closeSidebarOnMobile(); // Hide sidebar after clicking a menu item (on mobile)
+            closeSidebarOnMobile(); 
         });
     });
 
@@ -42,8 +42,8 @@ function showContent(section) {
 		           <table class="table table-striped">
 		               <thead>
 		                   <tr>
-						   		<th>ID</th>
-						   	  <th>Registered Date</th>
+						   	  <th>ID</th>
+						   	   <th>Registered Date</th>
 		                       <th>Name</th>
 		                       <th>Email</th>
 							   <th>Password</th>
@@ -54,8 +54,41 @@ function showContent(section) {
 		               <tbody id="employee-table-body"></tbody>
 		           </table>
 		   `,
-		 "delegates": `<button class="btn btn-warning mb-3" id="addDelegateBtn">Add Delegates</button><div id="form-container"></div>`,
-		 "charge-code": `<button class="btn btn-info mb-3" id="addChargeCodeBtn">Add Code</button><div id="form-container"></div>`
+		   "delegates": `<button class="btn btn-warning mb-3" id="addDelegateBtn">Add Delegates</button><div id="form-container"></div>`,
+		   "charge-code": `<button class="btn btn-info mb-3" id="addChargeCodeBtn">Add Code</button><div id="form-container"></div>
+		    <div id="code-selection-container" class="mb-3">
+		 		<label>Select Code Type</label>
+		 			<div class="btn-group" role="group" aria-label="Code Type Selection">
+		 				<div><button type="button" class="btn btn-outline-secondary" id="chargeCodesBtn">Charge Codes</button></div>
+		 				<div><button type="button" class="btn btn-outline-secondary" id="expenseCodesBtn">Expense Codes</button></div>
+		 		</div>
+		 	</div>
+			<div style="display:block;">
+			
+			<div id="form-container"></div>
+			
+				           <h4>Employee List</h4>
+				           <table class="table table-striped2">
+				               <thead>
+				                   <tr>
+								   	  <th>ID</th>
+								   	   <th>Type</th>
+				                       <th>Client Name</th>
+									   <th>Charge code</th>
+									   <th>Leave Name</th>
+				                       <th>Leave code</th>
+									   <th>Project Type</th>
+									   <th>Start Date</th>
+									   <th>Country</th>
+									   <th>Description</th>
+				                       <th>Action</th>
+				                   </tr>
+				               </thead>
+				               <tbody id="code-table-body"></tbody>
+				           </table>
+			</div>
+
+		 `
     };
 
     title.innerText = section.replace("-", " ").replace(/\b\w/g, l => l.toUpperCase());
@@ -66,31 +99,60 @@ function showContent(section) {
 	if (section === "manage-user") {
 	        fetchEmployeeData();
 	    }
+		
+		if (section === "charge-code") {
+		       
+		       document.getElementById("chargeCodesBtn").addEventListener("click", function () {
+				fetchChargeCodes();
+		           
+		       });
+		       
+		       document.getElementById("expenseCodesBtn").addEventListener("click", function () {
+		           
+		       });
+		   }
 }
 
-function fetchEmployeeData() {
-    fetch("/getEmployees") 
+
+
+function fetchChargeCodes() {
+    fetch("/getChargecodes") 
         .then(response => response.json())
         .then(data => {
-            const tableBody = document.getElementById("employee-table-body");
+            console.log("Fetched Data:", data); // Debugging
+
+            const tableBody = document.getElementById("code-table-body");
             tableBody.innerHTML = ""; 
-            data.forEach(employee => {
+            
+            data.forEach(code => {
+                console.log("Processing Code:", code); // Debugging each row
+
                 tableBody.innerHTML += `
                     <tr>
-						<td>${employee.id}</td>
-					    <td>${employee.createdDate}</td>
-                        <td>${employee.e_Name}</td>
-                        <td>${employee.e_Mail}</td>
-						<td>${employee.e_Password}</td>
-                        <td>${employee.e_Role}</td>
+                        <td>${code.id}</td>
+                        <td>${code["C-type"]}</td>
+                        <td>${code["C-clientname"]}</td>
+                        <td>${code["C-code"]}</td>
+                        <td>${code["L-name"]}</td>
+                        <td>${code["L-code"]}</td>
+                        <td>${code["P-type"]}</td>
+                        <td>${code["C-onboard"]}</td>
+                        <td>${code["C-country"]}</td>
+                        <td>${code["C-desc"]}</td>                        
                         <td>
-                            <button class="btn btn-secondary btn-sm" onclick="deleteEmployee('${employee.id}')">Disable</button>
+                            <button class="btn btn-success btn-sm" onclick="deleteChargeCode(${code.id})">Finished</button>
                         </td>
                     </tr>
                 `;
             });
         })
-        .catch(error => console.error("Error fetching employees:", error));
+        .catch(error => console.error("Error fetching charge codes:", error));
+}
+
+
+function deleteChargeCode(id) {
+    
+    console.log(`Delete charge code with ID: ${id}`);
 }
 
 
@@ -132,20 +194,7 @@ function showDropdown() {
 
 function handleCodeSelection() {
     const selectedValue = document.getElementById("codeType").value;
-	const formContainer = document.getElementById("form-container");
-	if (selectedValue === "charge-code") {
-	        formContainer.innerHTML += `
-	            <div class="mb-3">
-	                <label class="form-label">Select Type</label>
-	                <select class="form-control" id="chargeType" onchange="handleChargeTypeSelection()">
-	                    <option value="">Select</option>
-	                    <option value="external">External</option>
-	                    <option value="internal">Internal</option>
-	                </select>
-	            </div>
-	            <div id="chargeFormContainer"></div>
-	        `;
-	    } else if (selectedValue) {
+	if (selectedValue) {
 	        showForm(selectedValue);
 	    }
 }
@@ -197,6 +246,57 @@ function hideForm() {
     document.getElementById("form-container").innerHTML = "";
 }
 
+/*Funtion for fetching Data form backend (Java)*/
+function fetchEmployeeData() {
+    fetch("/getEmployees") 
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById("employee-table-body");
+            tableBody.innerHTML = ""; 
+            data.forEach(employee => {
+                tableBody.innerHTML += `
+                    <tr>
+						<td>${employee.id}</td>
+					    <td>${employee.createdDate}</td>
+                        <td>${employee.e_Name}</td>
+                        <td>${employee.e_Mail}</td>
+						<td>${employee.e_Password}</td>
+                        <td>${employee.e_Role}</td>
+                        <td>
+                            <button class="btn btn-secondary btn-sm" onclick="deleteEmployee('${employee.id}')">Disable</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        })
+        .catch(error => console.error("Error fetching employees:", error));
+}
+
+function fetchChargecodes() {
+    fetch("/getChargecodes") 
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById("employee-table-body");
+            tableBody.innerHTML = ""; 
+            data.forEach(employee => {
+                tableBody.innerHTML += `
+                    <tr>
+						<td>${employee.id}</td>
+					    <td>${employee.createdDate}</td>
+                        <td>${employee.e_Name}</td>
+                        <td>${employee.e_Mail}</td>
+						<td>${employee.e_Password}</td>
+                        <td>${employee.e_Role}</td>
+                        <td>
+                            <button class="btn btn-secondary btn-sm" onclick="deleteEmployee('${employee.id}')">Disable</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        })
+        .catch(error => console.error("Error fetching employees:", error));
+}
+
 
 function createForm(type) {
     const forms = {
@@ -227,9 +327,10 @@ function createForm(type) {
             <div class="card p-3 mb-3">
                 <h4>Add Charge Code</h4>
                 <form action="/addChargeCode" method="POST">             
-				${selectField("Type", "C-type", ["External"])}
-				${inputField("Client", "text", "C-clientname")}
-				${inputField("Onboard Date", "date", "C-onboard")}
+				${selectField("Type", "C-type", ["External","Internal"])}
+				${inputField("Client/Organization", "text", "C-clientname")}
+				${selectField("Project Type", "P-type", ["Select","Web Application","Mobile Application","CMS","LMS"])}
+				${inputField("Onboard/Start date", "date", "C-onboard")}
 				${inputField("Country/Region", "text", "C-country")}
 				${textareaField("Description", "C-desc")}
 				${inputField("Charge Code", "text", "C-code")}
@@ -237,23 +338,11 @@ function createForm(type) {
                 </form>
             </div>
         `,
-		"internal-charge-code": `
-		            <div class="card p-3 mb-3">
-		                <h4>Add Internal Project Code</h4>
-		                <form action="/addChargeCode" method="POST">
-		                    ${selectField("Type", "C-type", ["Internal"])}
-		                    ${inputField("Project Name", "text", "P-name")}
-		                    ${inputField("Start Date", "date", "P-start")}
-		                    ${inputField("Project Code", "text", "P-code")}
-		                    ${formButtons()}
-		                </form>
-		            </div>
-		        `,
         "leave-code": `
             <div class="card p-3 mb-3">
                 <h4>Add Leave Code</h4>
-                <form action="/addLeaveCode" method="POST">
-                    ${inputField("Leave Code", "number", "L-code")}
+                <form action="/addChargeCode" method="POST">
+                    ${inputField("Leave Code", "text", "L-code")}
 					${inputField("Leave Name", "text", "L-name")}
                     ${formButtons()}
                 </form>
@@ -265,7 +354,7 @@ function createForm(type) {
 		        <h4>Add Expense Code</h4>
 		        <form action="/addExpenseCode" method="POST">
 		            ${inputField("Expense Code", "text", "Ex-code")}
-					${selectField("Expense Name", "Ex-name", ["Select", "Network Expense", "Travel"])}
+					${selectField("Expense Name", "Ex-type", ["Select", "Network Expense", "Travel"])}
 		            ${formButtons()}
 		        </form>
 		   </div>
@@ -302,7 +391,7 @@ function codeGenerate() {
     let lastIncrement = parseInt(localStorage.getItem(codeKey)) || 1;
     const incrementedValue = String(lastIncrement).padStart(3, '0');
     
-    const generatedCode = `${clientName}${onboardDate}tdE${incrementedValue}`;
+    const generatedCode = `${clientName}${onboardDate}td${incrementedValue}`;
     chargeCodeInput.value = generatedCode;
     chargeCodeInput.setAttribute("readonly", true);
     chargeCodeInput.onkeydown = function(event) { event.preventDefault(); };
@@ -311,7 +400,7 @@ function codeGenerate() {
     localStorage.setItem(codeKey, lastIncrement);
 }
 
-/*Internal code generator*/
+/*Internal code generator
 function codeGenerate2() {
     const ProjectNameInput = document.getElementById("P-name");
     const StartdateInput = document.getElementById("P-start");
@@ -323,7 +412,7 @@ function codeGenerate2() {
     }
     
     if (ProjectcodeInput.value) {
-        return;   
+        return; 
     }
     
     const ProjectName = ProjectNameInput.value.trim().replace(/\s+/g, "").toUpperCase();
@@ -346,6 +435,7 @@ function codeGenerate2() {
     lastIncrement++;
     localStorage.setItem(codeKey, lastIncrement);
 }
+*/
 
 
 
