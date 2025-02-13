@@ -14,23 +14,19 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "Employee")
+@Table(name = "Employee_details")
 public class Employeedao {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int id;
 	
-
-    private LocalDate createdDate; 
-
+	private LocalDate createdDate; 
 
     @PrePersist
     protected void onCreate() {
-        createdDate = LocalDate.now(); // Set only date
+        createdDate = LocalDate.now(); 
     }
-
-   
 
 	public LocalDate getCreatedDate() {
 		return createdDate;
@@ -39,7 +35,6 @@ public class Employeedao {
 	public void setCreatedDate(LocalDate createdDate) {
 		this.createdDate = createdDate;
 	}
-
 
 
 

@@ -240,7 +240,7 @@ function createForm(type) {
 		"internal-charge-code": `
 		            <div class="card p-3 mb-3">
 		                <h4>Add Internal Project Code</h4>
-		                <form action="/addInternalCode" method="POST">
+		                <form action="/addChargeCode" method="POST">
 		                    ${selectField("Type", "C-type", ["Internal"])}
 		                    ${inputField("Project Name", "text", "P-name")}
 		                    ${inputField("Start Date", "date", "P-start")}
@@ -275,6 +275,7 @@ function createForm(type) {
     return forms[type] || "<p>Form Not Found</p>";
 }
 
+/*External code generator*/
 function codeGenerate() {
     const clientNameInput = document.getElementById("C-clientname");
     const onboardDateInput = document.getElementById("C-onboard");
@@ -286,7 +287,7 @@ function codeGenerate() {
     }
     
     if (chargeCodeInput.value) {
-        return; // Prevent regenerating if already generated
+        return; 
     }
     
     const clientName = clientNameInput.value.trim().replace(/\s+/g, "").toUpperCase();
@@ -301,10 +302,46 @@ function codeGenerate() {
     let lastIncrement = parseInt(localStorage.getItem(codeKey)) || 1;
     const incrementedValue = String(lastIncrement).padStart(3, '0');
     
-    const generatedCode = `${clientName}${onboardDate}td${incrementedValue}`;
+    const generatedCode = `${clientName}${onboardDate}tdE${incrementedValue}`;
     chargeCodeInput.value = generatedCode;
     chargeCodeInput.setAttribute("readonly", true);
     chargeCodeInput.onkeydown = function(event) { event.preventDefault(); };
+    
+    lastIncrement++;
+    localStorage.setItem(codeKey, lastIncrement);
+}
+
+/*Internal code generator*/
+function codeGenerate2() {
+    const ProjectNameInput = document.getElementById("P-name");
+    const StartdateInput = document.getElementById("P-start");
+    const ProjectcodeInput = document.getElementById("P-code");
+    
+    if (!ProjectNameInput || !StartdateInput || !ProjectcodeInput) {
+        console.error("Missing input fields for Charge Code generation.");
+        return;
+    }
+    
+    if (ProjectcodeInput.value) {
+        return; 
+    }
+    
+    const ProjectName = ProjectNameInput.value.trim().replace(/\s+/g, "").toUpperCase();
+    const Startdate = StartdateInput.value.replace(/-/g, "");
+    
+    if (!ProjectName || !Startdate) {
+        alert("Please enter both Client Name and Onboard Date to generate the Charge Code.");
+        return;
+    }
+    
+    const codeKey = `${ProjectName}${Startdate}`;
+    let lastIncrement = parseInt(localStorage.getItem(codeKey)) || 1;
+    const incrementedValue = String(lastIncrement).padStart(3, '0');
+    
+    const generatedCode = `${ProjectName}${Startdate}tdI${incrementedValue}`;
+    ProjectcodeInput.value = generatedCode;
+    ProjectcodeInput.setAttribute("readonly", true);
+    ProjectcodeInput.onkeydown = function(event) { event.preventDefault(); };
     
     lastIncrement++;
     localStorage.setItem(codeKey, lastIncrement);
@@ -327,15 +364,17 @@ function generatePassword(inputId) {
 }
 
 function inputField(label, type, name) {
-    const isPasswordField = name === "E-pass" || name === "SA-pass" || name === "P-code";
+    const isPasswordField = name === "E-pass" || name === "SA-pass" ;
     const isChargeCodeField = name === "C-code";
+	const isInternalCodeField = name === "P-code";
     return `
         <div class="mb-3">
             <label class="form-label">${label}</label>
             <input type="${type}" class="form-control" name="${name}" id="${name}" required>
             ${isPasswordField ? `<button class="btn btn-outline-primary" type="button" onclick="generatePassword('${name}')" style="margin-top: 10px;">Generate</button>` : ""}
             ${isChargeCodeField ? `<button class="btn btn-outline-primary" type="button" onclick="codeGenerate()" style="margin-top: 10px;">Generate Charge Code</button>` : ""}
-        </div>
+			${isInternalCodeField ? `<button class="btn btn-outline-primary" type="button" onclick="codeGenerate2()" style="margin-top: 10px;">Generate Charge Code</button>` : ""}
+			</div>
     `;
 }
 
