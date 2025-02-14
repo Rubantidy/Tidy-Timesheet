@@ -2,7 +2,10 @@ package timesheet.admin;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -15,7 +18,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import timesheet.admin.dao.Delegatedao;
 import timesheet.admin.dao.Employeedao;
+import timesheet.admin.repo.DelegateRepo;
 import timesheet.admin.repo.EmployeeRepo;
 
 @org.springframework.stereotype.Controller
@@ -23,6 +28,9 @@ public class EmpController {
 
     @Autowired
     private EmployeeRepo EmpRepo;
+    
+    @Autowired
+    private DelegateRepo Delrepo;
 
     @Autowired
     private JavaMailSender mailSender;  
@@ -34,7 +42,7 @@ public class EmpController {
 
     @PostMapping("/addEmployee")
     public ResponseEntity<String> addEmployee(@RequestBody Employeedao EmpData) throws IOException {
-        System.out.println("Received Employee Data: " + EmpData);
+        
         EmpData.setCreatedDate(LocalDate.now());
         EmpRepo.save(EmpData);
 
@@ -82,9 +90,37 @@ public class EmpController {
     @GetMapping("/getEmployees")
     public ResponseEntity<List<Employeedao>> getEmployees() {
         List<Employeedao> employees = EmpRepo.findAll();
-        System.out.println(employees);
         return ResponseEntity.ok(employees);
     }
+    
+    //Get Employee for display in the delegate form
+    @GetMapping("/getEmployeedata")
+    public ResponseEntity<List<Map<String, String>>> getEmployeeData() {
+        List<Employeedao> employees = EmpRepo.findAll(); // Fetch from DB
+        List<Map<String, String>> employeeList = new ArrayList<>();
+
+        for (Employeedao emp : employees) {
+            Map<String, String> map = new HashMap<>();
+            map.put("name", emp.getE_Name()); // Assuming `getEname()` returns employee name
+            map.put("email", emp.getE_Mail()); // Assuming `getEmail()` returns email
+            employeeList.add(map);
+        }
+
+        return ResponseEntity.ok(employeeList);
+    }
+    
+    @PostMapping("/addDelegate")
+    public ResponseEntity<String> addExpense(@RequestBody Delegatedao Dele) {
+    	Delrepo.save(Dele);
+    	return ResponseEntity.ok("Delegator Data Saved Successfully");
+    }
+    
+    @GetMapping("/getDelegator")
+    public ResponseEntity<List<Delegatedao>> getDelegators() {
+        List<Delegatedao> Delegator = Delrepo.findAll();
+        return ResponseEntity.ok(Delegator);
+    }
+    
     
     
 }

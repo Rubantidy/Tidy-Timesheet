@@ -54,7 +54,19 @@ function showContent(section) {
 		               <tbody id="employee-table-body"></tbody>
 		           </table>
 		   `,
-		   "delegates": `<button class="btn btn-warning mb-3" id="addDelegateBtn">Add Delegates</button><div id="form-container"></div>`,
+		   "delegates": `<button class="btn btn-warning mb-3" id="addDelegateBtn">Add Delegates</button><div id="form-container"></div>
+		   <table class="table table-striped">
+		   		   		   		<thead>
+		   		   		   		   <tr>
+		   		   		   				<th>ID</th>
+		   		   		   		         <th>Delegator Name</th>
+		   		   		   		          <th>Delegator Email</th>
+		   		   		   		          <th>Action</th>
+		   		   		   		     </tr>
+		   		   		   		  </thead>
+		   		   		   	 <tbody id="Delegate-table-body"></tbody>
+		   		   		  </table>
+		   `,
 		   "charge-code": `<button class="btn btn-info mb-3" id="addChargeCodeBtn">Add Code</button><div id="form-container"></div> 
 		   <h4>Charge Code List</h4>
 		   		           <table class="table table-striped">
@@ -103,8 +115,11 @@ function showContent(section) {
 		fetchCodeDatas();
 	}
 	else if(section === "expense-code") {
-		console.log("Fetching Expense Data...");
+
 		fetchExpense();
+	}
+	else if(section === "delegates") {
+		fetchDelegator();
 	}
 		
 		
@@ -272,6 +287,28 @@ function fetchExpense() {
 }
 
 
+function fetchDelegator() {
+    fetch("/getDelegator") 
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById("Delegate-table-body");
+            tableBody.innerHTML = ""; 
+            data.forEach(Delegator => {
+                tableBody.innerHTML += `
+				<tr>
+				    <td>${Delegator.id}</td>
+				    <td>${Delegator["D-name"]}</td>  <!-- Use correct JSON key -->
+				     <td>${Delegator["SA-email"]}</td>  <!-- Use correct JSON key -->
+				      <td>
+				      <button class="btn btn-success btn-sm" onclick="editExpense('${Delegator.id}')">Edit</button>
+				   </td>
+				                 
+                `;
+            });
+        })
+        .catch(error => console.error("Error fetching Delegator Details:", error));
+}
+
 
 function createForm(type) {
     const forms = {
@@ -288,15 +325,24 @@ function createForm(type) {
             </div>
         `,
         "delegates": `
-            <div class="card p-3 mb-3">
-                <h4>Add Delegate</h4>
-                <form action="/addDelegate" method="POST">
-                    ${inputField("Delegates Name", "text", "De-name")}
-                    ${inputField("Email", "email", "SA-email")}
-					${inputField("Password", "text", "SA-pass")}
-                    ${formButtons()}
-                </form>
-            </div>
+		<div class="card p-3 mb-3">
+		                <h4>Add Delegate</h4>
+						<form action="/addDelegate" method="POST">
+						<div class="mb-3">
+						               <label class="form-label">Delegates Name</label>
+						               <select id="delegateName" name="D-name" class="form-control" onchange="updateDelegateEmail()" required>
+						                   <option value="">Select Employee</option>
+						               </select>
+						           </div>
+
+						           <div class="mb-3">
+						               <label class="form-label">Email</label>
+						               <input type="email" id="delegateEmail" name="SA-email" class="form-control" required >
+						           </div>
+						           
+						            ${formButtons()}
+						        </form>
+		            </div>
         `,
         "charge-code": `
             <div class="card p-3 mb-3">
@@ -336,9 +382,39 @@ function createForm(type) {
 		   </div>
 		`
     };
+	setTimeout(fetchEmfordeg, 0);
 
     return forms[type] || "<p>Form Not Found</p>";
 }
+
+
+/* Function for fetching User detials in the db for making delegate*/
+function fetchEmfordeg() {
+	fetch("/getEmployeedata")
+	       .then(response => response.json())
+	       .then(data => {
+	           const dropdown = document.getElementById("delegateName");
+	           if (!dropdown) return;
+
+	           dropdown.innerHTML = '<option value="">Select Employee</option>'; // Reset options
+
+	           data.forEach(employee => {
+	               let option = document.createElement("option");
+	               option.value = employee.name;  // Store the actual name
+	               option.textContent = employee.name; // Show name
+	               option.dataset.email = employee.email; // Store email in dataset
+	               dropdown.appendChild(option);
+	           });
+	       })
+	       .catch(error => console.error("Error fetching employee data:", error));
+	}
+function updateDelegateEmail() {
+	    const dropdown = document.getElementById("delegateName");
+	    const emailField = document.getElementById("delegateEmail");
+
+	    const selectedOption = dropdown.options[dropdown.selectedIndex]; // Get selected option
+	    emailField.value = selectedOption.dataset.email || ""; // Set email dynamically
+	}
 
 /*External code generator*/
 function codeGenerate() {
