@@ -112,8 +112,6 @@ function showContent(section) {
 
 
 
-
-
 function setActiveNavLink(activeLink) {
     document.querySelectorAll(".nav-link").forEach(link => link.classList.remove("active"));
     activeLink.classList.add("active");
