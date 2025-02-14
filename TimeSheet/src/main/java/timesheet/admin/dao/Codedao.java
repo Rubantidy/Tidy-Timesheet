@@ -8,20 +8,20 @@ import jakarta.persistence.Table;
 
 
 @Entity
-@Table(name = "Codes")
+@Table(name = "Codes_details")
 public class Codedao {
 
 	@Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private String codeType;   // "Charge code" or "Leave code"
-    private String code;       // Stores Charge Code or Leave Code
-    private String clientName; // Client Name (Charge Code form) or "-"
-    private String projectType;// Project Type (Charge Code form) or "-"
-    private String startDate;  // Start Date (Charge Code form) or "-"
-    private String country;    // Country (Charge Code form) or "-"
-    private String description;// Stores Description (Charge Code form) or Leave Name (Leave Code form)
+    private String codeType;  
+    private String code;      
+    private String clientName; 
+    private String projectType;
+    private String startDate;  
+    private String country;    
+    private String description;
 
     public Codedao() {}
 

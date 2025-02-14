@@ -55,7 +55,40 @@ function showContent(section) {
 		           </table>
 		   `,
 		   "delegates": `<button class="btn btn-warning mb-3" id="addDelegateBtn">Add Delegates</button><div id="form-container"></div>`,
-		   "charge-code": `<button class="btn btn-info mb-3" id="addChargeCodeBtn">Add Code</button><div id="form-container"></div> `
+		   "charge-code": `<button class="btn btn-info mb-3" id="addChargeCodeBtn">Add Code</button><div id="form-container"></div> 
+		   <h4>Charge Code List</h4>
+		   		           <table class="table table-striped">
+		   		               <thead>
+		   		                   <tr>
+		   						   	  <th>ID</th>
+		   						   	   <th>Code Type</th>
+		   		                       <th>Code</th>
+		   		                       <th>Client Name</th>
+		   							   <th>Description</th>
+		   		                       <th>Project Type</th>
+									   <th>Start date </th>
+									   <th>Country</th>
+		   		                       <th>Action</th>
+		   		                   </tr>
+		   		               </thead>
+		   		               <tbody id="code-table-body"></tbody>
+		   		           </table>
+		   `,
+		   "expense-code": `<button class="btn btn-info mb-3" id="addExpenseCodeBtn">Add Expense Code</button><div id="form-container"></div>
+		   <h4>Expense Code List</h4>
+		   		  <table class="table table-striped">
+		   		   		<thead>
+		   		   		   <tr>
+		   		   				<th>ID</th>
+		   		   		         <th>Expense Code</th>
+		   		   		          <th>Expense Type</th>
+		   		   		          <th>Action</th>
+		   		   		     </tr>
+		   		   		  </thead>
+		   		   	 <tbody id="Expense-table-body"></tbody>
+		   		  </table>
+		   		   
+		    `
     };
 
     title.innerText = section.replace("-", " ").replace(/\b\w/g, l => l.toUpperCase());
@@ -66,61 +99,19 @@ function showContent(section) {
 	if (section === "manage-user") {
 	        fetchEmployeeData();
 	    }
+	else if(section === "charge-code") {
+		fetchCodeDatas();
+	}
+	else if(section === "expense-code") {
+		console.log("Fetching Expense Data...");
+		fetchExpense();
+	}
 		
-		if (section === "charge-code") {
-		       
-		       document.getElementById("chargeCodesBtn").addEventListener("click", function () {
-				fetchChargeCodes();
-		           
-		       });
-		       
-		       document.getElementById("expenseCodesBtn").addEventListener("click", function () {
-		           
-		       });
-		   }
+		
 }
 
 
-/*
-function fetchChargeCodes() {
-    fetch("/getChargecodes") 
-        .then(response => response.json())
-        .then(data => {
-            console.log("Fetched Data:", data); // Debugging
 
-            const tableBody = document.getElementById("code-table-body");
-            tableBody.innerHTML = ""; 
-            
-            data.forEach(code => {
-                console.log("Processing Code:", code); // Debugging each row
-
-                tableBody.innerHTML += `
-                    <tr>
-                        <td>${code.id}</td>
-                        <td>${code["C-type"]}</td>
-                        <td>${code["C-clientname"]}</td>
-                        <td>${code["C-code"]}</td>
-                        <td>${code["L-name"]}</td>
-                        <td>${code["L-code"]}</td>
-                        <td>${code["P-type"]}</td>
-                        <td>${code["C-onboard"]}</td>
-                        <td>${code["C-country"]}</td>
-                        <td>${code["C-desc"]}</td>                        
-                        <td>
-                            <button class="btn btn-success btn-sm" onclick="deleteChargeCode(${code.id})">Finished</button>
-                        </td>
-                    </tr>
-                `;
-            });
-        })
-        .catch(error => console.error("Error fetching charge codes:", error));
-} 
-
-
-function deleteChargeCode(id) {
-    
-    console.log(`Delete charge code with ID: ${id}`);
-} */
 
 
 function setActiveNavLink(activeLink) {
@@ -142,6 +133,7 @@ function attachFormListeners() {
     document.getElementById("addEmployeeBtn")?.addEventListener("click", () => showForm("employee"));
     document.getElementById("addDelegateBtn")?.addEventListener("click", () => showForm("delegates"));
     document.getElementById("addChargeCodeBtn")?.addEventListener("click", showDropdown);
+	document.getElementById("addExpenseCodeBtn")?.addEventListener("click", () => showForm("Expense-code"));
 }
 
 function showDropdown() {
@@ -153,7 +145,6 @@ function showDropdown() {
                 <option value="">Select</option>
                 <option value="charge-code">Charge Code</option>
                 <option value="leave-code">Leave Code</option>
-                <option value="Expense-code">Expense Code</option>
             </select>
         </div>
     `;
@@ -166,17 +157,7 @@ function handleCodeSelection() {
 	    }
 }
 
-/*
-function handleChargeTypeSelection() {
-    const selectedType = document.getElementById("chargeType").value;
-    const chargeFormContainer = document.getElementById("chargeFormContainer");
 
-    if (selectedType === "external") {
-        chargeFormContainer.innerHTML = createForm("charge-code");
-    } else if (selectedType === "internal") {
-        chargeFormContainer.innerHTML = createForm("internal-charge-code");
-    }
-}*/
 
 function showForm(type) {
     const formContainer = document.getElementById("form-container");
@@ -215,6 +196,8 @@ function hideForm() {
 }
 
 /*Funtion for fetching Data form backend (Java)*/
+
+/*Fetch Employee Data*/
 function fetchEmployeeData() {
     fetch("/getEmployees") 
         .then(response => response.json())
@@ -238,6 +221,56 @@ function fetchEmployeeData() {
             });
         })
         .catch(error => console.error("Error fetching employees:", error));
+}
+
+/*Fetch Charge codes*/
+function fetchCodeDatas() {
+    fetch("/getChargecodes") 
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById("code-table-body");
+            tableBody.innerHTML = ""; 
+            data.forEach(code => {
+                tableBody.innerHTML += `
+                    <tr>
+						<td>${code.id}</td>
+					    <td>${code.codeType}</td>
+                        <td>${code.code}</td>
+                        <td>${code.clientName}</td>
+						<td>${code.description}</td>
+                        <td>${code.projectType}</td>
+						<td>${code.startDate}</td>
+						<td>${code.country}</td>
+                        <td>
+                            <button class="btn btn-success btn-sm" onclick="finishchargecode('${code.id}')">Finish</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        })
+        .catch(error => console.error("Error fetching Charge code:", error));
+}
+
+function fetchExpense() {
+    fetch("/getExpensecode") 
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById("Expense-table-body");
+            tableBody.innerHTML = ""; 
+            data.forEach(ExCode => {
+                tableBody.innerHTML += `
+				<tr>
+				    <td>${ExCode.id}</td>
+				    <td>${ExCode["Ex-code"]}</td>  <!-- Use correct JSON key -->
+				     <td>${ExCode["Ex-type"]}</td>  <!-- Use correct JSON key -->
+				      <td>
+				      <button class="btn btn-success btn-sm" onclick="editExpense('${ExCode.id}')">Edit</button>
+				   </td>
+				                 
+                `;
+            });
+        })
+        .catch(error => console.error("Error fetching Expense Details:", error));
 }
 
 
@@ -277,7 +310,7 @@ function createForm(type) {
 				${inputField("Onboard/Start date", "date", "startDate")}
 				${inputField("Country/Region", "text", "country")}
 				${textareaField("Description", "description")}
-				${inputField("Charge Code", "text", "code")}
+				${inputField("Charge Code", "text", "code", "charge-code")}
 				${formButtons()}
                 </form>
             </div>
@@ -287,7 +320,7 @@ function createForm(type) {
                 <h4>Add Leave Code</h4>
                 <form action="/addChargeCode" method="POST">
 				    ${selectField("Code Type", "codeType", ["Leave code"])} 
-                    ${inputField("Leave Code", "text", "code")}
+                    ${inputField("Leave Code", "text", "code", "leave-code")}
 					${inputField("Leave Name", "text", "description")}
                     ${formButtons()}
                 </form>
@@ -358,16 +391,19 @@ function generatePassword(inputId) {
 	    inputField.onkeydown = function(event) { event.preventDefault(); };
 }
 
-function inputField(label, type, name) {
-    const isPasswordField = name === "E-pass" || name === "SA-pass" ;
-    const isChargeCodeField = name === "code";
+function inputField(label, type, name, formType = "") {
+    const isPasswordField = name === "E-pass" || name === "SA-pass";
+    
+
+		const isChargeCodeField = name === "code" && formType === "charge-code";
+    
     return `
         <div class="mb-3">
             <label class="form-label">${label}</label>
             <input type="${type}" class="form-control" name="${name}" id="${name}" required>
             ${isPasswordField ? `<button class="btn btn-outline-primary" type="button" onclick="generatePassword('${name}')" style="margin-top: 10px;">Generate</button>` : ""}
             ${isChargeCodeField ? `<button class="btn btn-outline-primary" type="button" onclick="codeGenerate()" style="margin-top: 10px;">Generate Charge Code</button>` : ""}
-			</div>
+        </div>
     `;
 }
 
