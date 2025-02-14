@@ -151,24 +151,6 @@ body {
     }
 }
 
-/* Optional: Add styling for the table */
-.table {
-    width: 100%; /* Ensure the table width takes up full space */
-}
 
-.table th, .table td {
-    padding: 8px;
-    text-align: left;
-	
-}
-
-.table  {
-	overflow-x: scroll;
-	display: inline-block;
-}
-
-#form-container {
-    margin-bottom: 20px;
-}
 
 

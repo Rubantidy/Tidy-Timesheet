@@ -55,40 +55,7 @@ function showContent(section) {
 		           </table>
 		   `,
 		   "delegates": `<button class="btn btn-warning mb-3" id="addDelegateBtn">Add Delegates</button><div id="form-container"></div>`,
-		   "charge-code": `<button class="btn btn-info mb-3" id="addChargeCodeBtn">Add Code</button><div id="form-container"></div>
-		    <div id="code-selection-container" class="mb-3">
-		 		<label>Select Code Type</label>
-		 			<div class="btn-group" role="group" aria-label="Code Type Selection">
-		 				<div><button type="button" class="btn btn-outline-secondary" id="chargeCodesBtn">Charge Codes</button></div>
-		 				<div><button type="button" class="btn btn-outline-secondary" id="expenseCodesBtn">Expense Codes</button></div>
-		 		</div>
-		 	</div>
-			<div style="display:block;">
-			
-			<div id="form-container"></div>
-			
-				           <h4>Employee List</h4>
-				           <table class="table table-striped2">
-				               <thead>
-				                   <tr>
-								   	  <th>ID</th>
-								   	   <th>Type</th>
-				                       <th>Client Name</th>
-									   <th>Charge code</th>
-									   <th>Leave Name</th>
-				                       <th>Leave code</th>
-									   <th>Project Type</th>
-									   <th>Start Date</th>
-									   <th>Country</th>
-									   <th>Description</th>
-				                       <th>Action</th>
-				                   </tr>
-				               </thead>
-				               <tbody id="code-table-body"></tbody>
-				           </table>
-			</div>
-
-		 `
+		   "charge-code": `<button class="btn btn-info mb-3" id="addChargeCodeBtn">Add Code</button><div id="form-container"></div> `
     };
 
     title.innerText = section.replace("-", " ").replace(/\b\w/g, l => l.toUpperCase());
@@ -114,7 +81,7 @@ function showContent(section) {
 }
 
 
-
+/*
 function fetchChargeCodes() {
     fetch("/getChargecodes") 
         .then(response => response.json())
@@ -147,13 +114,13 @@ function fetchChargeCodes() {
             });
         })
         .catch(error => console.error("Error fetching charge codes:", error));
-}
+} 
 
 
 function deleteChargeCode(id) {
     
     console.log(`Delete charge code with ID: ${id}`);
-}
+} */
 
 
 function setActiveNavLink(activeLink) {
@@ -199,6 +166,7 @@ function handleCodeSelection() {
 	    }
 }
 
+/*
 function handleChargeTypeSelection() {
     const selectedType = document.getElementById("chargeType").value;
     const chargeFormContainer = document.getElementById("chargeFormContainer");
@@ -208,7 +176,7 @@ function handleChargeTypeSelection() {
     } else if (selectedType === "internal") {
         chargeFormContainer.innerHTML = createForm("internal-charge-code");
     }
-}
+}*/
 
 function showForm(type) {
     const formContainer = document.getElementById("form-container");
@@ -272,30 +240,6 @@ function fetchEmployeeData() {
         .catch(error => console.error("Error fetching employees:", error));
 }
 
-function fetchChargecodes() {
-    fetch("/getChargecodes") 
-        .then(response => response.json())
-        .then(data => {
-            const tableBody = document.getElementById("employee-table-body");
-            tableBody.innerHTML = ""; 
-            data.forEach(employee => {
-                tableBody.innerHTML += `
-                    <tr>
-						<td>${employee.id}</td>
-					    <td>${employee.createdDate}</td>
-                        <td>${employee.e_Name}</td>
-                        <td>${employee.e_Mail}</td>
-						<td>${employee.e_Password}</td>
-                        <td>${employee.e_Role}</td>
-                        <td>
-                            <button class="btn btn-secondary btn-sm" onclick="deleteEmployee('${employee.id}')">Disable</button>
-                        </td>
-                    </tr>
-                `;
-            });
-        })
-        .catch(error => console.error("Error fetching employees:", error));
-}
 
 
 function createForm(type) {
@@ -326,14 +270,14 @@ function createForm(type) {
         "charge-code": `
             <div class="card p-3 mb-3">
                 <h4>Add Charge Code</h4>
-                <form action="/addChargeCode" method="POST">             
-				${selectField("Type", "C-type", ["External","Internal"])}
-				${inputField("Client/Organization", "text", "C-clientname")}
-				${selectField("Project Type", "P-type", ["Select","Web Application","Mobile Application","CMS","LMS"])}
-				${inputField("Onboard/Start date", "date", "C-onboard")}
-				${inputField("Country/Region", "text", "C-country")}
-				${textareaField("Description", "C-desc")}
-				${inputField("Charge Code", "text", "C-code")}
+                <form action="/addChargeCode" method="POST">  
+				${selectField("Code Type", "codeType", ["Charge code"])}        
+				${selectField("Project Type", "projectType", ["External","Internal"])}
+				${inputField("Client/Organization", "text", "clientName")}
+				${inputField("Onboard/Start date", "date", "startDate")}
+				${inputField("Country/Region", "text", "country")}
+				${textareaField("Description", "description")}
+				${inputField("Charge Code", "text", "code")}
 				${formButtons()}
                 </form>
             </div>
@@ -342,8 +286,9 @@ function createForm(type) {
             <div class="card p-3 mb-3">
                 <h4>Add Leave Code</h4>
                 <form action="/addChargeCode" method="POST">
-                    ${inputField("Leave Code", "text", "L-code")}
-					${inputField("Leave Name", "text", "L-name")}
+				    ${selectField("Code Type", "codeType", ["Leave code"])} 
+                    ${inputField("Leave Code", "text", "code")}
+					${inputField("Leave Name", "text", "description")}
                     ${formButtons()}
                 </form>
             </div>
@@ -366,9 +311,9 @@ function createForm(type) {
 
 /*External code generator*/
 function codeGenerate() {
-    const clientNameInput = document.getElementById("C-clientname");
-    const onboardDateInput = document.getElementById("C-onboard");
-    const chargeCodeInput = document.getElementById("C-code");
+    const clientNameInput = document.getElementById("clientName");
+    const onboardDateInput = document.getElementById("startDate");
+    const chargeCodeInput = document.getElementById("code");
     
     if (!clientNameInput || !onboardDateInput || !chargeCodeInput) {
         console.error("Missing input fields for Charge Code generation.");
@@ -400,46 +345,6 @@ function codeGenerate() {
     localStorage.setItem(codeKey, lastIncrement);
 }
 
-/*Internal code generator
-function codeGenerate2() {
-    const ProjectNameInput = document.getElementById("P-name");
-    const StartdateInput = document.getElementById("P-start");
-    const ProjectcodeInput = document.getElementById("P-code");
-    
-    if (!ProjectNameInput || !StartdateInput || !ProjectcodeInput) {
-        console.error("Missing input fields for Charge Code generation.");
-        return;
-    }
-    
-    if (ProjectcodeInput.value) {
-        return; 
-    }
-    
-    const ProjectName = ProjectNameInput.value.trim().replace(/\s+/g, "").toUpperCase();
-    const Startdate = StartdateInput.value.replace(/-/g, "");
-    
-    if (!ProjectName || !Startdate) {
-        alert("Please enter both Client Name and Onboard Date to generate the Charge Code.");
-        return;
-    }
-    
-    const codeKey = `${ProjectName}${Startdate}`;
-    let lastIncrement = parseInt(localStorage.getItem(codeKey)) || 1;
-    const incrementedValue = String(lastIncrement).padStart(3, '0');
-    
-    const generatedCode = `${ProjectName}${Startdate}tdI${incrementedValue}`;
-    ProjectcodeInput.value = generatedCode;
-    ProjectcodeInput.setAttribute("readonly", true);
-    ProjectcodeInput.onkeydown = function(event) { event.preventDefault(); };
-    
-    lastIncrement++;
-    localStorage.setItem(codeKey, lastIncrement);
-}
-*/
-
-
-
-
 
 function generatePassword(inputId) {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
@@ -455,15 +360,13 @@ function generatePassword(inputId) {
 
 function inputField(label, type, name) {
     const isPasswordField = name === "E-pass" || name === "SA-pass" ;
-    const isChargeCodeField = name === "C-code";
-	const isInternalCodeField = name === "P-code";
+    const isChargeCodeField = name === "code";
     return `
         <div class="mb-3">
             <label class="form-label">${label}</label>
             <input type="${type}" class="form-control" name="${name}" id="${name}" required>
             ${isPasswordField ? `<button class="btn btn-outline-primary" type="button" onclick="generatePassword('${name}')" style="margin-top: 10px;">Generate</button>` : ""}
             ${isChargeCodeField ? `<button class="btn btn-outline-primary" type="button" onclick="codeGenerate()" style="margin-top: 10px;">Generate Charge Code</button>` : ""}
-			${isInternalCodeField ? `<button class="btn btn-outline-primary" type="button" onclick="codeGenerate2()" style="margin-top: 10px;">Generate Charge Code</button>` : ""}
 			</div>
     `;
 }

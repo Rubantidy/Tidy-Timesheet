@@ -1,68 +1,52 @@
 package timesheet.admin;
 
-import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
-import timesheet.admin.dao.Codesdao;
-import timesheet.admin.dao.Expensedao;
+import timesheet.admin.dao.Codedao;
 import timesheet.admin.repo.CodeRepo;
-import timesheet.admin.repo.ExpenseRepo;
 
 @Component
-@Controller
+@RestController
 public class CodeController {
-	
-		@Autowired
-		private CodeRepo Crepo;
-		
-		@Autowired  
-		private ExpenseRepo Erepo;
-	
 
-	    @PostMapping("/addChargeCode")
-	    public ResponseEntity<String> addCodes(@RequestBody Codesdao code) {
-	        
-	        if ("charge-code".equals(code.getCodeType())) {
-	           
-	            code.setLeaveCode(null);
-	            code.setLeaveName(null);
-	        } else if ("leave-code".equals(code.getCodeType())) {
-	       
-	            code.setProject(null);
-	        	code.setClientName(null);
-	            code.setOnboardDate(null);
-	            code.setCountry(null);
-	            code.setDescription(null);
-	            code.setChargeCode(null);
-	        }
+	  @Autowired
+	    private CodeRepo codeRepository;
 
-	        
-	        Crepo.save(code);
-	        System.out.println(code);
-	        return ResponseEntity.ok("Charge code was successully saved");
-	    }
-	    
-	    
-	    @GetMapping("/getChargecodes")
-	    public ResponseEntity<List<Codesdao>> getChargeCodes() {
-	        List<Codesdao> codesList = Crepo.findAll(); 
-	        System.out.println(codesList);
-	        return ResponseEntity.ok(codesList);
-	    }
-	    
-	    
-	    @PostMapping("/addExpenseCode")
-	    public ResponseEntity<String> addExpense(@RequestBody Expensedao expense) {
+	    // Endpoint to add Charge Code
+	  @PostMapping("/addChargeCode")
+	    public String addChargeCode(@RequestBody Map<String, String> requestData) {
+		  System.out.println("Received Data: " + requestData);
+	        String codeType = requestData.getOrDefault("codeType", "-");
+	        String code = requestData.getOrDefault("code", "-");
+	        String clientName = requestData.getOrDefault("clientName", "-");
+	        String projectType = requestData.getOrDefault("projectType", "-");
+	        String startDate = requestData.getOrDefault("startDate", "-");
+	        String country = requestData.getOrDefault("country", "-");
+	        String description = requestData.getOrDefault("description", "-");
 
-	    	Erepo.save(expense);
-	    	return ResponseEntity.ok("Expense Details saved Successfully");
+	        Codedao newChargeCode = new Codedao(codeType, code, clientName, projectType, startDate, country, description);
+	        codeRepository.save(newChargeCode);
+
+	        return "Charge Code added successfully!";
 	    }
-	    
+
+	    // Endpoint to add Leave Code
+	    @PostMapping("/addLeaveCode")
+	    public String addLeaveCode(@RequestBody Map<String, String> requestData) {
+	        String codeType = requestData.getOrDefault("codeType", "-");
+	        String code = requestData.getOrDefault("code", "-");
+	        String description = requestData.getOrDefault("description", "-");
+
+	        Codedao newLeaveCode = new Codedao(codeType, code, description);
+	        System.out.println(newLeaveCode);
+	        codeRepository.save(newLeaveCode);
+
+	        return "Leave Code added successfully!";
+	    }
 }
