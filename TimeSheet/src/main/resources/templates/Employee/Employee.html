@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timesheet</title>
+    <link rel="stylesheet" href="style.css">
+	<script src="/Employee/script.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+</head>
+<body class="time-body">
+    
+    <!-- Section 1: Header -->
+    <div class="header-section d-flex justify-content-between align-items-center p-3 bg-light border-bottom">
+        <h2 class="m-0">myTimesheet</h2>
+        <div class="icons" >
+            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="25" fill="currentColor" class="bi bi-bell" viewBox="0 0 16 16">
+                <path d="M8 16a2 2 0 0 0 2-2H6a2 2 0 0 0 2 2M8 1.918l-.797.161A4 4 0 0 0 4 6c0 .628-.134 2.197-.459 3.742-.16.767-.376 1.566-.663 2.258h10.244c-.287-.692-.502-1.49-.663-2.258C12.134 8.197 12 6.628 12 6a4 4 0 0 0-3.203-3.92zM14.22 12c.223.447.481.801.78 1H1c.299-.199.557-.553.78-1C2.68 10.2 3 6.88 3 6c0-2.42 1.72-4.44 4.005-4.901a1 1 0 1 1 1.99 0A5 5 0 0 1 13 6c0 .88.32 4.2 1.22 6"/>
+              </svg>
+              <svg xmlns="http://www.w3.org/2000/svg" width="30" height="25" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+                <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+                <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+              </svg>
+        </div>
+    </div>
+
+    <!-- Section 2: Navigation -->
+    <div class="navigation-section d-flex p-2 bg-white border-bottom align-items-center">
+        <ul class="nav flex-grow-1">
+            <li class="nav-item"><a class="nav-link" data-target="timeSection" href="#">Time</a></li>
+            <li class="nav-item"><a class="nav-link" data-target="expenseSection" href="#">Expense</a></li>
+            <li class="nav-item"><a class="nav-link" data-target="locationSection" href="#">Location</a></li>
+            <li class="nav-item"><a class="nav-link" data-target="chargecodesSection" href="#">Charge Codes</a></li>
+            <li class="nav-item"><a class="nav-link" data-target="adjustmentSection" href="#">Adjustment</a></li>
+            <li class="nav-item"><a class="nav-link" data-target="summarySection" href="#">Summary</a></li>
+            <li class="nav-item"><a class="nav-link" data-target="preferenceSection" href="#">Preference</a></li>
+        </ul>
+    
+        <!-- Date Controls -->
+         <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-sm" id="prevPeriod"><</button>
+            <select class="form-select form-select-sm w-auto" id="periodDropdown"></select>
+            <button class="btn btn-sm" id="nextPeriod">></button>
+            <input type="date" class="form-control form-control-sm w-auto" id="calendarPicker">
+            
+            <!-- Printer Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="25" fill="currentColor" class="bi bi-printer-fill" viewBox="0 0 16 16">
+                <path d="M5 1a2 2 0 0 0-2 2v1h10V3a2 2 0 0 0-2-2zm6 8H5a1 1 0 0 0-1 1v3a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1"/>
+                <path d="M0 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2h-1v-2a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v2H2a2 2 0 0 1-2-2zm2.5 1a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1"/>
+            </svg>
+        </div>
+    </div>
+
+    <!-- Section 3: Controls -->
+    <div class="controls-section d-flex justify-content-between align-items-center p-3 bg-light border-bottom">
+        <div class="d-flex gap-3">
+            <!-- Save Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-floppy-fill" viewBox="0 0 16 16">
+                <path d="M0 1.5A1.5 1.5 0 0 1 1.5 0H3v5.5A1.5 1.5 0 0 0 4.5 7h7A1.5 1.5 0 0 0 13 5.5V0h.086a1.5 1.5 0 0 1 1.06.44l1.415 1.414A1.5 1.5 0 0 1 16 2.914V14.5a1.5 1.5 0 0 1-1.5 1.5H14v-5.5A1.5 1.5 0 0 0 12.5 9h-9A1.5 1.5 0 0 0 2 10.5V16h-.5A1.5 1.5 0 0 1 0 14.5z"/>
+                <path d="M3 16h10v-5.5a.5.5 0 0 0-.5-.5h-9a.5.5 0 0 0-.5.5zm9-16H4v5.5a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 .5-.5zM9 1h2v4H9z"/>
+            </svg>
+    
+            <!-- Delete Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+                <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5m3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0z"/>
+                <path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4zM2.5 3h11V2h-11z"/>
+            </svg>
+    
+            <!-- Add Row Icon -->
+            <svg xmlns="http://www.w3.org/2000/svg" id="addRow" width="26" height="26" fill="currentColor" class="bi bi-plus-circle-dotted" viewBox="0 0 16 16">
+                <path d="M8 0q-.264 0-.523.017l.064.998a7 7 0 0 1 .918 0l.064-.998A8 8 0 0 0 8 0M6.44.152q-.52.104-1.012.27l.321.948q.43-.147.884-.237L6.44.153zm4.132.271a8 8 0 0 0-1.011-.27l-.194.98q.453.09.884.237zm1.873.925a8 8 0 0 0-.906-.524l-.443.896q.413.205.793.459zM4.46.824q-.471.233-.905.524l.556.83a7 7 0 0 1 .793-.458zM2.725 1.985q-.394.346-.74.74l.752.66q.303-.345.648-.648zm11.29.74a8 8 0 0 0-.74-.74l-.66.752q.346.303.648.648zm1.161 1.735a8 8 0 0 0-.524-.905l-.83.556q.254.38.458.793l.896-.443zM1.348 3.555q-.292.433-.524.906l.896.443q.205-.413.459-.793zM.423 5.428a8 8 0 0 0-.27 1.011l.98.194q.09-.453.237-.884zM15.848 6.44a8 8 0 0 0-.27-1.012l-.948.321q.147.43.237.884zM.017 7.477a8 8 0 0 0 0 1.046l.998-.064a7 7 0 0 1 0-.918zM16 8a8 8 0 0 0-.017-.523l-.998.064a7 7 0 0 1 0 .918l.998.064A8 8 0 0 0 16 8M.152 9.56q.104.52.27 1.012l.948-.321a7 7 0 0 1-.237-.884l-.98.194zm15.425 1.012q.168-.493.27-1.011l-.98-.194q-.09.453-.237.884zM.824 11.54a8 8 0 0 0 .524.905l.83-.556a7 7 0 0 1-.458-.793zm13.828.905q.292-.434.524-.906l-.896-.443q-.205.413-.459.793zm-12.667.83q.346.394.74.74l.66-.752a7 7 0 0 1-.648-.648zm11.29.74q.394-.346.74-.74l-.752-.66q-.302.346-.648.648zm-1.735 1.161q.471-.233.905-.524l-.556-.83a7 7 0 0 1-.793.458zm-7.985-.524q.434.292.906.524l.443-.896a7 7 0 0 1-.793-.459zm1.873.925q.493.168 1.011.27l.194-.98a7 7 0 0 1-.884-.237zm4.132.271a8 8 0 0 0 1.012-.27l-.321-.948a7 7 0 0 1-.884.237l.194.98zm-2.083.135a8 8 0 0 0 1.046 0l-.064-.998a7 7 0 0 1-.918 0zM8.5 4.5a.5.5 0 0 0-1 0v3h-3a.5.5 0 0 0 0 1h3v3a.5.5 0 0 0 1 0v-3h3a.5.5 0 0 0 0-1h-3z"/>
+            </svg>
+        </div>
+
+    
+        <div class="col-6 d-flex justify-content-end gap-3 ">
+              
+            <button class="btn btn-success">Send Approval</button>
+            <button class="btn btn-info">Submit</button>
+        </div>
+    </div>
+
+    <p id="selectedPeriod">Selected Period:</p>
+    <div id="timeSection" class="content-section">
+        <table class="table table-bordered">
+            <thead id="tableHeaders">
+                <tr></tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+            <tfoot id="tableFooter">
+                <tr></tr>
+            </tfoot>
+        </table>
+    </div>
+
+
+<!-- Section for Expense -->
+<div id="expenseSection" class="content-section" style="display: none;">
+    <h3>Expense Section</h3>
+    <p>This is where expense details will go.</p>
+</div>
+
+<!-- Section for Location -->
+<div id="locationSection" class="content-section" style="display: none;">
+    <h3>Location Section</h3>
+    <p>This is where location details will go.</p>
+</div>
+
+<!-- Section for Charge Codes -->
+<div id="chargecodesSection" class="content-section" style="display: none;">
+<h1>hello world</h1>
+</div>
+
+<!-- Section for Adjustment -->
+<div id="adjustmentSection" class="content-section" style="display: none;">
+    <h3>Adjustment Section</h3>
+    <p>This is where adjustments will go.</p>
+</div>
+
+<!-- Section for Summary -->
+<div id="summarySection" class="content-section" style="display: none;">
+    <h3>Summary Section</h3>
+    <p>This is the summary of your timesheet.</p>
+</div>
+
+<!-- Section for Preference -->
+<div id="preferenceSection" class="content-section" style="display: none;">
+    <h3>Preference Section</h3>
+    <p>This is where you can adjust your preferences.</p>
+</div>
+
+<script>
+	 const today = new Date();
+	        let currentYear = today.getFullYear();
+	        let currentMonth = today.getMonth() + 1;
+	        let currentPeriodIndex = 0; 
+	        let availableProjects = ['Project A', 'Project B', 'Project C', 'Project D', 'Project E','Project f'];
+
+	        function formatDate(date) {
+	            const year = date.getFullYear();
+	            const month = (`0${date.getMonth() + 1}`).slice(-2); // Add leading zero
+	            const day = (`0${date.getDate()}`).slice(-2); // Add leading zero
+	            return `${year}-${month}-${day}`;
+	        }
+
+	        function setCalendarLimits() {
+	            const threeMonthsBefore = new Date(today);
+	            threeMonthsBefore.setMonth(today.getMonth() - 3);
+	            
+	            const threeMonthsAfter = new Date(today);
+	            threeMonthsAfter.setMonth(today.getMonth() + 3);
+	            
+	            const calendarPicker = document.getElementById('calendarPicker');
+	            calendarPicker.min = formatDate(threeMonthsBefore);
+	            calendarPicker.max = formatDate(threeMonthsAfter);
+	        }
+
+	        function getPeriods() {
+	            const periods = [];
+	            const baseDate = new Date(today);
+	            
+	            // Loop to create periods for 3 months before and 3 months after the current date
+	            for (let i = -3; i <= 3; i++) {
+	                const monthOffset = new Date(baseDate.getFullYear(), baseDate.getMonth() + i, 1);
+	                const firstHalf = {
+	                    start: `01/${(`0${monthOffset.getMonth() + 1}`).slice(-2)}/${monthOffset.getFullYear()}`,
+	                    end: `15/${(`0${monthOffset.getMonth() + 1}`).slice(-2)}/${monthOffset.getFullYear()}`
+	                };
+	                const lastDayOfMonth = new Date(monthOffset.getFullYear(), monthOffset.getMonth() + 1, 0).getDate();
+	                const secondHalf = {
+	                    start: `16/${(`0${monthOffset.getMonth() + 1}`).slice(-2)}/${monthOffset.getFullYear()}`,
+	                    end: `${lastDayOfMonth}/${(`0${monthOffset.getMonth() + 1}`).slice(-2)}/${monthOffset.getFullYear()}`
+	                };
+	                
+	                periods.push(firstHalf, secondHalf);
+	            }
+
+	            const todayDate = `${today.getDate()}/${today.getMonth() + 1 < 10 ? '0' + (today.getMonth() + 1) : today.getMonth() + 1}/${today.getFullYear()}`;
+	            periods.forEach((period, index) => {
+	                if (isDateInRange(todayDate, period.start, period.end)) {
+	                    currentPeriodIndex = index;
+	                }
+	            });
+	            
+	            return periods;
+	        }
+
+	        function isDateInRange(date, startDate, endDate) {
+	            const [dDay, dMonth, dYear] = date.split('/');
+	            const [sDay, sMonth, sYear] = startDate.split('/');
+	            const [eDay, eMonth, eYear] = endDate.split('/');
+	            const dateObj = new Date(dYear, dMonth - 1, dDay);
+	            const startObj = new Date(sYear, sMonth - 1, sDay);
+	            const endObj = new Date(eYear, eMonth - 1, eDay);
+	            return dateObj >= startObj && dateObj <= endObj;
+	        }
+	        const periods = getPeriods();
+
+	        function updateDropdown() {
+	            const periodDropdown = document.getElementById('periodDropdown');
+	            periodDropdown.innerHTML = '';
+	            periods.forEach((period, index) => {
+	                const option = document.createElement('option');
+	                option.value = index;
+	                option.textContent = `${period.start} - ${period.end}`;
+	                if (index === currentPeriodIndex) {
+	                    option.selected = true;
+	                }
+	                periodDropdown.appendChild(option);
+	            });
+	        }
+
+
+	function addStaticRows() {
+	    const tableBody = document.getElementById('tableBody');
+	    
+	    const staticRowNames = ['Work Location', 'Assigned Location', 'Company Code'];
+	    
+	    staticRowNames.forEach(name => {
+	        const row = document.createElement('tr');
+	        const chargeCodeCell = document.createElement('td');
+	        chargeCodeCell.textContent = name;
+	        row.appendChild(chargeCodeCell);
+	        
+	        const period = periods[currentPeriodIndex];
+	        const [startDay, startMonth, startYear] = period.start.split('/');
+	        const [endDay, endMonth, endYear] = period.end.split('/');
+	        let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
+	        const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
+	        
+	        while (currentDate <= endDate) {
+	            const cell = document.createElement('td');
+	            const input = document.createElement('input');
+	            input.type = 'text';
+	            input.style.border = '0px';
+	            input.style.width = '50px';
+	            input.style.outline = 'none';
+	            cell.appendChild(input);
+	            row.appendChild(cell);
+	            
+	            // Attach event listener to recalculate totals when input changes
+	            input.addEventListener('input', calculateTotals);
+	            
+	            currentDate.setDate(currentDate.getDate() + 1);
+	        }
+	        
+	        tableBody.appendChild(row);
+	    });
+	}
+
+	function updateTable() {
+	    const selectedPeriod = periods[currentPeriodIndex];
+	    document.getElementById('selectedPeriod').textContent = ``;
+	    
+	    const [startDay, startMonth, startYear] = selectedPeriod.start.split('/');
+	    const [endDay, endMonth, endYear] = selectedPeriod.end.split('/');
+
+	    const tableHeaders = document.getElementById('tableHeaders');
+	    tableHeaders.innerHTML = '<tr><th style="width: 200px;">Charge Code</th></tr>'; // Set width for Charge Code
+	    const tableRows = document.getElementById('tableBody');
+	    tableRows.innerHTML = ''; // Clear existing rows
+
+	    let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
+	    const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
+
+	    // Add date headers with day names
+	    while (currentDate <= endDate) {
+	        const day = currentDate.getDate();
+	        const month = currentDate.getMonth() + 1;
+	        const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'short' });
+
+	        const headerCell = document.createElement('th');
+	        headerCell.textContent = `${day}/${month} (${dayName})`;
+	        tableHeaders.querySelector('tr').appendChild(headerCell);
+
+	        currentDate.setDate(currentDate.getDate() + 1);
+	    }
+
+	    // **Add "Total" column to the header**
+	    const totalHeader = document.createElement('th');
+	    totalHeader.textContent = "Total";
+	    tableHeaders.querySelector('tr').appendChild(totalHeader);
+
+	    // Add static rows
+	    addStaticRows();
+
+	    // Add 3 default dynamic rows
+	    for (let i = 0; i < 3; i++) {
+	        addRow();
+	    }
+
+	    // Update footer for totals
+	    updateFooter();
+	}
+
+
+	function updateFooter() {
+	    const period = periods[currentPeriodIndex];
+	    const [startDay, startMonth, startYear] = period.start.split('/');
+	    const [endDay, endMonth, endYear] = period.end.split('/');
+	    let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
+	    const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
+
+	    const footerRow = document.getElementById('tableFooter').querySelector('tr');
+	    footerRow.innerHTML = '<td>Total Hours</td>'; // Reset footer row
+
+	    while (currentDate <= endDate) {
+	        const totalCell = document.createElement('td');
+	        totalCell.textContent = '0.00'; // Initialize totals
+	        footerRow.appendChild(totalCell);
+	        currentDate.setDate(currentDate.getDate() + 1);
+	    }
+
+	    // **Ensure total column in the footer**
+	    const totalColumnFooter = document.createElement('td');
+	    totalColumnFooter.textContent = '0.00';
+	    totalColumnFooter.id = 'grandTotal';
+	    footerRow.appendChild(totalColumnFooter);
+
+	    // Attach event listeners to all input fields for dynamic updates
+	    const inputs = document.querySelectorAll('input[type="text"]');
+	    inputs.forEach(input => {
+	        input.addEventListener('input', calculateTotals);
+	    });
+	}
+
+
+	        function addRow() {
+	            const row = document.createElement('tr');
+	            const projectCell = document.createElement('td');
+	            const select = document.createElement('select');
+	            select.style.border = '0px';
+	            select.style.outline = 'none';
+
+	            const placeholderOption = document.createElement('option');
+	            placeholderOption.value = '';
+	            placeholderOption.textContent = '';
+	            placeholderOption.disabled = true;
+	            placeholderOption.selected = true;
+
+	            select.appendChild(placeholderOption);
+
+	            availableProjects.forEach(optionText => {
+	                const option = document.createElement('option');
+	                option.value = optionText;
+	                option.textContent = optionText;
+	                select.appendChild(option);
+	            });
+
+	            projectCell.appendChild(select);
+	            row.appendChild(projectCell);
+
+	            const period = periods[currentPeriodIndex];
+	            const [startDay, startMonth, startYear] = period.start.split('/');
+	            const [endDay, endMonth, endYear] = period.end.split('/');
+	            let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
+	            const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
+
+	            while (currentDate <= endDate) {
+	                const cell = document.createElement('td');
+	                const input = document.createElement('input');
+	                input.type = 'text';
+	                input.placeholder = '';
+	                input.style.border = '0px';
+	                input.style.width = '50px';
+	                input.style.outline = 'none';
+	                cell.appendChild(input);
+	                row.appendChild(cell);
+
+	                // Attach event listener to recalculate totals when input changes
+	                input.addEventListener('input', calculateTotals);
+
+	                currentDate.setDate(currentDate.getDate() + 1);
+	            }
+
+	            const totalCell = document.createElement('td');
+	            totalCell.textContent = '0.00';
+	            totalCell.classList.add('row-total'); // Add a class for easier selection
+	            row.appendChild(totalCell);
+	            updateDropdowns();  
+	            document.getElementById('tableBody').appendChild(row); // Append row to tbody
+	            
+	        }
+
+	        function calculateTotals() {
+	    let grandTotal = 0;
+	    const rows = document.querySelectorAll('#tableBody tr');
+	    const footerCells = document.querySelectorAll('#tableFooter tr td');
+
+	    const period = periods[currentPeriodIndex];
+	    const [startDay, startMonth, startYear] = period.start.split('/');
+	    const [endDay, endMonth, endYear] = period.end.split('/');
+	    const totalDays = new Date(`${endYear}-${endMonth}-${endDay}`).getDate() - new Date(`${startYear}-${startMonth}-${startDay}`).getDate() + 1;
+
+	    // Initialize an array to store the total for each day
+	    const totals = new Array(totalDays).fill(0);
+
+	    // Ignore the first 3 static rows (Work Location, Assigned Location, Company Code)
+	    rows.forEach((row, rowIndex) => {
+	        if (rowIndex < 3) return; // Skip static rows
+
+	        const inputs = row.querySelectorAll('input[type="text"]');
+	        let rowSum = 0; // Sum of this row's values
+
+	        inputs.forEach((input, index) => {
+	            const value = parseFloat(input.value) || 0;
+	            totals[index] += value;
+	            rowSum += value;
+	        });
+
+	        // Update the row's total column
+	        const totalCell = row.querySelector('.row-total');
+	        if (totalCell) {
+	            totalCell.textContent = rowSum.toFixed(2);
+	        }
+
+	        grandTotal += rowSum;
+	    });
+
+	    // Update the footer cells with the calculated totals
+	    totals.forEach((total, index) => {
+	        footerCells[index + 1].textContent = total.toFixed(2);
+	    });
+
+	    // Update the total column in the footer
+	    document.getElementById('grandTotal').textContent = grandTotal.toFixed(2);
+	}
+
+
+
+	          
+
+	        // When adding new rows, update totals on input
+	        document.getElementById('addRow').addEventListener('click', addRow);
+
+	        // Initially update the table
+	        updateTable();
+
+
+	        function updateDropdowns() {
+	            const selects = document.querySelectorAll('select');
+	            const selectedValues = [...selects].map(select => select.value).filter(val => val !== '');
+
+	            selects.forEach(select => {
+	                [...select.options].forEach(option => {
+	                    if (selectedValues.includes(option.value) && option.value !== select.value) {
+	                        option.disabled = true;
+	                    } else {
+	                        option.disabled = false;
+	                    }
+	                });
+	            });
+	        }
+
+	        document.getElementById('prevPeriod').addEventListener('click', function() {
+	            if (currentPeriodIndex > 0) {
+	                currentPeriodIndex--;
+	                updateDropdown();
+	                updateTable();
+	            }
+	        });
+
+	        document.getElementById('nextPeriod').addEventListener('click', function() {
+	            if (currentPeriodIndex < periods.length - 1) {
+	                currentPeriodIndex++;
+	                updateDropdown();
+	                updateTable();
+	            }
+	        });
+
+	        document.getElementById('periodDropdown').addEventListener('change', function() {
+	            currentPeriodIndex = parseInt(this.value);
+	            updateTable();
+	        });
+
+	        document.getElementById('calendarPicker').addEventListener('change', function() {
+	            const selectedDate = new Date(this.value);
+	            for (let i = 0; i < periods.length; i++) {
+	                const [startDay, startMonth, startYear] = periods[i].start.split('/');
+	                const [endDay, endMonth, endYear] = periods[i].end.split('/');
+	                const periodStart = new Date(`${startYear}-${startMonth}-${startDay}`);
+	                const periodEnd = new Date(`${endYear}-${endMonth}-${endDay}`);
+
+	                if (selectedDate >= periodStart && selectedDate <= periodEnd) {
+	                    currentPeriodIndex = i;
+	                    updateDropdown();
+	                    updateTable();
+	                    break;
+	                }
+	            }
+	        });
+
+	        document.getElementById('calendarPicker').value = today.toISOString().split('T')[0];
+	        setCalendarLimits();
+	        updateDropdown();
+	        updateTable();
+	        document.getElementById('addRow').addEventListener('click', addRow);
+</script>
+ </body>
+ </html>

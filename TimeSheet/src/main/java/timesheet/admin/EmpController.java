@@ -35,7 +35,7 @@ public class EmpController {
     @Autowired
     private JavaMailSender mailSender;  
 
-    @GetMapping("/landing")
+    @GetMapping("/Admin")
     public String M1() {
         return "Admin/Admin_panel";
     }
@@ -63,14 +63,14 @@ public class EmpController {
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
 
-        helper.setTo(EmpData.getE_Mail());
+        helper.setTo(EmpData.geteMail());
         helper.setSubject("Welcome to the Tidy Digital Solutions");
         
         String emailContent = "<html><body>"
                 + "<h2>Welcome " + EmpData.getE_Name() + "!</h2>"
                 + "<p>Here are your Temproray Login Credentials:</p>"
-                + "<p><b>Email:</b> " + EmpData.getE_Mail() + "</p>"
-                + "<p><b>Password:</b> " + EmpData.getE_Password() + "</p>"
+                + "<p><b>Email:</b> " + EmpData.geteMail() + "</p>"
+                + "<p><b>Password:</b> " + EmpData.getePassword() + "</p>"
                 + "<p><b>Role:</b> " + EmpData.getE_Role() + "</p><br>"
                 + "<p><b>Tidy Timesheet URL - </b><a href=\"https://rm.tidyds.com\">https://rm.tidyds.com</a></p>\r\n"
                 + "<h3>Note*<p>After Login into Timesheet, Please update the User details</p>"
@@ -102,7 +102,7 @@ public class EmpController {
         for (Employeedao emp : employees) {
             Map<String, String> map = new HashMap<>();
             map.put("name", emp.getE_Name()); // Assuming `getEname()` returns employee name
-            map.put("email", emp.getE_Mail()); // Assuming `getEmail()` returns email
+            map.put("email", emp.geteMail()); // Assuming `getEmail()` returns email
             employeeList.add(map);
         }
 

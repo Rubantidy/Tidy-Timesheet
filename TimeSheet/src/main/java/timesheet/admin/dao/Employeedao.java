@@ -41,15 +41,13 @@ public class Employeedao {
     private String E_Name;
 
     @JsonProperty("E-mail")
-    private String E_Mail;
+    private String eMail;
 
     @JsonProperty("E-pass")
-    private String E_Password;
+    private String ePassword;
 
 	@JsonProperty("E-role")
     private String E_Role;
-    
-//    private boolean disabled = false;
 
 	public int getId() {
 		return id;
@@ -67,20 +65,20 @@ public class Employeedao {
 		E_Name = e_Name;
 	}
 
-	public String getE_Mail() {
-		return E_Mail;
+	public String geteMail() {
+		return eMail;
 	}
 
-	public void setE_Mail(String e_Mail) {
-		E_Mail = e_Mail;
+	public void seteMail(String eMail) {
+		this.eMail = eMail;
 	}
 
-	public String getE_Password() {
-		return E_Password;
+	public String getePassword() {
+		return ePassword;
 	}
 
-	public void setE_Password(String e_Password) {
-		E_Password = e_Password;
+	public void setePassword(String ePassword) {
+		this.ePassword = ePassword;
 	}
 
 	public String getE_Role() {
@@ -90,6 +88,16 @@ public class Employeedao {
 	public void setE_Role(String e_Role) {
 		E_Role = e_Role;
 	}
+
+	@Override
+	public String toString() {
+		return "Employeedao [id=" + id + ", createdDate=" + createdDate + ", E_Name=" + E_Name + ", eMail=" + eMail
+				+ ", ePassword=" + ePassword + ", E_Role=" + E_Role + "]";
+	}
+    
+//    private boolean disabled = false;
+
+
 	
 //	 public boolean isDisabled() {
 //			return disabled;
@@ -99,11 +107,7 @@ public class Employeedao {
 //			this.disabled = disabled;
 //		}
 
-	@Override
-	public String toString() {
-		return "Employeedao [id=" + id + ", E_Name=" + E_Name + ", E_Mail=" + E_Mail + ", E_Password=" + E_Password
-				+ ", E_Role=" + E_Role + "]";
-	}
+	
     
     
 
