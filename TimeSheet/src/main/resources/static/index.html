@@ -35,7 +35,7 @@
 
         .logo {
             width: 80px;
-            height: 80px;
+            height: auto;
             margin: 0 auto 15px;
         }
 
@@ -129,25 +129,81 @@
 <body>
 
     <div class="login-container">
-        <img src="https://via.placeholder.com/80" alt="Logo" class="logo">
+        <img src="img/logo.png" alt="Logo" class="logo">
         <h2>Login</h2>
-        <form action="#" method="POST" autocomplete="off">
-            <div class="input-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-            <div class="input-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit" class="login-btn">Login</button>
-            <a href="#" class="forgot-password">Forgot Password?</a>
-			
-			<a href="/Admin">Admin</a>
+		<form action="#" method="POST" autocomplete="off">
+		    <div class="input-group">
+		        <label for="email">Email</label>
+		        <input type="email" id="email" name="email" required>
+		    </div>
+		    <div class="input-group">
+		        <label for="password">Password</label>
+		        <input type="password" id="password" name="password" required>
+		    </div>
+		    <button type="submit" class="login-btn">Login</button>
+		    <a href="#" class="forgot-password">Forgot Password?</a>
 
-			<a href="/Employee">User</a>
-        </form>
+		    <!-- Error message section -->
+		    <div id="error-message" style="color: red; display: none;"></div>
+		</form>
     </div>
+
+	<script>
+		document.querySelector(".login-btn").addEventListener("click", function(event) {
+		    event.preventDefault(); // Prevent the form from submitting traditionally
+
+		    // Collect form data
+		    const email = document.getElementById("email").value;
+		    const password = document.getElementById("password").value;
+		    const errorMessage = document.getElementById("error-message");
+
+		    // Clear previous error message
+		    errorMessage.style.display = 'none';
+		    
+		    // Check if email or password is empty
+		    if (!email || !password) {
+		        errorMessage.style.display = 'block';
+		        errorMessage.innerHTML = "Both email and password are required.";
+		        return; // Prevent the fetch request if validation fails
+		    }
+
+		    // Prepare data to send in POST request
+		    const data = {
+		        email: email,
+		        password: password
+		    };
+
+		    // Send data to backend using fetch
+		    fetch("/login", {
+		        method: "POST",
+		        headers: {
+		            "Content-Type": "application/json"
+		        },
+		        body: JSON.stringify(data)
+		    })
+		    .then(response => response.json())
+		    .then(result => {
+		        if (result.success) {
+		            // Redirect to appropriate dashboard based on role
+		            if (result.role === "Admin") {
+		                window.location.href = "/Admin"; // Redirect to Admin Dashboard
+		            } else if (result.role === "Employee") {
+		                window.location.href = "/Employee"; // Redirect to Employee Dashboard
+		            }
+		        } else {
+		            // Show error message for invalid credentials
+		            errorMessage.style.display = 'block';
+		            errorMessage.innerHTML = "Invalid email or password. Please try again.";
+		        }
+		    })
+		    .catch(error => {
+		        console.error("Error:", error);
+		        errorMessage.style.display = 'block';
+		        errorMessage.innerHTML = "An error occurred. Please try again later.";
+		    });
+		});
+
+	</script>
 
 </body>
 </html>
