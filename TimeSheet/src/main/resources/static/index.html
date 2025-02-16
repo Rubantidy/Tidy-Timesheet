@@ -1,10 +1,8 @@
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Login Form</title>
     <style>
         * {
@@ -131,6 +129,7 @@
     <div class="login-container">
         <img src="img/logo.png" alt="Logo" class="logo">
         <h2>Login</h2>
+
 		<form action="#" method="POST" autocomplete="off">
 		    <div class="input-group">
 		        <label for="email">Email</label>
@@ -151,7 +150,6 @@
 	<script>
 		document.querySelector(".login-btn").addEventListener("click", function(event) {
 		    event.preventDefault(); // Prevent the form from submitting traditionally
-
 		    // Collect form data
 		    const email = document.getElementById("email").value;
 		    const password = document.getElementById("password").value;
