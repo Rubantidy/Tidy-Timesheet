@@ -37,17 +37,17 @@ public class Employeedao {
 	}
 
 
-	@JsonProperty("E-name")
-    private String E_Name;
+	 @JsonProperty("E-name")
+	    private String E_Name;
 
-    @JsonProperty("E-mail")
-    private String eMail;
+	    @JsonProperty("E-mail")
+	    private String eMail;
 
-    @JsonProperty("E-pass")
-    private String ePassword;
+	    @JsonProperty("E-pass")
+	    private String ePassword;
 
-	@JsonProperty("E-role")
-    private String E_Role;
+	    @JsonProperty("E-role")
+	    private String E_Role;
 
 	public int getId() {
 		return id;

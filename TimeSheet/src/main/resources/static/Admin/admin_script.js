@@ -220,12 +220,13 @@ function fetchEmployeeData() {
             data.forEach(employee => {
                 tableBody.innerHTML += `
                     <tr>
-						<td>${employee.id}</td>
-					    <td>${employee.createdDate}</td>
-                        <td>${employee.e_Name}</td>
-                        <td>${employee.e_Mail}</td>
-						<td>${employee.e_Password}</td>
-                        <td>${employee.e_Role}</td>
+					<td>${employee.id}</td>
+										    <td>${employee.createdDate}</td>
+					                        <td>${employee['E-name']}</td>
+					                        <td>${employee['E-mail']}</td>
+											<td>${employee['E-pass']}</td>
+					                        <td>${employee['E-role']}</td>
+					                        
                         <td>
                             <button class="btn btn-secondary btn-sm" onclick="deleteEmployee('${employee.id}')">Disable</button>
                         </td>
