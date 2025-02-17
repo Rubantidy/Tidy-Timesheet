@@ -320,7 +320,7 @@ function createForm(type) {
                     ${inputField("Employee Name", "text", "E-name")}
 					${inputField("Employee Email", "email", "E-mail")}
 					${inputField("Employee Password", "text", "E-pass")}
-                    ${selectField("Role", "E-role", ["Admin", "Team Lead","Employee"])}
+                    ${selectField("Role", "E-role", ["Admin","Employee"])}
                     ${formButtons()}
                 </form>
             </div>
