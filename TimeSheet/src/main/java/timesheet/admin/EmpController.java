@@ -102,9 +102,10 @@ public class EmpController {
 
         for (Employeedao emp : employees) {
             Map<String, String> map = new HashMap<>();
-            map.put("name", emp.getE_Name()); // Assuming `getEname()` returns employee name
+            map.put("name", emp.getE_Name()); // Assuming `getEname()` returns employee 0
             map.put("email", emp.geteMail()); // Assuming `getEmail()` returns email
             employeeList.add(map);
+            
         }
 
         return ResponseEntity.ok(employeeList);
