@@ -204,9 +204,12 @@ function handleFormSubmit(event) {
     });
 }
 
+
 function hideForm() {
     document.getElementById("form-container").innerHTML = "";
 }
+
+
 
 /*Funtion for fetching Data form backend (Java)*/
 
@@ -265,6 +268,7 @@ function fetchCodeDatas() {
         .catch(error => console.error("Error fetching Charge code:", error));
 }
 
+/*Fetch Expense code*/
 function fetchExpense() {
     fetch("/getExpensecode") 
         .then(response => response.json())
@@ -287,7 +291,7 @@ function fetchExpense() {
         .catch(error => console.error("Error fetching Expense Details:", error));
 }
 
-
+/*Fetch delegator details*/
 function fetchDelegator() {
     fetch("/getDelegator") 
         .then(response => response.json())
@@ -311,6 +315,7 @@ function fetchDelegator() {
 }
 
 
+/*Form creation for all the options*/
 function createForm(type) {
     const forms = {
         "employee": ` 
@@ -409,6 +414,7 @@ function fetchEmfordeg() {
 	       })
 	       .catch(error => console.error("Error fetching employee data:", error));
 	}
+	
 function updateDelegateEmail() {
 	    const dropdown = document.getElementById("delegateName");
 	    const emailField = document.getElementById("delegateEmail");
@@ -467,10 +473,11 @@ function generatePassword(inputId) {
 }
 
 function inputField(label, type, name, formType = "") {
+	
     const isPasswordField = name === "E-pass" || name === "SA-pass";
     
 
-		const isChargeCodeField = name === "code" && formType === "charge-code";
+	const isChargeCodeField = name === "code" && formType === "charge-code";
     
     return `
         <div class="mb-3">
