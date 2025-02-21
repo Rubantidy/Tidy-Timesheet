@@ -64,6 +64,7 @@ public class EmpController {
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
 
+        helper.setFrom("rubanmtidyds@gmail.com", "Tidy Digital Solutions");
         helper.setTo(EmpData.geteMail());
         helper.setSubject("Welcome to the Tidy Digital Solutions");
         
