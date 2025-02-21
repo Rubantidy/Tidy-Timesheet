@@ -423,43 +423,53 @@ function updateDelegateEmail() {
 	    emailField.value = selectedOption.dataset.email || ""; // Set email dynamically
 	}
 
-/*External code generator*/
+	
+/*External charge code generator*/
 function codeGenerate() {
-    const clientNameInput = document.getElementById("clientName");
-    const onboardDateInput = document.getElementById("startDate");
-    const chargeCodeInput = document.getElementById("code");
-    
-    if (!clientNameInput || !onboardDateInput || !chargeCodeInput) {
-        console.error("Missing input fields for Charge Code generation.");
-        return;
-    }
-    
-    if (chargeCodeInput.value) {
-        return; 
-    }
-    
-    const clientName = clientNameInput.value.trim().replace(/\s+/g, "").toUpperCase();
-    const onboardDate = onboardDateInput.value.replace(/-/g, "");
-    
-    if (!clientName || !onboardDate) {
-        alert("Please enter both Client Name and Onboard Date to generate the Charge Code.");
-        return;
-    }
-    
-    const codeKey = `${clientName}${onboardDate}`;
-    let lastIncrement = parseInt(localStorage.getItem(codeKey)) || 1;
-    const incrementedValue = String(lastIncrement).padStart(3, '0');
-    
-    const generatedCode = `${clientName}${onboardDate}td${incrementedValue}`;
-    chargeCodeInput.value = generatedCode;
-    chargeCodeInput.setAttribute("readonly", true);
-    chargeCodeInput.onkeydown = function(event) { event.preventDefault(); };
-    
-    lastIncrement++;
-    localStorage.setItem(codeKey, lastIncrement);
-}
+	    const clientNameInput = document.getElementById("clientName");
+	    const onboardDateInput = document.getElementById("startDate");
+	    const chargeCodeInput = document.getElementById("code");
+	    
+	    if (!clientNameInput || !onboardDateInput || !chargeCodeInput) {
+	        console.error("Missing input fields for Charge Code generation.");
+	        return;
+	    }
+	    
+	    if (chargeCodeInput.value) {
+	        return; 
+	    }
+	    
+	    const clientName = clientNameInput.value.trim().replace(/\s+/g, "").toUpperCase();
+	    const onboardDate = onboardDateInput.value.replace(/-/g, "");
+	    
+	    if (!clientName || !onboardDate) {
+	        alert("Please enter both Client Name and Onboard Date to generate the Charge Code.");
+	        return;
+	    }
+	    
+	    // Get the next available last 3 digits from the backend
+	    getNextCodeIncrement(clientName, onboardDate, chargeCodeInput);
+	}
+
+	function getNextCodeIncrement(clientName, onboardDate, chargeCodeInput) {
+	    fetch(`/getNextCodeIncrement`)
+	        .then(response => response.json())
+	        .then(data => {
+	            const lastIncrement = data;
+	            const incrementedValue = String(lastIncrement).padStart(3, '0');
+	            const generatedCode = `${clientName}${onboardDate}td${incrementedValue}`;
+	            
+	            chargeCodeInput.value = generatedCode;
+	            chargeCodeInput.setAttribute("readonly", true);
+	            chargeCodeInput.onkeydown = function(event) { event.preventDefault(); };
+	        })
+	        .catch(error => {
+	            console.error("Error generating charge code:", error);
+	        });
+	}
 
 
+	/*Temp password Generator*/
 function generatePassword(inputId) {
     const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     let randomPassword = "";
@@ -472,6 +482,7 @@ function generatePassword(inputId) {
 	    inputField.onkeydown = function(event) { event.preventDefault(); };
 }
 
+/*Input field function*/
 function inputField(label, type, name, formType = "") {
 	
     const isPasswordField = name === "E-pass" || name === "SA-pass";
@@ -489,6 +500,7 @@ function inputField(label, type, name, formType = "") {
     `;
 }
 
+/*Select field function*/
 function selectField(label, name, options) {
     return `
         <div class="mb-3">
@@ -500,6 +512,7 @@ function selectField(label, name, options) {
     `;
 }
 
+/*Text area field function*/
 function textareaField(label, name) {
     return `
         <div class="mb-3">
@@ -509,6 +522,7 @@ function textareaField(label, name) {
     `;
 }
 
+/*function for buttons*/
 function formButtons() {
     return `
         <button class="btn btn-success" type="submit">Save</button>
@@ -516,11 +530,12 @@ function formButtons() {
     `;
 }
 
+/*Password generator function
 function generatebtn() {
 	return `
 	        <button class="btn btn-success" type="button">Generate Password</button>
 	    `;
-}
+} */
 
 function hideForm() {
     document.getElementById("form-container").innerHTML = "";

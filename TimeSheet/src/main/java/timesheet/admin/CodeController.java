@@ -15,6 +15,7 @@ import timesheet.admin.dao.Codedao;
 import timesheet.admin.dao.Expensedao;
 import timesheet.admin.repo.CodeRepo;
 import timesheet.admin.repo.ExpenseRepo;
+import timesheet.admin.service.ChargeCodeService;
 
 
 
@@ -27,6 +28,11 @@ public class CodeController {
 	  
 	  @Autowired
 	  private ExpenseRepo Exrepo;
+	  
+	  @Autowired
+	    private ChargeCodeService chargeCodeService;
+	  
+
 
 	    
 	  @PostMapping("/addChargeCode")
@@ -79,6 +85,14 @@ public class CodeController {
 	        System.out.println("getting values:" + ExCode);
 	        return ResponseEntity.ok(ExCode);
 	    }
+	    
+	    
+	    @GetMapping("/getNextCodeIncrement")
+	    public int getNextCodeIncrement() {
+	        return chargeCodeService.getNextCodeIncrement();
+	    }
+	   
+
 	    
 	    
 }
