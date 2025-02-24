@@ -28,13 +28,7 @@ function showContent(section) {
 
     const sections = {
         "dashboard": `
-            <div class="card-box">
-                ${createCard("bi-people", "Total Users", "120")}
-                ${createCard("bi-person-check", "Admins", "15")}
-                ${createCard("bi-credit-card", "Charge Codes", "35")}
-                ${createCard("bi-calendar-check", "Leave Codes", "50")}
-				${createCard("bi bi-receipt", "Expense Codes", "50")}
-            </div>
+         
         `,
 		"manage-user": `<button class="btn btn-primary mb-3" id="addEmployeeBtn">Add Employee</button><div id="form-container"></div>
 		     <div id="form-container"></div>
@@ -122,9 +116,34 @@ function showContent(section) {
 	else if(section === "delegates") {
 		fetchDelegator();
 	}
-		
+	else if (section === "dashboard") {
+	        // Fetch the counts for Employees, Delegators, Charge Codes, and Expense Codes
+	        Promise.all([
+	            fetch("/getEmployeesCount").then(res => res.json()),
+	            fetch("/getChargecodesCount").then(res => res.json()),
+	            fetch("/getExpensecodesCount").then(res => res.json()),
+	            fetch("/getDelegatorsCount").then(res => res.json())
+	        ])
+	        .then(([totalEmployees, totalChargeCodes, totalExpenseCodes, totalDelegators]) => {
+	            // Replace the static values with the dynamic values fetched from the backend
+	            const dynamicDashboard = `
+	               <div class="dashboard-card-box">
+	                    ${createCard("bi-people", "Total Employees", totalEmployees)}
+	                    ${createCard("bi-person-check", "Delegators", totalDelegators)}
+	                    ${createCard("bi-credit-card", "Charge Codes", totalChargeCodes)}
+	                    ${createCard("bi bi-receipt", "Expense Codes", totalExpenseCodes)}
+	                </div>
+	            `;
+
+	            // Update the content-box with the dynamically generated content
+	            contentBox.innerHTML = dynamicDashboard;
+	        })
+	        .catch(error => console.error("Error fetching data for dashboard:", error));
+	    }	
 		
 }
+
+
 
 
 
@@ -135,11 +154,13 @@ function setActiveNavLink(activeLink) {
 
 function createCard(icon, title, value) {
     return `
-        <div class="card">
-            <i class="bi ${icon}"></i>
-            <h3>${title}</h3>
-            <p>${value}</p>
-        </div>
+	<div class="dashboard-card">
+	           <div class="card-icon">
+	               <i class="${icon}"></i>
+	           </div>
+	           <div class="card-title">${title}</div>
+	           <div class="card-value">${value}</div>
+	       </div>
     `;
 }
 

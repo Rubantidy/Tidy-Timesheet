@@ -150,28 +150,27 @@
 	<script>
 		document.querySelector(".login-btn").addEventListener("click", function(event) {
 		    event.preventDefault(); // Prevent the form from submitting traditionally
-		    // Collect form data
+		   
 		    const email = document.getElementById("email").value;
 		    const password = document.getElementById("password").value;
 		    const errorMessage = document.getElementById("error-message");
 
-		    // Clear previous error message
+		
 		    errorMessage.style.display = 'none';
 		    
-		    // Check if email or password is empty
+		   
 		    if (!email || !password) {
 		        errorMessage.style.display = 'block';
 		        errorMessage.innerHTML = "Both email and password are required.";
-		        return; // Prevent the fetch request if validation fails
+		        return; 
 		    }
 
-		    // Prepare data to send in POST request
+		 
 		    const data = {
 		        email: email,
 		        password: password
 		    };
 
-		    // Send data to backend using fetch
 		    fetch("/login", {
 		        method: "POST",
 		        headers: {
@@ -183,11 +182,11 @@
 		    .then(result => {
 		        if (result.success) {
 					if(result.status === "active") {
-		            // Redirect to appropriate dashboard based on role
+		           
 		            if (result.role === "Admin") {
-		                window.location.href = "/Admin"; // Redirect to Admin Dashboard
+		                window.location.href = "/Admin_Dashboard"; // Redirect to Admin Dashboard
 		            } else if (result.role === "Employee") {
-		                window.location.href = "/Employee"; // Redirect to Employee Dashboard
+		                window.location.href = "/Employee_Dashboard"; // Redirect to Employee Dashboard
 		            }
 					}
 					else {
@@ -195,7 +194,7 @@
 					alert("You are no longer in the Employee of Tidy Digital Solutions");
 				 }
 		        } else {
-		            // Show error message for invalid credentials
+		         
 		            errorMessage.style.display = 'block';
 		            errorMessage.innerHTML = "Invalid email or password. Please try again.";
 		        }
