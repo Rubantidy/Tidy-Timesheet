@@ -171,39 +171,41 @@
 		        password: password
 		    };
 
-		    fetch("/login", {
-		        method: "POST",
-		        headers: {
-		            "Content-Type": "application/json"
-		        },
-		        body: JSON.stringify(data)
-		    })
-		    .then(response => response.json())
-		    .then(result => {
-		        if (result.success) {
-					if(result.status === "active") {
-		           
-		            if (result.role === "Admin") {
-		                window.location.href = "/Admin_Dashboard"; // Redirect to Admin Dashboard
-		            } else if (result.role === "Employee") {
-		                window.location.href = "/Employee_Dashboard"; // Redirect to Employee Dashboard
-		            }
-					}
-					else {
-						
-					alert("You are no longer in the Employee of Tidy Digital Solutions");
-				 }
-		        } else {
-		         
-		            errorMessage.style.display = 'block';
-		            errorMessage.innerHTML = "Invalid email or password. Please try again.";
-		        }
-		    })
-		    .catch(error => {
-		        console.error("Error:", error);
-		        errorMessage.style.display = 'block';
-		        errorMessage.innerHTML = "An error occurred. Please try again later.";
-		    });
+			fetch("/login", {
+			    method: "POST",
+			    headers: {
+			        "Content-Type": "application/json"
+			    },
+			    body: JSON.stringify(data)
+			})
+			.then(response => response.json())
+			.then(result => {
+			    if (result.success) {
+			        if(result.status === "active") {
+			            // Store the user details (name, role) in localStorage or sessionStorage
+			            localStorage.setItem('userName', result.name);
+	
+
+			            // Redirect to the appropriate dashboard based on the role
+			            if (result.role === "Admin") {
+			                window.location.href = "/Admin_Dashboard"; // Redirect to Admin Dashboard
+			            } else if (result.role === "Employee") {
+			                window.location.href = "/Employee_Dashboard"; // Redirect to Employee Dashboard
+			            }
+			        } else {
+			            alert("You are no longer an Employee of Tidy Digital Solutions");
+			        }
+			    } else {
+			        errorMessage.style.display = 'block';
+			        errorMessage.innerHTML = "Invalid email or password. Please try again.";
+			    }
+			})
+			.catch(error => {
+			    console.error("Error:", error);
+			    errorMessage.style.display = 'block';
+			    errorMessage.innerHTML = "An error occurred. Please try again later.";
+			});
+
 		});
 
 	</script>

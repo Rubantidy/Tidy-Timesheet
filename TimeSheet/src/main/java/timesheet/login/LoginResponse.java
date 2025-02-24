@@ -7,11 +7,14 @@ public class LoginResponse {
  private boolean success;
  private String role;
  private String status;
-
- public LoginResponse(boolean success, String role, String status) {
+ private String name;
+ 
+ public LoginResponse(boolean success, String role, String status, String name) {
      this.success = success;
      this.role = role;
      this.status = status;
+     this.name = name;
+     
  }
 
  public String getStatus() {
@@ -20,6 +23,14 @@ public class LoginResponse {
 
 public void setStatus(String status) {
 	this.status = status;
+}
+
+public String getName() {
+	return name;
+}
+
+public void setName(String name) {
+	this.name = name;
 }
 
 // Getters and Setters

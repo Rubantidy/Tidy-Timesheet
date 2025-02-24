@@ -33,17 +33,20 @@
             <div class="top-bar d-flex justify-content-between align-items-center">
                 <button class="btn btn-outline-dark d-md-none" onclick="toggleSidebar()">☰</button>
                 <img src="img/logo.png" alt="Logo" height="40">
-                <div>
-                    <i class="bi bi-bell"></i>
-                    
-                    <i class="bi bi-person-circle" id="userIcon" onclick="toggleDropdown()"></i>
-                    
-                    
-                    <div id="userDropdown" class="dropdown-menu">
-                        <a href="#" class="dropdown-item">Change Password</a>
-                        <a href="#" class="dropdown-item">Super Admin</a>
-                    </div>
-                </div>
+				<div class="iconsmenu">
+				    <i class="bi bi-bell"></i>
+
+				    <i class="bi bi-person-circle" id="userIcon" onclick="toggleDropdown()"></i>
+					<span id="userName" style="color: black; margin-left: 10px; display: none;"></span>
+					
+
+				    <div id="userDropdown" class="dropdown-menu">
+				        <a href="#" class="dropdown-item">Change Password</a>
+				        <a href="#" class="dropdown-item">Switch Employee</a>
+						<a href="#" class="dropdown-item">Switch Super Admin</a>
+						<a href="#" class="dropdown-item" id="logout">Logout</a>
+				    </div>
+				</div>
             </div>
             
             <!-- Dynamic Content -->
@@ -59,6 +62,18 @@
     <script src="/Admin/admin_script.js"></script>
 
     <script>
+		
+		document.addEventListener("DOMContentLoaded", function() {
+		          const userName = localStorage.getItem('userName');
+		          console.log(userName); // Debugging: Check if the value is correct
+
+		          if (userName) {
+		              const userNameElement = document.getElementById('userName');
+		              userNameElement.innerText = userName;
+		              userNameElement.style.display = 'inline'; // Show the name under the icon
+		          }
+		      });
+		
         // Function to toggle the dropdown menu visibility
         function toggleDropdown() { 
             const dropdown = document.getElementById('userDropdown');
@@ -73,6 +88,8 @@
                 dropdown.style.display = 'none';
             }
         });
+		
+
     </script>
 </body>
 </html>

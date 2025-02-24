@@ -21,7 +21,18 @@ function closeSidebarOnMobile() {
         document.getElementById("sidebar").classList.remove("show");
     }
 }
+/*Script for dashboard icons functions */
+document.getElementById('logout').addEventListener('click', function(event) {
+       event.preventDefault();
 
+       // Clear any session or localStorage data if needed
+       localStorage.removeItem('userName'); // Example of clearing the user name stored in localStorage
+
+       // Redirect to the login page
+       window.location.href = '/login'; // Redirect to the login page or wherever needed
+	   alert("Logout Successfully..! ");
+   });
+   
 function showContent(section) {
     const title = document.getElementById("content-title");
     const contentBox = document.getElementById("content-box");
@@ -572,12 +583,7 @@ function formButtons() {
     `;
 }
 
-/*Password generator function
-function generatebtn() {
-	return `
-	        <button class="btn btn-success" type="button">Generate Password</button>
-	    `;
-} */
+
 
 function hideForm() {
     document.getElementById("form-container").innerHTML = "";

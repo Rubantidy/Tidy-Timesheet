@@ -23,10 +23,10 @@ public class LoginController {
 
         if (employee != null) {
         
-            return ResponseEntity.ok(new LoginResponse(true, employee.getE_Role(), employee.getStatus()));
+            return ResponseEntity.ok(new LoginResponse(true, employee.getE_Role(), employee.getStatus(), employee.getE_Name()));
         } else {
          
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new LoginResponse(false, null, null));
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new LoginResponse(false, null, null, null));
         }
     }
 }
