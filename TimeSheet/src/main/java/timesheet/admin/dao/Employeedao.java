@@ -26,6 +26,13 @@ public class Employeedao {
     @PrePersist
     protected void onCreate() {
         createdDate = LocalDate.now(); 
+        
+        if (E_Role != null && E_Role.equalsIgnoreCase("Admin")) {
+            this.additionalRole = "Employee";
+        } else {
+            this.additionalRole = "-";
+        }
+        this.status = "active"; // Set status to "active"
     }
 
 	public LocalDate getCreatedDate() {
@@ -37,7 +44,7 @@ public class Employeedao {
 	}
 
 
-	 @JsonProperty("E-name")
+	    @JsonProperty("E-name")
 	    private String E_Name;
 
 	    @JsonProperty("E-mail")
@@ -48,6 +55,29 @@ public class Employeedao {
 
 	    @JsonProperty("E-role")
 	    private String E_Role;
+	    
+	    
+	    private String additionalRole;  // New field
+	    private String status; 
+	    
+	    
+	    
+
+	public String getAdditionalRole() {
+			return additionalRole;
+		}
+
+		public void setAdditionalRole(String additionalRole) {
+			this.additionalRole = additionalRole;
+		}
+
+		public String getStatus() {
+			return status;
+		}
+
+		public void setStatus(String status) {
+			this.status = status;
+		}
 
 	public int getId() {
 		return id;
@@ -92,20 +122,13 @@ public class Employeedao {
 	@Override
 	public String toString() {
 		return "Employeedao [id=" + id + ", createdDate=" + createdDate + ", E_Name=" + E_Name + ", eMail=" + eMail
-				+ ", ePassword=" + ePassword + ", E_Role=" + E_Role + "]";
+				+ ", ePassword=" + ePassword + ", E_Role=" + E_Role + ", additionalRole=" + additionalRole + ", status="
+				+ status + "]";
 	}
-    
-//    private boolean disabled = false;
-
 
 	
-//	 public boolean isDisabled() {
-//			return disabled;
-//		}
-//
-//		public void setDisabled(boolean disabled) {
-//			this.disabled = disabled;
-//		}
+    
+
 
 	
     

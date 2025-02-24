@@ -6,13 +6,23 @@ package timesheet.login;
 public class LoginResponse {
  private boolean success;
  private String role;
+ private String status;
 
- public LoginResponse(boolean success, String role) {
+ public LoginResponse(boolean success, String role, String status) {
      this.success = success;
      this.role = role;
+     this.status = status;
  }
 
- // Getters and Setters
+ public String getStatus() {
+	return status;
+}
+
+public void setStatus(String status) {
+	this.status = status;
+}
+
+// Getters and Setters
  public boolean isSuccess() {
      return success;
  }

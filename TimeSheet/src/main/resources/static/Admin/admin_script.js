@@ -48,6 +48,7 @@ function showContent(section) {
 		                       <th>Email</th>
 							   <th>Password</th>
 		                       <th>Role</th>
+							   <th>Status</th>
 		                       <th>Action</th>
 		                   </tr>
 		               </thead>
@@ -229,9 +230,13 @@ function fetchEmployeeData() {
 					                        <td>${employee['E-mail']}</td>
 											<td>${employee['E-pass']}</td>
 					                        <td>${employee['E-role']}</td>
+											<td>${employee.status}</td>
 					                        
                         <td>
-                            <button class="btn btn-secondary btn-sm" onclick="deleteEmployee('${employee.id}')">Disable</button>
+						<button class="btn btn-${employee.status === 'active' ? 'danger' : 'success'} btn-sm" 
+						                        onclick="employeeAction('${employee.id}')">
+						                    ${employee.status === 'active' ? 'Deactivate' : 'Activate'}
+						                </button>
                         </td>
                     </tr>
                 `;
@@ -239,6 +244,22 @@ function fetchEmployeeData() {
         })
         .catch(error => console.error("Error fetching employees:", error));
 }
+
+function employeeAction(employeeId) {
+    fetch(`/updateEmployeeStatus/${employeeId}`, {
+        method: "PUT"
+    })
+    .then(response => {
+        if (response.ok) {
+            alert("Employee status updated successfully!");
+            fetchEmployeeData();  // Refresh the table after update
+        } else {
+            alert("Failed to update employee status.");
+        }
+    })
+    .catch(error => console.error("Error updating employee status:", error));
+}
+
 
 /*Fetch Charge codes*/
 function fetchCodeDatas() {
@@ -322,9 +343,9 @@ function createForm(type) {
             <div class="card p-3 mb-3">
                 <h4>Add Employee</h4>
                 <form action="/addEmployee" method="POST" autocomplete="off">
-                    ${inputField("Employee Name", "text", "E-name")}
-					${inputField("Employee Email", "email", "E-mail")}
-					${inputField("Employee Password", "text", "E-pass")}
+                    ${inputField("Name", "text", "E-name")}
+					${inputField("Email", "email", "E-mail")}
+					${inputField("Password", "text", "E-pass")}
                     ${selectField("Role", "E-role", ["Admin","Employee"])}
                     ${formButtons()}
                 </form>

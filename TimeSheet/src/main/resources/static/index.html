@@ -182,12 +182,18 @@
 		    .then(response => response.json())
 		    .then(result => {
 		        if (result.success) {
+					if(result.status === "active") {
 		            // Redirect to appropriate dashboard based on role
 		            if (result.role === "Admin") {
 		                window.location.href = "/Admin"; // Redirect to Admin Dashboard
 		            } else if (result.role === "Employee") {
 		                window.location.href = "/Employee"; // Redirect to Employee Dashboard
 		            }
+					}
+					else {
+						
+					alert("You are no longer in the Employee of Tidy Digital Solutions");
+				 }
 		        } else {
 		            // Show error message for invalid credentials
 		            errorMessage.style.display = 'block';

@@ -6,16 +6,21 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import timesheet.admin.dao.Delegatedao;
@@ -39,6 +44,11 @@ public class EmpController {
     public String M1() {
         return "Admin/Admin_panel";
     }
+    
+    @PostConstruct
+    public void defaultadmin() {
+    	EmpRepo.insertDefaultAdmin();
+    }
 
     @PostMapping("/addEmployee")
     public ResponseEntity<String> addEmployee(@RequestBody Employeedao EmpData) throws IOException {
@@ -49,7 +59,7 @@ public class EmpController {
 
         try {
             sendEmployeeEmail(EmpData);
-        } catch (MessagingException e) {
+        } catch (MessagingException e) {  
             e.printStackTrace();
             return ResponseEntity.status(500).body("Failed to send email.");
         }
@@ -94,6 +104,25 @@ public class EmpController {
         List<Employeedao> employees = EmpRepo.findAll();
         return ResponseEntity.ok(employees);
     }
+    
+    //Update Employee 
+    @PutMapping("/updateEmployeeStatus/{id}")
+    public ResponseEntity<String> updateEmployeeStatus(@PathVariable int id) {
+        Optional<Employeedao> employeeOptional = EmpRepo.findById(id);
+        if (employeeOptional.isPresent()) {
+            Employeedao employee = employeeOptional.get();
+            if ("active".equalsIgnoreCase(employee.getStatus())) {
+                employee.setStatus("deactive");
+            } else {
+                employee.setStatus("active");
+            }
+            EmpRepo.save(employee);
+            return ResponseEntity.ok("Employee status updated successfully!");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Employee not found.");
+        }
+    }
+
     
     //Get Employee for display in the delegate form
     @GetMapping("/getEmployeedata")
