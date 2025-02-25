@@ -9,10 +9,11 @@ import timesheet.admin.dao.Employeedao;
 
 public interface EmployeeRepo extends JpaRepository<Employeedao, Integer> {
 
-	@Modifying
-	@Transactional
+    @Modifying
+    @Transactional
     @Query(value = "INSERT INTO Employee_details (E_name, e_mail, e_password, e_role, created_date, additional_role, status) " +
-                   "VALUES ('Admin', 'admin@gmail.com', 'tidy', 'Admin', CURRENT_DATE, '-', 'active')", 
+                   "VALUES ('Admin', 'admin@gmail.com', 'tidy', 'Admin', CURRENT_DATE, '-', 'active')",
            nativeQuery = true)
     void insertDefaultAdmin();
 }
+

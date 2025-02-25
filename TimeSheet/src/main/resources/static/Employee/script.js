@@ -17,7 +17,7 @@ function switchSection(sectionId) {
 navLinks.forEach(link => {
     link.addEventListener("click", function (event) {
         event.preventDefault();
-        let sectionName = this.textContent.trim().toLowerCase().replace(/\s/g, ""); // Remove spaces
+        let sectionName = this.textContent.trim().toLowerCase().replace(/\s/g, ""); 
         let sectionId = sectionName + "Section";
 
                 // Switch to the corresponding section
