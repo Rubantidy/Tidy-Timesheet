@@ -52,6 +52,7 @@ function showContent(section) {
 		                       <th>Name</th>
 		                       <th>Email</th>
 							   <th>Password</th>
+							   <th>Designation</th>
 		                       <th>Role</th>
 							   <th>Status</th>
 		                       <th>Action</th>
@@ -261,6 +262,7 @@ function fetchEmployeeData() {
 					                        <td>${employee['E-name']}</td>
 					                        <td>${employee['E-mail']}</td>
 											<td>${employee['E-pass']}</td>
+											<td>${employee['E-desg']}</td>
 					                        <td>${employee['E-role']}</td>
 											<td>${employee.status}</td>
 					                        
@@ -273,8 +275,17 @@ function fetchEmployeeData() {
                     </tr>
                 `;
             });
+			
+			// Populate Assign Employee Dropdown
+			           const employeeListContainer = document.getElementById("employeeList");
+			           employeeListContainer.innerHTML = ""; // Clear existing list
+			           data.forEach(employee => {
+			               const li = document.createElement("li");
+			               li.innerHTML = `<a class="dropdown-item" href="#" onclick="addEmployeetofield('${employee['E-name']}', '${employee['E-desg']}')">${employee['E-name']} - ${employee['E-desg']}</a>`;
+			               employeeListContainer.appendChild(li);
+			           });
         })
-        .catch(error => console.error("Error fetching employees:", error));
+        .catch(error => console.error("Error fetching employees:", error));  
 }
 
 function employeeAction(employeeId) {
@@ -293,7 +304,7 @@ function employeeAction(employeeId) {
 }
 
 
-/*Fetch Charge codes*/
+/* Fetch Charge codes */
 function fetchCodeDatas() {
     fetch("/getChargecodes") 
         .then(response => response.json())
@@ -303,16 +314,24 @@ function fetchCodeDatas() {
             data.forEach(code => {
                 tableBody.innerHTML += `
                     <tr>
-						<td>${code.id}</td>
-					    <td>${code.codeType}</td>
+                        <td>${code.id}</td>
+                        <td>${code.codeType}</td>
                         <td>${code.code}</td>
                         <td>${code.clientName}</td>
-						<td>${code.description}</td>
+                        <td>${code.description}</td>
                         <td>${code.projectType}</td>
-						<td>${code.startDate}</td>
-						<td>${code.country}</td>
+                        <td>${code.startDate}</td>
+                        <td>${code.country}</td>
                         <td>
-                            <button class="btn btn-success btn-sm" onclick="finishchargecode('${code.id}')">Finish</button>
+                            <div class="dropdown">
+                                <button class="btn btn-success dropdown-toggle" type="button" id="dropdownMenu${code.id}" data-bs-toggle="dropdown" aria-expanded="false">
+                                    &#8942; <!-- Vertical 3 dots -->
+                                </button>
+                                <ul class="dropdown-menu" aria-labelledby="dropdownMenu${code.id}">
+                                    <li><a class="dropdown-item" href="#" onclick="completeChargeCode('${code.id}')">Complete</a></li>
+                                  <li><a class="dropdown-item" href="#" onclick="openAssignModal('${code.id}', '${code.code}', '${code.description}')">Assign to</a></li>
+                                </ul>
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -320,6 +339,113 @@ function fetchCodeDatas() {
         })
         .catch(error => console.error("Error fetching Charge code:", error));
 }
+
+/* Function to handle Complete action */
+function completeChargeCode(id) {
+    console.log("Charge Code " + id + " marked as Complete");
+    // Add backend API call here if needed
+}
+
+let selectedEmployees = [];
+
+// Update openAssignModal to accept charge code and description
+function openAssignModal(codeId, chargeCode, description) {
+    selectedEmployees = [];
+    document.getElementById("selectedEmployeesContainer").innerHTML = "";
+
+    // Set Charge Code and Description in Modal
+    document.getElementById("chargeCodeDisplay").innerText = chargeCode;
+    document.getElementById("chargeCodeDescription").innerText = description;  // Make sure you add this in the modal's HTML
+
+    // Show Modal
+    const modal = new bootstrap.Modal(document.getElementById("assignModal"));
+    modal.show();
+}
+
+function filterEmployees() {
+    let searchValue = document.getElementById("employeeSearch").value.toLowerCase();
+    let employees = document.querySelectorAll("#employeeList li a");
+
+    employees.forEach(employee => {
+        let text = employee.innerText.toLowerCase();
+        employee.parentElement.style.display = text.includes(searchValue) ? "block" : "none";
+    });
+}
+
+function addEmployeetofield(name, role) {
+    // Only use employee name, not the role
+    if (!selectedEmployees.includes(name)) {
+        selectedEmployees.push(name);
+        updateSelectedEmployees();
+    }
+}
+
+function updateSelectedEmployees() {
+    let container = document.getElementById("selectedEmployeesContainer");
+    container.innerHTML = "";
+
+    selectedEmployees.forEach(employee => {
+        let employeeDiv = document.createElement("div");
+        employeeDiv.className = "d-flex align-items-center justify-content-between bg-light p-2 rounded mb-1";
+        
+        employeeDiv.innerHTML = `
+            <span>${employee}</span>
+            <button class="btn btn-danger btn-sm" onclick="removeEmployee('${employee}')">&times;</button>
+        `;
+
+        container.appendChild(employeeDiv);
+    });
+}
+
+function removeEmployee(employeeName) {
+    selectedEmployees = selectedEmployees.filter(emp => emp !== employeeName);
+    updateSelectedEmployees();
+}
+
+function assignEmployees() {
+    if (selectedEmployees.length === 0) {
+        alert("Please select at least one employee.");
+        return;
+    }
+
+    // Get the charge code and description from the modal
+    const chargeCode = document.getElementById("chargeCodeDisplay").innerText;
+    const description = document.getElementById("chargeCodeDescription").innerText;
+
+    // Prepare data to send to backend (only employee names, not the roles)
+    const assignmentData = {
+        chargeCode: chargeCode,
+        description: description,
+        employees: selectedEmployees  // Send only names
+    };
+
+    // Send data to Spring Boot backend
+    fetch("/assignEmployees", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(assignmentData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert("Employees Assigned and Email Sent!");
+        } else {
+            alert("Error in assignment: " + data.message);
+        }
+    })
+    .catch(error => {
+        console.error("Error sending data to backend:", error);
+        alert("An error occurred.");
+    });
+
+    // Hide modal
+    bootstrap.Modal.getInstance(document.getElementById("assignModal")).hide();
+}
+
+
+
 
 /*Fetch Expense code*/
 function fetchExpense() {
@@ -378,6 +504,7 @@ function createForm(type) {
                     ${inputField("Name", "text", "E-name")}
 					${inputField("Email", "email", "E-mail")}
 					${inputField("Password", "text", "E-pass")}
+					${inputField("Designation", "text", "E-desg")}
                     ${selectField("Role", "E-role", ["Admin","Employee"])}
                     ${formButtons()}
                 </form>

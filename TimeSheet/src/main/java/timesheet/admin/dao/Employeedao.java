@@ -45,7 +45,7 @@ public class Employeedao {
 
 
 	    @JsonProperty("E-name")
-	    private String E_Name;
+	    private String eName;
 
 	    @JsonProperty("E-mail")
 	    private String eMail;
@@ -56,11 +56,23 @@ public class Employeedao {
 	    @JsonProperty("E-role")
 	    private String E_Role;
 	    
+	  
+
+
+		@JsonProperty("E-desg")
+	    private String designation;
+	    
 	    
 	    private String additionalRole;  // New field
 	    private String status; 
 	    
-	    
+	    public String getDesignation() {
+			return designation;
+		}
+
+		public void setDesignation(String designation) {
+			this.designation = designation;
+		}
 	    
 
 	public String getAdditionalRole() {
@@ -87,12 +99,14 @@ public class Employeedao {
 		this.id = id;
 	}
 
-	public String getE_Name() {
-		return E_Name;
+
+
+	public String geteName() {
+		return eName;
 	}
 
-	public void setE_Name(String e_Name) {
-		E_Name = e_Name;
+	public void seteName(String eName) {
+		this.eName = eName;
 	}
 
 	public String geteMail() {
@@ -121,10 +135,14 @@ public class Employeedao {
 
 	@Override
 	public String toString() {
-		return "Employeedao [id=" + id + ", createdDate=" + createdDate + ", E_Name=" + E_Name + ", eMail=" + eMail
-				+ ", ePassword=" + ePassword + ", E_Role=" + E_Role + ", additionalRole=" + additionalRole + ", status="
-				+ status + "]";
+		return "Employeedao [id=" + id + ", createdDate=" + createdDate + ", eName=" + eName + ", eMail=" + eMail
+				+ ", ePassword=" + ePassword + ", E_Role=" + E_Role + ", designation=" + designation
+				+ ", additionalRole=" + additionalRole + ", status=" + status + "]";
 	}
+
+	
+
+	
 
 	
     

@@ -20,7 +20,7 @@ public class LoginController {
         Employeedao employee = employeeService.authenticate(loginRequest.getEmail(), loginRequest.getPassword());
  
         if (employee != null) {
-            return ResponseEntity.ok(new LoginResponse(true, employee.getE_Role(), employee.getStatus(), employee.getE_Name()));
+            return ResponseEntity.ok(new LoginResponse(true, employee.getE_Role(), employee.getStatus(), employee.geteName()));
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new LoginResponse(false, null, null, null));
         }

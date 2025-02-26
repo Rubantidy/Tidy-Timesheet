@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import timesheet.admin.dao.Delegatedao;
@@ -45,10 +44,10 @@ public class EmpController {
         return "Admin/Admin_panel";
     }
     
-    @PostConstruct
-    public void defaultadmin() {
-    	EmpRepo.insertDefaultAdmin();
-    }
+//    @PostConstruct
+//    public void defaultadmin() {
+//    	EmpRepo.insertDefaultAdmin();
+//    }
 
     @PostMapping("/addEmployee")
     public ResponseEntity<String> addEmployee(@RequestBody Employeedao EmpData) throws IOException {
@@ -79,16 +78,22 @@ public class EmpController {
         helper.setSubject("Welcome to the Tidy Digital Solutions");
         
         String emailContent = "<html><body>"
-                + "<h2>Welcome " + EmpData.getE_Name() + "!</h2>"
-                + "<p>Here are your Temproray Login Credentials:</p>"
+                + "<h2>Welcome, " + EmpData.geteName() + "!</h2>"
+                + "<p>We are excited to have you on board! Below are your temporary login credentials for accessing the Tidy Timesheet system:</p>"
                 + "<p><b>Email:</b> " + EmpData.geteMail() + "</p>"
                 + "<p><b>Password:</b> " + EmpData.getePassword() + "</p>"
+                + "<p><b>Designation:</b> " + EmpData.getDesignation() + "</p>"
                 + "<p><b>Role:</b> " + EmpData.getE_Role() + "</p><br>"
-                + "<p><b>Tidy Timesheet URL - </b><a href=\"https://rm.tidyds.com\">https://rm.tidyds.com</a></p>\r\n"
-                + "<h3>Note*<p>After Login into Timesheet, Please update the User details</p>"
+                + "<p><b>Access your Timesheet here:</b> <a href=\"https://rm.tidyds.com\">https://rm.tidyds.com</a></p>"
+                + "<h3>Important:</h3>"
+                + "<p><b>Note:</b> After logging into the Timesheet, please update your user details to ensure accurate information.</p>"
+                + "<p><b>If you face any issues with logging in, feel free to contact support.</b></p>"
+                + "<br><br>"
+                + "<p>We look forward to having you onboard! If you have any questions, feel free to reach out to us.</p>"
                 + "<img src='cid:logoImage' width='200'/>"
-                + "<p>Best Regards, <br>Tidy Digital Solutions</p>"
+                + "<p>Best Regards,<br>Tidy Digital Solutions Team</p>"
                 + "</body></html>";
+
 
         helper.setText(emailContent, true); 
 
@@ -132,7 +137,7 @@ public class EmpController {
 
         for (Employeedao emp : employees) {
             Map<String, String> map = new HashMap<>();
-            map.put("name", emp.getE_Name()); // Assuming `getEname()` returns employee 0
+            map.put("name", emp.geteName()); // Assuming `getEname()` returns employee 0
             map.put("email", emp.geteMail()); // Assuming `getEmail()` returns email
             employeeList.add(map);
             
