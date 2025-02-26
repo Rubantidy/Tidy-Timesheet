@@ -99,6 +99,56 @@
 					    </div>
 					</div>
 
+					<!-- Change Password Modal -->
+					<div class="modal" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+					    <div class="modal-dialog">
+					        <div class="modal-content">
+					            <div class="modal-header">
+					                <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+					                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					            </div>
+					            <div class="modal-body">
+					                <div class="input-group mb-3">
+					                    <label for="newPassword" class="form-label">New Password</label>
+					                    <input type="password" class="form-control" id="newPassword" required>
+					                </div>
+					                <div class="input-group mb-3">
+					                    <label for="confirmPassword" class="form-label">Confirm New Password</label>
+					                    <input type="password" class="form-control" id="confirmPassword" required>
+					                </div>
+					                <div id="passwordError" style="color: red; display: none;"></div>
+					            </div>
+					            <div class="modal-footer">
+					                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+					                <button type="button" class="btn btn-primary" id="sendOtpBtn">Send OTP</button>
+					            </div>
+					        </div>
+					    </div>
+					</div>
+
+					<!-- OTP Modal -->
+					<div class="modal" id="otpModal" tabindex="-1" aria-labelledby="otpModalLabel" aria-hidden="true">
+					    <div class="modal-dialog">
+					        <div class="modal-content">
+					            <div class="modal-header">
+					                <h5 class="modal-title" id="otpModalLabel">Enter OTP</h5>
+					                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					            </div>
+					            <div class="modal-body">
+					                <div class="input-group mb-3">
+					                    <label for="otp" class="form-label">Enter OTP</label>
+					                    <input type="text" class="form-control" id="otp" required>
+					                </div>
+					                <div id="otpError" style="color: red; display: none;"></div>
+					            </div>
+					            <div class="modal-footer">
+					                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+					                <button type="button" class="btn btn-primary" id="changePasswordBtn">Change Password</button>
+					            </div>
+					        </div>
+					    </div>
+					</div>
+
     
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -123,7 +173,7 @@
             dropdown.style.display = (dropdown.style.display === 'block') ? 'none' : 'block';
         }
 
-        // Optional: Close dropdown when clicking outside of it
+
         document.addEventListener('click', function(event) {
             const dropdown = document.getElementById('userDropdown');
             const userIcon = document.getElementById('userIcon');
@@ -132,6 +182,111 @@
             }
         });
 		
+		
+		/*change password with otp*/
+		
+		let otp; // This will store the OTP sent to the email
+
+		// Event listener for opening the change password modal
+		document.getElementById('userDropdown').addEventListener('click', function (e) {
+		    if (e.target.innerText === 'Change Password') {
+		        // Open the modal when 'Change Password' is clicked
+		        var changePasswordModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+		        changePasswordModal.show();
+		    }
+		});
+
+		// Send OTP when the "Send OTP" button is clicked
+		document.getElementById('sendOtpBtn').addEventListener('click', function () {
+		    const newPassword = document.getElementById('newPassword').value;
+		    const confirmPassword = document.getElementById('confirmPassword').value;
+		    const passwordError = document.getElementById('passwordError');
+		    
+		    // Hide previous error message
+		    passwordError.style.display = 'none';
+
+		    // Validate password fields
+		    if (!newPassword || !confirmPassword) {
+		        passwordError.style.display = 'block';
+		        passwordError.innerHTML = "Both fields are required.";
+		        return;
+		    }
+
+		    if (newPassword !== confirmPassword) {
+		        passwordError.style.display = 'block';
+		        passwordError.innerHTML = "Passwords do not match.";
+		        return;
+		    }
+
+		    // Send the request to the backend to send OTP to the user's email
+		    const email = localStorage.getItem('userName');  // Get the email of the logged-in user
+
+		    fetch("/send-otp", {
+		        method: "POST",
+		        headers: {
+		            "Content-Type": "application/json"
+		        },
+		        body: JSON.stringify({ email: email })
+		    })
+		    .then(response => response.json())
+		    .then(result => {
+		        if (result.success) {
+		            otp = result.otp;  // Store the OTP
+		            var otpModal = new bootstrap.Modal(document.getElementById('otpModal'));
+		            otpModal.show();
+		        } else {
+		            alert("Failed to send OTP. Please try again.");
+		        }
+		    })
+		    .catch(error => {
+		        console.error("Error:", error);
+		        alert("An error occurred. Please try again later.");
+		    });
+		});
+
+		document.getElementById('changePasswordBtn').addEventListener('click', function () {
+		    const enteredOtp = document.getElementById('otp').value;
+		    const otpError = document.getElementById('otpError');
+
+		    otpError.style.display = 'none';
+
+		    // Validate OTP
+		    if (!enteredOtp) {
+		        otpError.style.display = 'block';
+		        otpError.innerHTML = "OTP is required.";
+		        return;
+		    }
+
+		    // Send the OTP and password to the backend for validation
+		    const newPassword = document.getElementById('newPassword').value;
+
+		    fetch("/change-password", {
+		        method: "POST",
+		        headers: {
+		            "Content-Type": "application/json"
+		        },
+		        body: JSON.stringify({
+		            email: localStorage.getItem('userName'),  // Get email from localStorage
+		            newPassword: newPassword,
+		            otp: enteredOtp  // Include the OTP entered by the user
+		        })
+		    })
+		    .then(response => response.json())
+		    .then(result => {
+		        if (result.success) {
+		            alert("Your password was changed successfully.");
+		            var otpModal = bootstrap.Modal.getInstance(document.getElementById('otpModal'));
+		            otpModal.hide();
+		        } else {
+		            alert("Failed to change the password. Please try again.");
+		        }
+		    })
+		    .catch(error => {
+		        console.error("Error:", error);
+		        alert("An error occurred. Please try again later.");
+		    });
+		});
+
 
     </script>
 </body>
