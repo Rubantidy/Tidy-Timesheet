@@ -260,31 +260,33 @@
 		    // Send the OTP and password to the backend for validation
 		    const newPassword = document.getElementById('newPassword').value;
 
-		    fetch("/change-password", {
-		        method: "POST",
-		        headers: {
-		            "Content-Type": "application/json"
-		        },
-		        body: JSON.stringify({
-		            email: localStorage.getItem('userName'),  // Get email from localStorage
-		            newPassword: newPassword,
-		            otp: enteredOtp  // Include the OTP entered by the user
-		        })
-		    })
-		    .then(response => response.json())
-		    .then(result => {
-		        if (result.success) {
-		            alert("Your password was changed successfully.");
-		            var otpModal = bootstrap.Modal.getInstance(document.getElementById('otpModal'));
-		            otpModal.hide();
-		        } else {
-		            alert("Failed to change the password. Please try again.");
-		        }
-		    })
-		    .catch(error => {
-		        console.error("Error:", error);
-		        alert("An error occurred. Please try again later.");
-		    });
+			fetch("/change-password", {
+			    method: "POST",
+			    headers: {
+			        "Content-Type": "application/json"
+			    },
+			    body: JSON.stringify({
+			        email: localStorage.getItem('userName'),
+			        newPassword: newPassword,
+			        otp: enteredOtp
+			    })
+			})
+			.then(response => response.json())
+			.then(result => {
+			    if (result.success) {
+			        alert("Your password was changed successfully.");
+			        var otpModal = bootstrap.Modal.getInstance(document.getElementById('otpModal'));
+			        otpModal.hide();
+			    } else {
+			        console.log("Error response:", result); // Debug log to check the response from backend
+			        alert("Failed to change the password. Please try again.");
+			    }
+			})
+			.catch(error => {
+			    console.error("Error:", error);
+			    alert("An error occurred. Please try again later.");
+			});
+
 		});
 
 
