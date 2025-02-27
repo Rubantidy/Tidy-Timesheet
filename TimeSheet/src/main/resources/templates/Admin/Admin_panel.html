@@ -104,19 +104,21 @@
 					    <div class="modal-dialog">
 					        <div class="modal-content">
 					            <div class="modal-header">
-					                <h5 class="modal-title" id="changePasswordModalLabel">Change Password</h5>
+					                <h5 class="modal-title" id="changePasswordModalLabel">Change Your Password</h5>
 					                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 					            </div>
 					            <div class="modal-body">
-					                <div class="input-group mb-3">
-					                    <label for="newPassword" class="form-label">New Password</label>
-					                    <input type="password" class="form-control" id="newPassword" required>
-					                </div>
-					                <div class="input-group mb-3">
-					                    <label for="confirmPassword" class="form-label">Confirm New Password</label>
-					                    <input type="password" class="form-control" id="confirmPassword" required>
-					                </div>
-					                <div id="passwordError" style="color: red; display: none;"></div>
+					                <form>
+					                    <div class="mb-3">
+					                        <label for="newPassword" class="form-label">New Password</label>
+					                        <input type="password" class="form-control" id="newPassword" placeholder="Enter your new password" required>
+					                        <div id="passwordError" style="color: red; display: none;"></div>
+					                    </div>
+					                    <div class="mb-3">
+					                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
+					                        <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm your new password" required>
+					                    </div>
+					                </form>
 					            </div>
 					            <div class="modal-footer">
 					                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -125,6 +127,8 @@
 					        </div>
 					    </div>
 					</div>
+
+					
 
 					<!-- OTP Modal -->
 					<div class="modal" id="otpModal" tabindex="-1" aria-labelledby="otpModalLabel" aria-hidden="true">
@@ -135,19 +139,27 @@
 					                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 					            </div>
 					            <div class="modal-body">
-					                <div class="input-group mb-3">
-					                    <label for="otp" class="form-label">Enter OTP</label>
-					                    <input type="text" class="form-control" id="otp" required>
-					                </div>
-					                <div id="otpError" style="color: red; display: none;"></div>
+					                <form>
+					                    <div class="mb-3">
+					                        <label for="otp" class="form-label">One-Time Password (OTP)</label>
+					                        <input type="text" class="form-control" id="otp" placeholder="Enter the OTP sent to your email" required>
+					                        <div id="otpError" style="color: red; display: none;"></div>
+					                    </div>
+					                </form>
+					                <!-- Timer Display -->
+					                <div id="timerDisplay" style="margin-top: 10px;"></div>
 					            </div>
 					            <div class="modal-footer">
 					                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
 					                <button type="button" class="btn btn-primary" id="changePasswordBtn">Change Password</button>
+					                <button type="button" class="btn btn-warning" id="resendOtpBtn" style="display: none;">Resend OTP</button>
 					            </div>
 					        </div>
 					    </div>
 					</div>
+
+					
+					
 
     
     <!-- Bootstrap JS -->
@@ -186,6 +198,18 @@
 		/*change password with otp*/
 		
 		let otp; // This will store the OTP sent to the email
+		let otpTimer; // To store the timer for OTP expiration
+		let countdown = 120; // 2 minutes countdown in seconds
+
+		// Function to update the timer display
+		function updateTimerDisplay() {
+		    const timerDisplay = document.getElementById('timerDisplay');
+		    if (timerDisplay) {
+		        const minutes = Math.floor(countdown / 60);
+		        const seconds = countdown % 60;
+		        timerDisplay.innerText = `Time remaining: ${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+		    }
+		}
 
 		// Event listener for opening the change password modal
 		document.getElementById('userDropdown').addEventListener('click', function (e) {
@@ -234,6 +258,20 @@
 		            otp = result.otp;  // Store the OTP
 		            var otpModal = new bootstrap.Modal(document.getElementById('otpModal'));
 		            otpModal.show();
+
+		            // Start the countdown timer
+		            countdown = 120; // Reset countdown to 2 minutes
+		            updateTimerDisplay();
+		            otpTimer = setInterval(function() {
+		                countdown--;
+		                updateTimerDisplay();
+		                if (countdown <= 0) {
+		                    clearInterval(otpTimer);
+		                    document.getElementById('sendOtpBtn').style.display = 'none'; // Hide Send OTP button
+		                    document.getElementById('resendOtpBtn').style.display = 'inline-block'; // Show Resend OTP button
+		                }
+		            }, 1000);
+
 		        } else {
 		            alert("Failed to send OTP. Please try again.");
 		        }
@@ -244,6 +282,15 @@
 		    });
 		});
 
+		// Resend OTP functionality
+		document.getElementById('resendOtpBtn').addEventListener('click', function() {
+		    // Trigger the same functionality as the "Send OTP" button
+		    document.getElementById('sendOtpBtn').click();
+		    // Hide the Resend OTP button after clicking
+		    document.getElementById('resendOtpBtn').style.display = 'none';
+		});
+
+		// Change password after OTP validation
 		document.getElementById('changePasswordBtn').addEventListener('click', function () {
 		    const enteredOtp = document.getElementById('otp').value;
 		    const otpError = document.getElementById('otpError');
@@ -260,34 +307,99 @@
 		    // Send the OTP and password to the backend for validation
 		    const newPassword = document.getElementById('newPassword').value;
 
-			fetch("/change-password", {
-			    method: "POST",
-			    headers: {
-			        "Content-Type": "application/json"
-			    },
-			    body: JSON.stringify({
-			        email: localStorage.getItem('userName'),
-			        newPassword: newPassword,
-			        otp: enteredOtp
-			    })
-			})
-			.then(response => response.json())
-			.then(result => {
-			    if (result.success) {
-			        alert("Your password was changed successfully.");
-			        var otpModal = bootstrap.Modal.getInstance(document.getElementById('otpModal'));
-			        otpModal.hide();
-			    } else {
-			        console.log("Error response:", result); // Debug log to check the response from backend
-			        alert("Failed to change the password. Please try again.");
-			    }
-			})
-			.catch(error => {
-			    console.error("Error:", error);
-			    alert("An error occurred. Please try again later.");
-			});
+		    fetch("/change-password", {
+		        method: "POST",
+		        headers: {
+		            "Content-Type": "application/json"
+		        },
+		        body: JSON.stringify({
+		            email: localStorage.getItem('userName'),
+		            newPassword: newPassword,
+		            otp: enteredOtp
+		        })
+		    })
+		    .then(response => response.json())
+		    .then(result => {
+		        if (result.success) {
+		            alert("Your password was changed successfully.");
 
+		            // Close the OTP modal (password change form)
+		            var otpModal = bootstrap.Modal.getInstance(document.getElementById('otpModal'));
+		            otpModal.hide();  // Hide the OTP modal after successful password change
+					
+					// Close the Change Password modal (in case it is still open)
+					          var changePasswordModal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
+					          changePasswordModal.hide();  // Hide the Change Password modal as well
+
+		            // Reset the OTP field and form for clean state
+		            document.getElementById('otp').value = '';
+		            document.getElementById('newPassword').value = '';
+		            document.getElementById('confirmPassword').value = '';
+
+		            // Optional: Hide the Resend OTP button again, in case the modal is reopened
+		            document.getElementById('resendOtpBtn').style.display = 'none';
+		            document.getElementById('sendOtpBtn').style.display = 'inline-block';
+		        } else {
+		            console.log("Error response:", result); // Debug log to check the response from backend
+		            alert("Failed to change the password. Please try again.");
+		        }
+		    })
+		    .catch(error => {
+		        console.error("Error:", error);
+		        alert("An error occurred. Please try again later.");
+		    });
 		});
+
+
+
+		document.querySelector('.dropdown-menu').addEventListener('click', function(event) {
+		    // Prevent the default behavior of anchor tag click
+		    event.preventDefault();
+
+		    // Check if the clicked item is 'Switch Employee'
+		    if (event.target.innerText === 'Switch Employee') {
+		        const userEmail = localStorage.getItem('userEmail');  // Fetch the email from localStorage
+
+		        if (!userEmail) {
+		            alert("User is not logged in. Please log in first.");
+		            return;
+		        }
+
+		        // Send the email to backend to check if the role is Employee
+		        fetch('/check-employee-role', {
+		            method: 'POST',
+		            headers: {
+		                'Content-Type': 'application/json'
+		            },
+		            body: JSON.stringify({ email: userEmail })
+		        })
+		        .then(response => response.json())
+		        .then(data => {
+		            if (data.success && data.additionalRole === "Employee") {
+		                // Store the employee name in localStorage
+		                localStorage.setItem('userName', data.eName);
+
+		                // Switch to Employee Dashboard
+		                switchToEmployeePanel();
+		            } else {
+		                alert("You are not authorized to switch to the Employee panel.");
+		            }
+		        })
+		        .catch(error => {
+		            console.error("Error:", error);
+		            alert("An error occurred. Please try again.");
+		        });
+		    }
+		});
+
+		// Function to switch to the Employee panel
+		function switchToEmployeePanel() {
+		    // You can also redirect to employee panel here if required
+		    window.location.href = "/Employee_Dashboard"; // Replace with the correct URL
+		}
+
+
+	
 
 
     </script>

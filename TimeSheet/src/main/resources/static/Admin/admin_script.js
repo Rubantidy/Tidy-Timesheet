@@ -21,6 +21,8 @@ function closeSidebarOnMobile() {
         document.getElementById("sidebar").classList.remove("show");
     }
 }
+
+
 /*Script for dashboard icons functions */
 document.getElementById('logout').addEventListener('click', function(event) {
        event.preventDefault();
@@ -32,6 +34,8 @@ document.getElementById('logout').addEventListener('click', function(event) {
        window.location.href = '/login'; // Redirect to the login page or wherever needed
 	   alert("Logout Successfully..! ");
    });
+   
+   
    
 function showContent(section) {
     const title = document.getElementById("content-title");

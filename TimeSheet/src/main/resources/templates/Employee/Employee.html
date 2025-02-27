@@ -6,9 +6,14 @@
     <title>Timesheet</title>
   <!--  <link rel="stylesheet" href="style.css"> -->
 	<script src="/Employee/script.js"></script>
+	<link rel="stylesheet" href="/Employee/style.css">
     
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 	<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
 
 </head>
 <body class="time-body">  
@@ -16,18 +21,81 @@
     <!-- Section 1: Header -->
     <div class="header-section d-flex justify-content-between align-items-center p-3 bg-light border-bottom">
         <h2 class="m-0">myTimesheet</h2>
-        <div class="icons">
-			<i class="fas fa-bell fa-2x"></i>
-			  <i class="fas fa-user-circle fa-2x" id="userIcon" onclick="toggleDropdown()"></i>
-			  
-			  <div id="userDropdown" class="dropdown-menu">
-			  		<a href="#" class="dropdown-item">Change Password</a>
-			  		<a href="#" class="dropdown-item">Switch Admin</a>
-			  		<a href="#" class="dropdown-item" id="logout">Logout</a>
-			  	</div>
-        </div>
+		<div class="iconsmenu">
+						    <i class="bi bi-bell"></i>
+
+						    <i class="bi bi-person-circle" id="userIcon" onclick="toggleDropdown()"></i>
+							<span id="userName" style="color: black; margin-left: 10px; display: none;"></span>
+							
+
+						    <div id="userDropdown" class="dropdown-menu">
+						        <a href="#" class="dropdown-item">Change Password</a>
+						        <a href="#" class="dropdown-item">Switch Admin</a>
+								<a href="#" class="dropdown-item" id="logout">Logout</a>
+						    </div>
+						</div>
     </div>
 
+	<!-- Change Password Modal -->
+	<div class="modal" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordModalLabel" aria-hidden="true">
+	    <div class="modal-dialog">
+	        <div class="modal-content">
+	            <div class="modal-header">
+	                <h5 class="modal-title" id="changePasswordModalLabel">Change Your Password</h5>
+	                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	            </div>
+	            <div class="modal-body">
+	                <form>
+	                    <div class="mb-3">
+	                        <label for="newPassword" class="form-label">New Password</label>
+	                        <input type="password" class="form-control" id="newPassword" placeholder="Enter your new password" required>
+	                        <div id="passwordError" style="color: red; display: none;"></div>
+	                    </div>
+	                    <div class="mb-3">
+	                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
+	                        <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm your new password" required>
+	                    </div>
+	                </form>
+	            </div>
+	            <div class="modal-footer">
+	                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+	                <button type="button" class="btn btn-primary" id="sendOtpBtn">Send OTP</button>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+
+
+
+	<!-- OTP Modal -->
+	<div class="modal" id="otpModal" tabindex="-1" aria-labelledby="otpModalLabel" aria-hidden="true">
+	    <div class="modal-dialog">
+	        <div class="modal-content">
+	            <div class="modal-header">
+	                <h5 class="modal-title" id="otpModalLabel">Enter OTP</h5>
+	                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	            </div>
+	            <div class="modal-body">
+	                <form>
+	                    <div class="mb-3">
+	                        <label for="otp" class="form-label">One-Time Password (OTP)</label>
+	                        <input type="text" class="form-control" id="otp" placeholder="Enter the OTP sent to your email" required>
+	                        <div id="otpError" style="color: red; display: none;"></div>
+	                    </div>
+	                </form>
+	                <!-- Timer Display -->
+	                <div id="timerDisplay" style="margin-top: 10px;"></div>
+	            </div>
+	            <div class="modal-footer">
+	                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+	                <button type="button" class="btn btn-primary" id="changePasswordBtn">Change Password</button>
+	                <button type="button" class="btn btn-warning" id="resendOtpBtn" style="display: none;">Resend OTP</button>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+
+	
     <!-- Section 2: Navigation -->
     <div class="navigation-section d-flex p-2 bg-white border-bottom align-items-center">
         <ul class="nav flex-grow-1">
@@ -135,20 +203,205 @@
 
 <script>
 	
-	// Function to toggle the dropdown menu visibility
-	      function toggleDropdown() { 
-	          const dropdown = document.getElementById('userDropdown');
-	          dropdown.style.display = (dropdown.style.display === 'block') ? 'none' : 'block';
-	      }
 
-	      // Optional: Close dropdown when clicking outside of it
-	      document.addEventListener('click', function(event) {
-	          const dropdown = document.getElementById('userDropdown');
-	          const userIcon = document.getElementById('userIcon');
-	          if (!userIcon.contains(event.target) && !dropdown.contains(event.target)) {
-	              dropdown.style.display = 'none';
+	document.addEventListener("DOMContentLoaded", function() {
+	          const userName = localStorage.getItem('userName');
+	          console.log(userName); // Debugging: Check if the value is correct
+
+	          if (userName) {
+	              const userNameElement = document.getElementById('userName');
+	              userNameElement.innerText = userName;
+	              userNameElement.style.display = 'inline'; // Show the name under the icon
 	          }
 	      });
+
+		  // Function to toggle the dropdown menu visibility
+		  function toggleDropdown() { 
+		      const dropdown = document.getElementById('userDropdown');
+		      dropdown.style.display = (dropdown.style.display === 'block') ? 'none' : 'block';
+		  }
+
+
+		  document.addEventListener('click', function(event) {
+		      const dropdown = document.getElementById('userDropdown');
+		      const userIcon = document.getElementById('userIcon');
+		      if (!userIcon.contains(event.target) && !dropdown.contains(event.target)) {
+		          dropdown.style.display = 'none';
+		      }
+		  });
+		  
+
+		  /*change password with otp*/
+		  		
+		  		let otp; // This will store the OTP sent to the email
+		  		let otpTimer; // To store the timer for OTP expiration
+		  		let countdown = 120; // 2 minutes countdown in seconds
+
+		  		// Function to update the timer display
+		  		function updateTimerDisplay() {
+		  		    const timerDisplay = document.getElementById('timerDisplay');
+		  		    if (timerDisplay) {
+		  		        const minutes = Math.floor(countdown / 60);
+		  		        const seconds = countdown % 60;
+		  		        timerDisplay.innerText = `Time remaining: ${minutes}:${seconds < 10 ? '0' + seconds : seconds}`;
+		  		    }
+		  		}
+
+		  		// Event listener for opening the change password modal
+		  		document.getElementById('userDropdown').addEventListener('click', function (e) {
+		  		    if (e.target.innerText === 'Change Password') {
+		  		        // Open the modal when 'Change Password' is clicked
+		  		        var changePasswordModal = new bootstrap.Modal(document.getElementById('changePasswordModal'));
+		  		        changePasswordModal.show();
+		  		    }
+		  		});
+
+		  		// Send OTP when the "Send OTP" button is clicked
+		  		document.getElementById('sendOtpBtn').addEventListener('click', function () {
+		  		    const newPassword = document.getElementById('newPassword').value;
+		  		    const confirmPassword = document.getElementById('confirmPassword').value;
+		  		    const passwordError = document.getElementById('passwordError');
+		  		    
+		  		    // Hide previous error message
+		  		    passwordError.style.display = 'none';
+
+		  		    // Validate password fields
+		  		    if (!newPassword || !confirmPassword) {
+		  		        passwordError.style.display = 'block';
+		  		        passwordError.innerHTML = "Both fields are required.";
+		  		        return;
+		  		    }
+
+		  		    if (newPassword !== confirmPassword) {
+		  		        passwordError.style.display = 'block';
+		  		        passwordError.innerHTML = "Passwords do not match.";
+		  		        return;
+		  		    }
+
+		  		    // Send the request to the backend to send OTP to the user's email
+		  		    const email = localStorage.getItem('userName');  // Get the email of the logged-in user
+
+		  		    fetch("/send-otp", {
+		  		        method: "POST",
+		  		        headers: {
+		  		            "Content-Type": "application/json"
+		  		        },
+		  		        body: JSON.stringify({ email: email })
+		  		    })
+		  		    .then(response => response.json())
+		  		    .then(result => {
+		  		        if (result.success) {
+		  		            otp = result.otp;  // Store the OTP
+		  		            var otpModal = new bootstrap.Modal(document.getElementById('otpModal'));
+		  		            otpModal.show();
+
+		  		            // Start the countdown timer
+		  		            countdown = 120; // Reset countdown to 2 minutes
+		  		            updateTimerDisplay();
+		  		            otpTimer = setInterval(function() {
+		  		                countdown--;
+		  		                updateTimerDisplay();
+		  		                if (countdown <= 0) {
+		  		                    clearInterval(otpTimer);
+		  		                    document.getElementById('sendOtpBtn').style.display = 'none'; // Hide Send OTP button
+		  		                    document.getElementById('resendOtpBtn').style.display = 'inline-block'; // Show Resend OTP button
+		  		                }
+		  		            }, 1000);
+
+		  		        } else {
+		  		            alert("Failed to send OTP. Please try again.");
+		  		        }
+		  		    })
+		  		    .catch(error => {
+		  		        console.error("Error:", error);
+		  		        alert("An error occurred. Please try again later.");
+		  		    });
+		  		});
+
+		  		// Resend OTP functionality
+		  		document.getElementById('resendOtpBtn').addEventListener('click', function() {
+		  		    // Trigger the same functionality as the "Send OTP" button
+		  		    document.getElementById('sendOtpBtn').click();
+		  		    // Hide the Resend OTP button after clicking
+		  		    document.getElementById('resendOtpBtn').style.display = 'none';
+		  		});
+
+		  		// Change password after OTP validation
+		  		document.getElementById('changePasswordBtn').addEventListener('click', function () {
+		  		    const enteredOtp = document.getElementById('otp').value;
+		  		    const otpError = document.getElementById('otpError');
+
+		  		    otpError.style.display = 'none';
+
+		  		    // Validate OTP
+		  		    if (!enteredOtp) {
+		  		        otpError.style.display = 'block';
+		  		        otpError.innerHTML = "OTP is required.";
+		  		        return;
+		  		    }
+
+		  		    // Send the OTP and password to the backend for validation
+		  		    const newPassword = document.getElementById('newPassword').value;
+
+		  		    fetch("/change-password", {
+		  		        method: "POST",
+		  		        headers: {
+		  		            "Content-Type": "application/json"
+		  		        },
+		  		        body: JSON.stringify({
+		  		            email: localStorage.getItem('userName'),
+		  		            newPassword: newPassword,
+		  		            otp: enteredOtp
+		  		        })
+		  		    })
+		  		    .then(response => response.json())
+		  		    .then(result => {
+		  		        if (result.success) {
+		  		            alert("Your password was changed successfully.");
+
+		  		            // Close the OTP modal (password change form)
+		  		            var otpModal = bootstrap.Modal.getInstance(document.getElementById('otpModal'));
+		  		            otpModal.hide();  // Hide the OTP modal after successful password change
+		  					
+		  					// Close the Change Password modal (in case it is still open)
+		  					          var changePasswordModal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
+		  					          changePasswordModal.hide();  // Hide the Change Password modal as well
+
+		  		            // Reset the OTP field and form for clean state
+		  		            document.getElementById('otp').value = '';
+		  		            document.getElementById('newPassword').value = '';
+		  		            document.getElementById('confirmPassword').value = '';
+
+		  		            // Optional: Hide the Resend OTP button again, in case the modal is reopened
+		  		            document.getElementById('resendOtpBtn').style.display = 'none';
+		  		            document.getElementById('sendOtpBtn').style.display = 'inline-block';
+		  		        } else {
+		  		            console.log("Error response:", result); // Debug log to check the response from backend
+		  		            alert("Failed to change the password. Please try again.");
+		  		        }
+		  		    })
+		  		    .catch(error => {
+		  		        console.error("Error:", error);
+		  		        alert("An error occurred. Please try again later.");
+		  		    });
+		  		});
+
+				
+				
+				document.getElementById('logout').addEventListener('click', function(event) {
+				       event.preventDefault();
+
+				       // Clear any session or localStorage data if needed
+				       localStorage.removeItem('userName'); // Example of clearing the user name stored in localStorage
+
+				       // Redirect to the login page
+				       window.location.href = '/login'; // Redirect to the login page or wherever needed
+					   alert("Logout Successfully..! ");
+				   });
+				
+				
+				
+		  /*script for calender*/
 		  
 	 const today = new Date();
 	        let currentYear = today.getFullYear();

@@ -91,7 +91,7 @@ public class EmailService {
         }
  
         // Check if OTP is expired (5 minutes expiration time)
-        if (System.currentTimeMillis() - timestamp > TimeUnit.MINUTES.toMillis(5)) {
+        if (System.currentTimeMillis() - timestamp > TimeUnit.MINUTES.toMillis(2)) {
             otpMap.remove(email);  // Remove expired OTP
             otpTimestampMap.remove(email);
             return false;  // OTP expired
@@ -109,9 +109,9 @@ public class EmailService {
             MimeMessage mimeMessage = javaMailSender.createMimeMessage();
             MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, true);
  
-            // Email content
-            messageHelper.setFrom("rubanmtidyds@gmail.com", "Tidy Digital Solutions"); // Your email address
-            messageHelper.setTo(mail); // Recipient's email address
+            
+            messageHelper.setFrom("rubanmtidyds@gmail.com", "Tidy Digital Solutions"); 
+            messageHelper.setTo(mail); 
             messageHelper.setSubject("Confirmation: Your Password Has Been Successfully Changed");
           
  
@@ -119,9 +119,10 @@ public class EmailService {
                     + "<h2>Dear " + employee.geteName() + ",</h2>"
                     + "<p>We are writing to confirm that your password has been successfully changed.</p>"
                     + "<p>If you did not make this change, please contact our support team immediately for assistance.</p>"
-                    + "<br><br>"
+                    + "<br>"
                     + "<p><b>Current Email:</b> " + employee.geteMail() + "</p>"
                     + "<p><b>Updated Password:</b> Your password has been updated successfully. (For security reasons, we do not display your new password.)</p>"
+                    + "<br>"
                     + "<img src='cid:logoImage' width='200'/>"
                     + "<p>Best regards,<br>The Tidy Digital Solutions Team</p>"
                     + "</body></html>";
@@ -136,6 +137,7 @@ public class EmailService {
             
             // Send the email
             javaMailSender.send(mimeMessage);
+            
             System.out.println("Password change confirmation email sent to: " + email);
         } catch (MessagingException e) {
             e.printStackTrace();

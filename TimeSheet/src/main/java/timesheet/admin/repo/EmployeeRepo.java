@@ -14,6 +14,8 @@ public interface EmployeeRepo extends JpaRepository<Employeedao, Integer> {
 //    void insertDefaultAdmin();
     
     Employeedao findByeName(String name);
+    
+    Employeedao findByeMail(String email);
 
 }
 
