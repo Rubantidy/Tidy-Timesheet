@@ -251,61 +251,85 @@ function hideForm() {
 
 /*Funtion for fetching Data form backend (Java)*/
 
-/*Fetch Employee Data*/
+/* Fetch Employee Data */
 function fetchEmployeeData() {
-    fetch("/getEmployees") 
+    fetch("/getEmployees")
         .then(response => response.json())
         .then(data => {
             const tableBody = document.getElementById("employee-table-body");
-            tableBody.innerHTML = ""; 
+            tableBody.innerHTML = "";
             data.forEach(employee => {
                 tableBody.innerHTML += `
                     <tr>
-					<td>${employee.id}</td>
-										    <td>${employee.createdDate}</td>
-					                        <td>${employee['E-name']}</td>
-					                        <td>${employee['E-mail']}</td>
-											<td>${employee['E-pass']}</td>
-											<td>${employee['E-desg']}</td>
-					                        <td>${employee['E-role']}</td>
-											<td>${employee.status}</td>
-					                        
+                        <td>${employee.id}</td>
+                        <td>${employee.createdDate}</td>
+                        <td>${employee['E-name']}</td>
+                        <td>${employee['E-mail']}</td>
+                        <td>${employee['E-pass']}</td>
+                        <td>${employee['E-desg']}</td>
+                        <td>${employee['E-role']}</td>
+                        <td>${employee.status}</td>
                         <td>
-						<button class="btn btn-${employee.status === 'active' ? 'danger' : 'success'} btn-sm" 
-						                        onclick="employeeAction('${employee.id}')">
-						                    ${employee.status === 'active' ? 'Deactivate' : 'Activate'}
-						                </button>
+                            <button class="btn btn-${employee.status === 'active' ? 'danger' : 'success'} btn-sm" 
+                                    onclick="employeeAction('${employee.id}', '${employee.status}')">
+                                ${employee.status === 'active' ? 'Deactivate' : 'Activate'}
+                            </button>
                         </td>
                     </tr>
                 `;
             });
-			
-			// Populate Assign Employee Dropdown
-			           const employeeListContainer = document.getElementById("employeeList");
-			           employeeListContainer.innerHTML = ""; // Clear existing list
-			           data.forEach(employee => {
-			               const li = document.createElement("li");
-			               li.innerHTML = `<a class="dropdown-item" href="#" onclick="addEmployeetofield('${employee['E-name']}', '${employee['E-desg']}')">${employee['E-name']} - ${employee['E-desg']}</a>`;
-			               employeeListContainer.appendChild(li);
-			           });
+
+            // Populate Assign Employee Dropdown
+            const employeeListContainer = document.getElementById("employeeList");
+            employeeListContainer.innerHTML = ""; // Clear existing list
+            data.forEach(employee => {
+                const li = document.createElement("li");
+                li.innerHTML = `<a class="dropdown-item" href="#" onclick="addEmployeetofield('${employee['E-name']}', '${employee['E-desg']}')">${employee['E-name']} - ${employee['E-desg']}</a>`;
+                employeeListContainer.appendChild(li);
+            });
         })
-        .catch(error => console.error("Error fetching employees:", error));  
+        .catch(error => console.error("Error fetching employees:", error));
 }
 
-function employeeAction(employeeId) {
-    fetch(`/updateEmployeeStatus/${employeeId}`, {
-        method: "PUT"
-    })
-    .then(response => {
-        if (response.ok) {
-            alert("Employee status updated successfully!");
-            fetchEmployeeData();  // Refresh the table after update
-        } else {
-            alert("Failed to update employee status.");
-        }
-    })
-    .catch(error => console.error("Error updating employee status:", error));
+/* Function to handle employee status action */
+function employeeAction(employeeId, currentStatus) {
+    const confirmationMessage = document.getElementById("confirmationMessage");
+    const confirmActionBtn = document.getElementById("confirmActionBtn");
+
+    // Set the confirmation message based on the current status
+    if (currentStatus === 'active') {
+        confirmationMessage.innerText = "Do you want to deactivate this employee?";
+    } else {
+        confirmationMessage.innerText = "Do you want to activate this employee?";
+    }
+
+    // Show the confirmation modal
+    const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
+    confirmationModal.show();
+
+    // When the user clicks "Yes", perform the action
+    confirmActionBtn.onclick = function() {
+        // Perform the employee status update based on the current status
+        fetch(`/updateEmployeeStatus/${employeeId}`, {
+            method: "PUT"
+        })
+        .then(response => {
+            if (response.ok) {
+                alert("Employee status updated successfully!");
+                fetchEmployeeData();  // Refresh the table after update
+                confirmationModal.hide();  // Close the modal
+            } else {
+                alert("Failed to update employee status.");
+                confirmationModal.hide();  // Close the modal
+            }
+        })
+        .catch(error => {
+            console.error("Error updating employee status:", error);
+            confirmationModal.hide();  // Close the modal
+        });
+    };
 }
+
 
 
 /* Fetch Charge codes */
@@ -416,36 +440,56 @@ function assignEmployees() {
     const chargeCode = document.getElementById("chargeCodeDisplay").innerText;
     const description = document.getElementById("chargeCodeDescription").innerText;
 
-    // Prepare data to send to backend (only employee names, not the roles)
-    const assignmentData = {
-        chargeCode: chargeCode,
-        description: description,
-        employees: selectedEmployees  // Send only names
+    // Set the charge code and description inside the confirmation modal
+    document.getElementById("confirmationChargeCode").innerText = chargeCode;
+    document.getElementById("confirmationDescription").innerText = description;
+
+    // Show the confirmation modal
+    const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal2'));
+    confirmationModal.show();
+
+    // Handle the confirmation when the user clicks "Yes, Assign"
+    document.getElementById("confirmAssignment").onclick = function() {
+        // Proceed with the assignment logic if the user clicks "Yes, Assign"
+        
+        const assignmentData = {
+            chargeCode: chargeCode,
+            description: description,
+            employees: selectedEmployees  // Send only names
+        };
+
+        // Send data to Spring Boot backend
+        fetch("/assignEmployees", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(assignmentData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Employees Assigned and Email Sent!");
+            } else {
+                alert("Error in assignment: " + data.message);
+            }
+        })
+        .catch(error => {
+            console.error("Error sending data to backend:", error);
+            alert("An error occurred.");
+        });
+
+        // Hide modal
+        confirmationModal.hide();
+        
+        // Close the current modal (if open)
+        bootstrap.Modal.getInstance(document.getElementById("assignModal")).hide();
     };
 
-    // Send data to Spring Boot backend
-    fetch("/assignEmployees", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(assignmentData)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            alert("Employees Assigned and Email Sent!");
-        } else {
-            alert("Error in assignment: " + data.message);
-        }
-    })
-    .catch(error => {
-        console.error("Error sending data to backend:", error);
-        alert("An error occurred.");
-    });
-
-    // Hide modal
-    bootstrap.Modal.getInstance(document.getElementById("assignModal")).hide();
+    // If the user clicks "Cancel", just close the confirmation modal
+    document.querySelector('.btn-secondary').onclick = function() {
+        confirmationModal.hide();
+    };
 }
 
 

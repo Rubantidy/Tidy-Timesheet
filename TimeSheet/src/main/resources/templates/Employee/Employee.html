@@ -387,7 +387,7 @@
 		  		});
 
 				
-				
+				/*script for logout*/
 				document.getElementById('logout').addEventListener('click', function(event) {
 				       event.preventDefault();
 
@@ -401,6 +401,50 @@
 				
 				
 				
+				   /*script for swtching role*/
+				   
+				   document.querySelector('.dropdown-menu').addEventListener('click', function(event) {
+				       event.preventDefault();
+
+				       // Check if the clicked item is 'Switch Admin'
+				       if (event.target.innerText === 'Switch Admin') {
+				           const userEmail = localStorage.getItem('userEmail');  // Fetch the email from localStorage
+
+				           if (!userEmail) {
+				               alert("User is not logged in. Please log in first.");
+				               return;
+				           }
+
+				           // Send the email to backend to check if the user can switch to Admin
+				           fetch('/check-admin-role', {
+				               method: 'POST',
+				               headers: {
+				                   'Content-Type': 'application/json'
+				               },
+				               body: JSON.stringify({ email: userEmail })
+				           })
+				           .then(response => response.json())
+				           .then(data => {
+				               if (data.success) {
+				                   // The user is authorized to switch to Admin panel
+				                   localStorage.setItem('userName', data.eName);  // Store the new name (from Admin or Delegator)
+				                   localStorage.setItem('userRole', "Admin");  // Update role to Admin
+				                   
+				                   // Redirect to Admin Dashboard
+				                   window.location.href = "/Admin_Dashboard";
+				               } else {
+				                   alert("You do not have permission to switch to the Admin panel.");
+				               }
+				           })
+				           .catch(error => {
+				               console.error("Error:", error);
+				               alert("An error occurred. Please try again.");
+				           });
+				       }
+				   });
+
+				       
+						
 		  /*script for calender*/
 		  
 	 const today = new Date();

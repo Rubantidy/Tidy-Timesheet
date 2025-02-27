@@ -6,4 +6,5 @@ import timesheet.admin.dao.Delegatedao;
 
 public interface DelegateRepo extends JpaRepository<Delegatedao, Integer> {
 
+	Delegatedao findBydEmail(String email);
 }

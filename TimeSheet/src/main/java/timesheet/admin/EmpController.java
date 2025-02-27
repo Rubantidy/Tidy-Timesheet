@@ -132,19 +132,23 @@ public class EmpController {
     //Get Employee for display in the delegate form
     @GetMapping("/getEmployeedata")
     public ResponseEntity<List<Map<String, String>>> getEmployeeData() {
-        List<Employeedao> employees = EmpRepo.findAll(); // Fetch from DB
-        List<Map<String, String>> employeeList = new ArrayList<>();
+        // Fetch only active employees from the database
+        List<Employeedao> employees = EmpRepo.findBystatus("active"); // Fetch active employees
 
+        List<Map<String, String>> employeeList = new ArrayList<>();
+        
+        // Iterate through the list of employees and add them to employeeList
         for (Employeedao emp : employees) {
             Map<String, String> map = new HashMap<>();
-            map.put("name", emp.geteName()); // Assuming `getEname()` returns employee 0
+            map.put("name", emp.geteName()); // Assuming `getEname()` returns employee name
             map.put("email", emp.geteMail()); // Assuming `getEmail()` returns email
+            map.put("designation", emp.getDesignation()); // Assuming `getDesignation()` returns employee's designation
             employeeList.add(map);
-            
         }
 
         return ResponseEntity.ok(employeeList);
     }
+
     
     @PostMapping("/addDelegate")
     public ResponseEntity<String> addExpense(@RequestBody Delegatedao Dele) {

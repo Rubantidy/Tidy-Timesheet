@@ -37,7 +37,7 @@ public class CodeController {
 	    
 	  @PostMapping("/addChargeCode")
 	    public String addChargeCode(@RequestBody Map<String, String> requestData) {
-		  System.out.println("Received Data: " + requestData);
+
 	        String codeType = requestData.getOrDefault("codeType", "-");
 	        String code = requestData.getOrDefault("code", "-");
 	        String clientName = requestData.getOrDefault("clientName", "-");
@@ -60,7 +60,7 @@ public class CodeController {
 	        String description = requestData.getOrDefault("description", "-");
 
 	        Codedao newLeaveCode = new Codedao(codeType, code, description);
-	        System.out.println(newLeaveCode);
+
 	        codeRepository.save(newLeaveCode);
 
 	        return "Leave Code added successfully!";
