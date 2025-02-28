@@ -45,7 +45,7 @@ function showContent(section) {
         "dashboard": `
          
         `,
-		"manage-user": `<button class="btn btn-primary mb-3" id="addEmployeeBtn">Add Employee</button><div id="form-container"></div>
+		"manage-user": `<button class="btn btn-primary mb-3" id="addEmployeeBtn">Add Users</button><div id="form-container"></div>
 		     <div id="form-container"></div>
 		           <h4>Employee List</h4>
 		           <table class="table table-striped">
@@ -55,9 +55,9 @@ function showContent(section) {
 						   	   <th>Registered Date</th>
 		                       <th>Name</th>
 		                       <th>Email</th>
-							   <th>Password</th>
+		
 							   <th>Designation</th>
-		                       <th>Role</th>
+		           
 							   <th>Status</th>
 		                       <th>Action</th>
 		                   </tr>
@@ -145,7 +145,7 @@ function showContent(section) {
 	            const dynamicDashboard = `
 	               <div class="dashboard-card-box">
 	                    ${createCard("bi-people", "Total Employees", totalEmployees)}
-	                    ${createCard("bi-person-check", "Delegators", totalDelegators)}
+	                   
 	                    ${createCard("bi-credit-card", "Charge Codes", totalChargeCodes)}
 	                    ${createCard("bi bi-receipt", "Expense Codes", totalExpenseCodes)}
 	                </div>
@@ -265,9 +265,9 @@ function fetchEmployeeData() {
                         <td>${employee.createdDate}</td>
                         <td>${employee['E-name']}</td>
                         <td>${employee['E-mail']}</td>
-                        <td>${employee['E-pass']}</td>
+            
                         <td>${employee['E-desg']}</td>
-                        <td>${employee['E-role']}</td>
+             
                         <td>${employee.status}</td>
                         <td>
                             <button class="btn btn-${employee.status === 'active' ? 'danger' : 'success'} btn-sm" 
@@ -279,14 +279,17 @@ function fetchEmployeeData() {
                 `;
             });
 
-            // Populate Assign Employee Dropdown
-            const employeeListContainer = document.getElementById("employeeList");
-            employeeListContainer.innerHTML = ""; // Clear existing list
-            data.forEach(employee => {
-                const li = document.createElement("li");
-                li.innerHTML = `<a class="dropdown-item" href="#" onclick="addEmployeetofield('${employee['E-name']}', '${employee['E-desg']}')">${employee['E-name']} - ${employee['E-desg']}</a>`;
-                employeeListContainer.appendChild(li);
-            });
+			// Populate Assign Employee Dropdown
+			const employeeListContainer = document.getElementById("employeeList");
+			employeeListContainer.innerHTML = ""; // Clear existing list
+			data.forEach(employee => {
+			    // Only add active employees to the dropdown
+			    if (employee.status === 'active') {
+			        const li = document.createElement("li");
+			        li.innerHTML = `<a class="dropdown-item" href="#" onclick="addEmployeetofield('${employee['E-name']}', '${employee['E-desg']}')">${employee['E-name']} - ${employee['E-desg']}</a>`;
+			        employeeListContainer.appendChild(li);
+			    }
+			});
         })
         .catch(error => console.error("Error fetching employees:", error));
 }

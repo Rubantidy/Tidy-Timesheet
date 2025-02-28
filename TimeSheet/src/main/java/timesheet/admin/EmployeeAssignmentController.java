@@ -30,8 +30,7 @@ public class EmployeeAssignmentController {
     @PostMapping
     public ResponseEntity<Map<String, Object>> assignEmployees(@RequestBody AssignmentRequest assignmentRequest) {
         try {
-            // Log the received employee names
-            System.out.println("Received Employees: " + assignmentRequest.getEmployees());
+
 
             // Save the assignments in the database
             for (String employeeName : assignmentRequest.getEmployees()) {
@@ -44,7 +43,7 @@ public class EmployeeAssignmentController {
 
             // Send email to each selected employee
             for (String employeeName : assignmentRequest.getEmployees()) {
-                System.out.println("Received name: " + employeeName); // This should print if the loop runs
+
                 emailService.sendAssignmentEmail(employeeName, assignmentRequest.getChargeCode(), assignmentRequest.getDescription());
             }
 

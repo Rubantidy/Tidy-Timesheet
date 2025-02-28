@@ -13,10 +13,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import timesheet.admin.dao.Delegatedao;
 import timesheet.admin.dao.Employeedao;
 import timesheet.admin.repo.CodeRepo;
-import timesheet.admin.repo.DelegateRepo;
 import timesheet.admin.repo.EmployeeRepo;
 import timesheet.admin.repo.ExpenseRepo;
 
@@ -26,8 +24,8 @@ public class DashboardController {
     @Autowired
     private EmployeeRepo EmpRepo;
     
-    @Autowired
-    private DelegateRepo Delrepo;
+//    @Autowired
+//    private DelegateRepo Delrepo;
     
 	  @Autowired
 	    private CodeRepo codeRepository;
@@ -54,10 +52,10 @@ public class DashboardController {
 	        return EmpRepo.count();
 	    }
 	    
-	    @GetMapping("/getDelegatorsCount")
-	    public Long getDelegatorscount() {
-	        return Delrepo.count();
-	    }
+//	    @GetMapping("/getDelegatorsCount")
+//	    public Long getDelegatorscount() {
+//	        return Delrepo.count();
+//	    }
 	    
 	    @GetMapping("/getChargecodesCount")
 	    public Long getChargecodescount() {
@@ -100,8 +98,8 @@ public class DashboardController {
 	        // Fetch the employee details from the Employee table based on the email
 	        Employeedao employee = EmpRepo.findByeMail(email); // Assuming you have a method to find employee by email
 	        
-	        // Fetch the delegator details from the Delegatedao table based on the email
-	        Delegatedao delegator = Delrepo.findBydEmail(email); // Use the correct field name: Dmail
+	
+//	        Delegatedao delegator = Delrepo.findBydEmail(email); 
 
 	        // Prepare the response
 	        Map<String, Object> response = new HashMap<>();
@@ -112,12 +110,12 @@ public class DashboardController {
 	            response.put("eName", employee.geteName()); // Admin name
 	            response.put("role", "Admin"); // Admin role
 	        }
-	        // Case 2: If the user's email matches a delegator's email (check if they are authorized to switch to Admin)
-	        else if (delegator != null && email.equals(delegator.getdEmail())) {
-	            response.put("success", true);
-	            response.put("eName", delegator.getdName()); // Delegator name
-	            response.put("role", "Admin"); // Admin role
-	        }
+//	        // Case 2: If the user's email matches a delegator's email (check if they are authorized to switch to Admin)
+//	        else if (delegator != null && email.equals(delegator.getdEmail())) {
+//	            response.put("success", true);
+//	            response.put("eName", delegator.getdName()); // Delegator name
+//	            response.put("role", "Admin"); // Admin role
+//	        }
 	        else {
 	            // If neither case is true, return failure
 	            response.put("success", false);
