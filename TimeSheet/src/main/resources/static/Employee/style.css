@@ -50,11 +50,39 @@
     margin-right: 15px; 
 }
 
-#tableBody td:first-child, 
-#tableHead th:first-child {
-    min-width: 200px; /* Adjust width as needed */
-    max-width: 250px; /* Prevent overflow */
-    white-space: nowrap; /* Prevent text from wrapping */
-    overflow: hidden;
-    text-overflow: ellipsis; /* Add '...' for long text */
+
+
+
+/* Keep dropdown styling minimal */
+.dropdown-panel {
+    position: absolute;
+    width: 40%;
+    max-height: 150px; /* Set height & enable scrolling */
+    border: 1px solid #ccc;
+    background-color: #fff;
+    overflow-y: auto;
+    display: none;
+    z-index: 1000;
+
+    margin: auto;
+    max-width: 90vw; /* Ensure dropdown doesn’t exceed screen width */
+}
+
+.dropdown-search {
+    width: 95%;
+    margin: 5px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+.dropdown-option {
+    padding: 8px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.dropdown-option:hover {
+    background-color: #007bff;
+    color: white;
 }

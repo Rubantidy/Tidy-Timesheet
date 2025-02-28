@@ -1,7 +1,5 @@
 
 document.addEventListener("DOMContentLoaded", function () {
-	
-	
         // Get all nav links
         const navLinks = document.querySelectorAll(".nav-link");
 

@@ -611,41 +611,81 @@
 
 			let chargeCodes = [];
 
-			    // Fetch charge codes from backend
-			    function fetchChargeCodes() {
-			        fetch("/getChargecodes")
-			            .then(response => response.json())
-			            .then(data => {
-			                chargeCodes = data;
-			                populateDropdowns(); // Ensure dropdowns are populated in all rows
-			            })
-			            .catch(error => console.error("Error fetching Charge codes:", error));
-			    }
+			   // Fetch charge codes from backend
+			   function fetchChargeCodes() {
+			       fetch("/getChargecodes")
+			           .then(response => response.json())
+			           .then(data => {
+			               chargeCodes = data;
+			               populateDropdowns(); // Populate static + new rows
+			           })
+			           .catch(error => console.error("Error fetching Charge codes:", error));
+			   }
 
-			    // Function to create a charge code dropdown (default empty) with a unique class
-			    function createDropdown() {
-			        const select = document.createElement("select");
-			        select.classList.add("customDropdown"); // Unique class for charge code dropdown
-			        select.style.border = "0px";
-			        select.style.outline = "none";
-			        select.style.width = "100%";
+			   // Function to create a custom dropdown with search & scrolling
+			   function createDropdown() {
+			       const container = document.createElement("div");
+			       container.classList.add("dropdown-container");
 
-			        // Empty default option (no placeholder text)
-			        const emptyOption = document.createElement("option");
-			        emptyOption.value = "";
-			        emptyOption.textContent = "";
-			        select.appendChild(emptyOption);
+			       const button = document.createElement("div");
+			       button.classList.add("dropdown-button");
+			       button.textContent = "Select Charge Code";
 
-			        // Add charge codes dynamically
-			        chargeCodes.forEach(code => {
-			            const option = document.createElement("option");
-			            option.value = code.code;
-			            option.textContent = `${code.code} - ${code.description}`;
-			            select.appendChild(option);
-			        });
+			       const panel = document.createElement("div");
+			       panel.classList.add("dropdown-panel");
 
-			        return select;
-			    }
+			       const searchInput = document.createElement("input");
+			       searchInput.type = "text";
+			       searchInput.placeholder = "Search...";
+			       searchInput.classList.add("dropdown-search");
+
+			       panel.appendChild(searchInput);
+
+			       chargeCodes.forEach(code => {
+			           const option = document.createElement("div");
+			           option.classList.add("dropdown-option");
+			           option.textContent = `${code.code} - ${code.description}`;
+			           option.dataset.value = code.code;
+
+			           // Handle selection
+			           option.addEventListener("click", function () {
+			               button.textContent = option.textContent;
+			               panel.style.display = "none";
+			           });
+
+			           panel.appendChild(option);
+			       });
+
+			       // Handle search functionality
+			       searchInput.addEventListener("input", function () {
+			           const filter = searchInput.value.toLowerCase();
+			           const options = panel.querySelectorAll(".dropdown-option");
+			           options.forEach(option => {
+			               if (option.textContent.toLowerCase().includes(filter)) {
+			                   option.style.display = "block";
+			               } else {
+			                   option.style.display = "none";
+			               }
+			           });
+			       });
+
+			       // Toggle dropdown visibility
+			       button.addEventListener("click", function () {
+			           panel.style.display = panel.style.display === "block" ? "none" : "block";
+			       });
+
+				   // Close dropdown when clicking outside
+				         document.addEventListener("click", function (event) {
+				             if (!container.contains(event.target)) {
+				                 panel.style.display = "none";
+				             }
+				         });
+						 
+			       container.appendChild(button);
+			       container.appendChild(panel);
+			       return container;
+			   }
+
 
 			    // Add static rows (Work Location & Company Code)
 			    function addStaticRows() {
@@ -692,21 +732,20 @@
 					populateDropdowns();
 			    }
 
-			    // Function to apply dropdowns to existing rows (excluding Work Location & Company Code)
-			    function populateDropdowns() {
-			        const rows = document.querySelectorAll("#tableBody tr");
+				// Function to apply dropdowns to existing rows
+				   function populateDropdowns() {
+				       const rows = document.querySelectorAll("#tableBody tr");
 
-			        rows.forEach(row => {
-			            const firstCell = row.querySelector("td:first-child");
-			            if (!row.classList.contains("static-row")) {
-			                // Only apply dropdown to charge code rows
-			                if (firstCell) {
-			                    firstCell.innerHTML = "";
-			                    firstCell.appendChild(createDropdown()); // Use the customDropdown class
-			                }
-			            }
-			        });
-			    }
+				       rows.forEach(row => {
+				           const firstCell = row.querySelector("td:first-child");
+				           if (!row.classList.contains("static-row")) {
+				               if (firstCell) {
+				                   firstCell.innerHTML = "";
+				                   firstCell.appendChild(createDropdown());
+				               }
+				           }
+				       });
+				   }
 
 
 	function updateTable() {
@@ -787,53 +826,53 @@
 
 
 	// Function to add a new row with dropdown
-	   function addRow() {
-	       const row = document.createElement("tr");
+	  function addRow() {
+	      const row = document.createElement("tr");
 
-	       const projectCell = document.createElement("td");
-	       projectCell.appendChild(createDropdown()); // Dropdown for charge code
-	       row.appendChild(projectCell);
+	      const projectCell = document.createElement("td");
+	      projectCell.appendChild(createDropdown()); // Dropdown for charge code
+	      row.appendChild(projectCell);
 
-	       // Add input fields for each day
-	       const period = periods[currentPeriodIndex];
-	       const [startDay, startMonth, startYear] = period.start.split("/");
-	       const [endDay, endMonth, endYear] = period.end.split("/");
-	       let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
-	       const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
+	      // Add input fields for each day
+	      const period = periods[currentPeriodIndex];
+	      const [startDay, startMonth, startYear] = period.start.split("/");
+	      const [endDay, endMonth, endYear] = period.end.split("/");
+	      let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
+	      const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
 
-	       while (currentDate <= endDate) {
-	           const cell = document.createElement("td");
-	           const input = document.createElement("input");
-	           input.type = "text";
-	           input.style.border = "0px";
-	           input.style.width = "50px";
-	           input.style.outline = "none";
-	           cell.appendChild(input);
-	           row.appendChild(cell);
+	      while (currentDate <= endDate) {
+	          const cell = document.createElement("td");
+	          const input = document.createElement("input");
+	          input.type = "text";
+	          input.style.border = "0px";
+	          input.style.width = "50px";
+	          input.style.outline = "none";
+	          cell.appendChild(input);
+	          row.appendChild(cell);
 
-	           input.addEventListener("input", calculateTotals);
-	           currentDate.setDate(currentDate.getDate() + 1);
-	       }
+	          input.addEventListener("input", calculateTotals);
+	          currentDate.setDate(currentDate.getDate() + 1);
+	      }
 
-	       // Add total column
-	       const totalCell = document.createElement("td");
-	       totalCell.textContent = "0.00";
-	       totalCell.classList.add("row-total");
-	       row.appendChild(totalCell);
+	      // Add total column
+	      const totalCell = document.createElement("td");
+	      totalCell.textContent = "0.00";
+	      totalCell.classList.add("row-total");
+	      row.appendChild(totalCell);
 
-	       document.getElementById("tableBody").appendChild(row);
-	   }
+	      document.getElementById("tableBody").appendChild(row);
+	  }
 
-	   // Attach event listener to "Add Row" button
-	   document.getElementById("addRow").addEventListener("click", addRow);
+	  // Attach event listener to "Add Row" button
+	  document.getElementById("addRow").addEventListener("click", addRow);
 
-	   // Ensure static rows are added on page load
-	   addStaticRows();
+	  // Ensure static rows are added on page load
+	  addStaticRows();
 
-	   // Fetch charge codes & populate existing table
-	   fetchChargeCodes();
-
-	function calculateTotals() {
+	  // Fetch charge codes & populate existing table
+	  fetchChargeCodes();
+	  
+function calculateTotals() {
 	    let grandTotal = 0;
 	    const rows = document.querySelectorAll('#tableBody tr');
 	    const footerCells = document.querySelectorAll('#tableFooter tr td');
