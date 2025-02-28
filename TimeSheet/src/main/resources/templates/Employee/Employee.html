@@ -528,463 +528,462 @@
 						
 		  /*script for calender*/
 		  
-	 const today = new Date();
-	        let currentYear = today.getFullYear();
-	        let currentMonth = today.getMonth() + 1;
-	        let currentPeriodIndex = 0; 
-	        let availableProjects = ['Project A', 'Project B', 'Project C', 'Project D', 'Project E','Project f'];
-
-	        function formatDate(date) {
-	            const year = date.getFullYear();
-	            const month = (`0${date.getMonth() + 1}`).slice(-2); // Add leading zero
-	            const day = (`0${date.getDate()}`).slice(-2); // Add leading zero
-	            return `${year}-${month}-${day}`;
-	        }
-
-	        function setCalendarLimits() {
-	            const threeMonthsBefore = new Date(today);
-	            threeMonthsBefore.setMonth(today.getMonth() - 3);
-	            
-	            const threeMonthsAfter = new Date(today);
-	            threeMonthsAfter.setMonth(today.getMonth() + 3);
-	            
-	            const calendarPicker = document.getElementById('calendarPicker');
-	            calendarPicker.min = formatDate(threeMonthsBefore);
-	            calendarPicker.max = formatDate(threeMonthsAfter);
-	        }
-
-	        function getPeriods() {
-	            const periods = [];
-	            const baseDate = new Date(today);
-	            
-	            // Loop to create periods for 3 months before and 3 months after the current date
-	            for (let i = -3; i <= 3; i++) {
-	                const monthOffset = new Date(baseDate.getFullYear(), baseDate.getMonth() + i, 1);
-	                const firstHalf = {
-	                    start: `01/${(`0${monthOffset.getMonth() + 1}`).slice(-2)}/${monthOffset.getFullYear()}`,
-	                    end: `15/${(`0${monthOffset.getMonth() + 1}`).slice(-2)}/${monthOffset.getFullYear()}`
-	                };
-	                const lastDayOfMonth = new Date(monthOffset.getFullYear(), monthOffset.getMonth() + 1, 0).getDate();
-	                const secondHalf = {
-	                    start: `16/${(`0${monthOffset.getMonth() + 1}`).slice(-2)}/${monthOffset.getFullYear()}`,
-	                    end: `${lastDayOfMonth}/${(`0${monthOffset.getMonth() + 1}`).slice(-2)}/${monthOffset.getFullYear()}`
-	                };
-	                
-	                periods.push(firstHalf, secondHalf);
-	            }
-
-	            const todayDate = `${today.getDate()}/${today.getMonth() + 1 < 10 ? '0' + (today.getMonth() + 1) : today.getMonth() + 1}/${today.getFullYear()}`;
-	            periods.forEach((period, index) => {
-	                if (isDateInRange(todayDate, period.start, period.end)) {
-	                    currentPeriodIndex = index;
-	                }
-	            });
-	            
-	            return periods;
-	        }
-
-	        function isDateInRange(date, startDate, endDate) {
-	            const [dDay, dMonth, dYear] = date.split('/');
-	            const [sDay, sMonth, sYear] = startDate.split('/');
-	            const [eDay, eMonth, eYear] = endDate.split('/');
-	            const dateObj = new Date(dYear, dMonth - 1, dDay);
-	            const startObj = new Date(sYear, sMonth - 1, sDay);
-	            const endObj = new Date(eYear, eMonth - 1, eDay);
-	            return dateObj >= startObj && dateObj <= endObj;
-	        }
-	        const periods = getPeriods();
-
-	        function updateDropdown() {
-	            const periodDropdown = document.getElementById('periodDropdown');
-	            periodDropdown.innerHTML = '';
-	            periods.forEach((period, index) => {
-	                const option = document.createElement('option');
-	                option.value = index;
-	                option.textContent = `${period.start} - ${period.end}`;
-	                if (index === currentPeriodIndex) {
-	                    option.selected = true;
-	                }
-	                periodDropdown.appendChild(option);
-	            });
-	        }
-
-
-			let chargeCodes = [];
-
-			   // Fetch charge codes from backend
-			   function fetchChargeCodes() {
-			       fetch("/getChargecodes")
-			           .then(response => response.json())
-			           .then(data => {
-			               chargeCodes = data;
-			               populateDropdowns(); // Populate static + new rows
-			           })
-			           .catch(error => console.error("Error fetching Charge codes:", error));
-			   }
-
-			   // Function to create a custom dropdown with search & scrolling
-			   function createDropdown() {
-			       const container = document.createElement("div");
-			       container.classList.add("dropdown-container");
-
-			       const button = document.createElement("div");
-			       button.classList.add("dropdown-button");
-			       button.textContent = "Select Charge Code";
-
-			       const panel = document.createElement("div");
-			       panel.classList.add("dropdown-panel");
-
-			       const searchInput = document.createElement("input");
-			       searchInput.type = "text";
-			       searchInput.placeholder = "Search...";
-			       searchInput.classList.add("dropdown-search");
-
-			       panel.appendChild(searchInput);
-
-			       chargeCodes.forEach(code => {
-			           const option = document.createElement("div");
-			           option.classList.add("dropdown-option");
-			           option.textContent = `${code.code} - ${code.description}`;
-			           option.dataset.value = code.code;
-
-			           // Handle selection
-			           option.addEventListener("click", function () {
-			               button.textContent = option.textContent;
-			               panel.style.display = "none";
-			           });
-
-			           panel.appendChild(option);
-			       });
-
-			       // Handle search functionality
-			       searchInput.addEventListener("input", function () {
-			           const filter = searchInput.value.toLowerCase();
-			           const options = panel.querySelectorAll(".dropdown-option");
-			           options.forEach(option => {
-			               if (option.textContent.toLowerCase().includes(filter)) {
-			                   option.style.display = "block";
-			               } else {
-			                   option.style.display = "none";
-			               }
-			           });
-			       });
-
-			       // Toggle dropdown visibility
-			       button.addEventListener("click", function () {
-			           panel.style.display = panel.style.display === "block" ? "none" : "block";
-			       });
-
-				   // Close dropdown when clicking outside
-				         document.addEventListener("click", function (event) {
-				             if (!container.contains(event.target)) {
-				                 panel.style.display = "none";
-				             }
-				         });
-						 
-			       container.appendChild(button);
-			       container.appendChild(panel);
-			       return container;
-			   }
-
-
-			    // Add static rows (Work Location & Company Code)
-			    function addStaticRows() {
-			        const tableBody = document.getElementById("tableBody");
-			        const staticRowNames = ["Work Location", "Company Code"];
-
-			        staticRowNames.forEach(name => {
-			            const row = document.createElement("tr");
-			            row.classList.add("static-row"); // Add class to identify static rows
-
-			            const firstCell = document.createElement("td");
-			            firstCell.textContent = name;
-			            row.appendChild(firstCell);
-
-			            // Add input fields for each day
-			            const period = periods[currentPeriodIndex];
-			            const [startDay, startMonth, startYear] = period.start.split("/");
-			            const [endDay, endMonth, endYear] = period.end.split("/");
-			            let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
-			            const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
-
-			            while (currentDate <= endDate) {
-			                const cell = document.createElement("td");
-			                const input = document.createElement("input");
-			                input.type = "text";
-			                input.style.border = "0px";
-			                input.style.width = "50px";
-			                input.style.outline = "none";
-			                cell.appendChild(input);
-			                row.appendChild(cell);
-
-			                input.addEventListener("input", calculateTotals);
-			                currentDate.setDate(currentDate.getDate() + 1);
-			            }
-
-			            // Add total column
-			            const totalCell = document.createElement("td");
-			            totalCell.textContent = "0.00";
-			            totalCell.classList.add("row-total");
-			            row.appendChild(totalCell);
-
-			            tableBody.appendChild(row);
-			        });
-					populateDropdowns();
-			    }
-
-				// Function to apply dropdowns to existing rows
-				   function populateDropdowns() {
-				       const rows = document.querySelectorAll("#tableBody tr");
-
-				       rows.forEach(row => {
-				           const firstCell = row.querySelector("td:first-child");
-				           if (!row.classList.contains("static-row")) {
-				               if (firstCell) {
-				                   firstCell.innerHTML = "";
-				                   firstCell.appendChild(createDropdown());
-				               }
-				           }
-				       });
-				   }
-
-
-	function updateTable() {
-	    const selectedPeriod = periods[currentPeriodIndex];
-	    document.getElementById('selectedPeriod').textContent = ``;
-	    
-	    const [startDay, startMonth, startYear] = selectedPeriod.start.split('/');
-	    const [endDay, endMonth, endYear] = selectedPeriod.end.split('/');
-
-	    const tableHeaders = document.getElementById('tableHeaders');
-	    tableHeaders.innerHTML = '<tr><th style="width: 300px;">Charge Code</th></tr>'; // Set width for Charge Code
-	    const tableRows = document.getElementById('tableBody');
-	    tableRows.innerHTML = ''; // Clear existing rows
-
-	    let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
-	    const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
-
-	    // Add date headers with day names
-	    while (currentDate <= endDate) {
-	        const day = currentDate.getDate();
-	        const month = currentDate.getMonth() + 1;
-	        const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'short' });
-
-	        const headerCell = document.createElement('th');
-	        headerCell.textContent = `${day}/${month} (${dayName})`;
-	        tableHeaders.querySelector('tr').appendChild(headerCell);
-
-	        currentDate.setDate(currentDate.getDate() + 1);
-	    }
-
-	    // **Add "Total" column to the header**
-	    const totalHeader = document.createElement('th');
-	    totalHeader.textContent = "Total";
-	    tableHeaders.querySelector('tr').appendChild(totalHeader);
-
-	    // Add static rows
-	    addStaticRows();
-
-	    // Add 3 default dynamic rows
-	    for (let i = 0; i < 3; i++) {
-	        addRow();
-	    }
-
-	    // Update footer for totals
-	    updateFooter();
-	}
-
-
-	function updateFooter() {
-	    const period = periods[currentPeriodIndex];
-	    const [startDay, startMonth, startYear] = period.start.split('/');
-	    const [endDay, endMonth, endYear] = period.end.split('/');
-	    let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
-	    const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
-
-	    const footerRow = document.getElementById('tableFooter').querySelector('tr');
-	    footerRow.innerHTML = '<td>Total Hours</td>'; // Reset footer row
-
-	    while (currentDate <= endDate) {
-	        const totalCell = document.createElement('td');
-	        totalCell.textContent = '0.00'; // Initialize totals
-	        footerRow.appendChild(totalCell);
-	        currentDate.setDate(currentDate.getDate() + 1);
-	    }
-
-	    // **Ensure total column in the footer**
-	    const totalColumnFooter = document.createElement('td');
-	    totalColumnFooter.textContent = '0.00';
-	    totalColumnFooter.id = 'grandTotal';
-	    footerRow.appendChild(totalColumnFooter);
-
-	    // Attach event listeners to all input fields for dynamic updates
-	    const inputs = document.querySelectorAll('input[type="text"]');
-	    inputs.forEach(input => {
-	        input.addEventListener('input', calculateTotals);
-	    });
-	}
-
-
-	// Function to add a new row with dropdown
-	  function addRow() {
-	      const row = document.createElement("tr");
-
-	      const projectCell = document.createElement("td");
-	      projectCell.appendChild(createDropdown()); // Dropdown for charge code
-	      row.appendChild(projectCell);
-
-	      // Add input fields for each day
-	      const period = periods[currentPeriodIndex];
-	      const [startDay, startMonth, startYear] = period.start.split("/");
-	      const [endDay, endMonth, endYear] = period.end.split("/");
-	      let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
-	      const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
-
-	      while (currentDate <= endDate) {
-	          const cell = document.createElement("td");
-	          const input = document.createElement("input");
-	          input.type = "text";
-	          input.style.border = "0px";
-	          input.style.width = "50px";
-	          input.style.outline = "none";
-	          cell.appendChild(input);
-	          row.appendChild(cell);
-
-	          input.addEventListener("input", calculateTotals);
-	          currentDate.setDate(currentDate.getDate() + 1);
-	      }
-
-	      // Add total column
-	      const totalCell = document.createElement("td");
-	      totalCell.textContent = "0.00";
-	      totalCell.classList.add("row-total");
-	      row.appendChild(totalCell);
-
-	      document.getElementById("tableBody").appendChild(row);
-	  }
-
-	  // Attach event listener to "Add Row" button
-	  document.getElementById("addRow").addEventListener("click", addRow);
-
-	  // Ensure static rows are added on page load
-	  addStaticRows();
-
-	  // Fetch charge codes & populate existing table
-	  fetchChargeCodes();
-	  
-function calculateTotals() {
-	    let grandTotal = 0;
-	    const rows = document.querySelectorAll('#tableBody tr');
-	    const footerCells = document.querySelectorAll('#tableFooter tr td');
-
-	    const period = periods[currentPeriodIndex];
-	    const [startDay, startMonth, startYear] = period.start.split('/');
-	    const [endDay, endMonth, endYear] = period.end.split('/');
-	    const totalDays = new Date(`${endYear}-${endMonth}-${endDay}`).getDate() - new Date(`${startYear}-${startMonth}-${startDay}`).getDate() + 1;
-
-	    // Initialize an array to store the total for each day
-	    const totals = new Array(totalDays).fill(0);
-
-	    // Ignore the first 3 static rows (Work Location, Assigned Location, Company Code)
-	    rows.forEach((row, rowIndex) => {
-	        if (rowIndex < 2) return; // Skip static rows
-
-	        const inputs = row.querySelectorAll('input[type="text"]');
-	        let rowSum = 0; // Sum of this row's values
-
-	        inputs.forEach((input, index) => {
-	            const value = parseFloat(input.value) || 0;
-	            totals[index] += value;
-	            rowSum += value;
-	        });
-
-	        // Update the row's total column
-	        const totalCell = row.querySelector('.row-total');
-	        if (totalCell) {
-	            totalCell.textContent = rowSum.toFixed(2);
-	        }
-
-	        grandTotal += rowSum;
-	    });
-
-	    // Update the footer cells with the calculated totals
-	    totals.forEach((total, index) => {
-	        footerCells[index + 1].textContent = total.toFixed(2);
-	    });
-
-	    // Update the total column in the footer
-	    document.getElementById('grandTotal').textContent = grandTotal.toFixed(2);
-	}
-
-
-
-	          
-
-	        // When adding new rows, update totals on input
-	        document.getElementById('addRow').addEventListener('click', addRow);
-
-	        // Initially update the table
-	        updateTable();
-
-
-	        function updateDropdowns() {
-	            const selects = document.querySelectorAll('select');
-	            const selectedValues = [...selects].map(select => select.value).filter(val => val !== '');
-
-	            selects.forEach(select => {
-	                [...select.options].forEach(option => {
-	                    if (selectedValues.includes(option.value) && option.value !== select.value) {
-	                        option.disabled = true;
-	                    } else {
-	                        option.disabled = false;
-	                    }
-	                });
-	            });
-	        }
-
-	        document.getElementById('prevPeriod').addEventListener('click', function() {
-	            if (currentPeriodIndex > 0) {
-	                currentPeriodIndex--;
-	                updateDropdown();
-	                updateTable();
-	            }
-	        });
-
-	        document.getElementById('nextPeriod').addEventListener('click', function() {
-	            if (currentPeriodIndex < periods.length - 1) {
-	                currentPeriodIndex++;
-	                updateDropdown();
-	                updateTable();
-	            }
-	        });
-
-	        document.getElementById('periodDropdown').addEventListener('change', function() {
-	            currentPeriodIndex = parseInt(this.value);
-	            updateTable();
-	        });
-
-	        document.getElementById('calendarPicker').addEventListener('change', function() {
-	            const selectedDate = new Date(this.value);
-	            for (let i = 0; i < periods.length; i++) {
-	                const [startDay, startMonth, startYear] = periods[i].start.split('/');
-	                const [endDay, endMonth, endYear] = periods[i].end.split('/');
-	                const periodStart = new Date(`${startYear}-${startMonth}-${startDay}`);
-	                const periodEnd = new Date(`${endYear}-${endMonth}-${endDay}`);
-
-	                if (selectedDate >= periodStart && selectedDate <= periodEnd) {
-	                    currentPeriodIndex = i;
-	                    updateDropdown();
-	                    updateTable();
-	                    break;
-	                }
-	            }
-	        });
-
-	        document.getElementById('calendarPicker').value = today.toISOString().split('T')[0];
-	        setCalendarLimits();
-	        updateDropdown();
-	        updateTable();
-	        document.getElementById('addRow').addEventListener('click', addRow);
+		  const today = new Date();
+		          let currentYear = today.getFullYear();
+		          let currentMonth = today.getMonth() + 1;
+		          let currentPeriodIndex = 0; 
+		          let availableProjects = ['Project A', 'Project B', 'Project C', 'Project D', 'Project E','Project f'];
+
+		          function formatDate(date) {
+		              const year = date.getFullYear();
+		              const month = (`0${date.getMonth() + 1}`).slice(-2); // Add leading zero
+		              const day = (`0${date.getDate()}`).slice(-2); // Add leading zero
+		              return `${year}-${month}-${day}`;
+		          }
+
+		          function setCalendarLimits() {
+		              const threeMonthsBefore = new Date(today);
+		              threeMonthsBefore.setMonth(today.getMonth() - 3);
+		              
+		              const threeMonthsAfter = new Date(today);
+		              threeMonthsAfter.setMonth(today.getMonth() + 3);
+		              
+		              const calendarPicker = document.getElementById('calendarPicker');
+		              calendarPicker.min = formatDate(threeMonthsBefore);
+		              calendarPicker.max = formatDate(threeMonthsAfter);
+		          }
+
+		          function getPeriods() {
+		              const periods = [];
+		              const baseDate = new Date(today);
+		              
+		              // Loop to create periods for 3 months before and 3 months after the current date
+		              for (let i = -3; i <= 3; i++) {
+		                  const monthOffset = new Date(baseDate.getFullYear(), baseDate.getMonth() + i, 1);
+		                  const firstHalf = {
+		                      start: `01/${(`0${monthOffset.getMonth() + 1}`).slice(-2)}/${monthOffset.getFullYear()}`,
+		                      end: `15/${(`0${monthOffset.getMonth() + 1}`).slice(-2)}/${monthOffset.getFullYear()}`
+		                  };
+		                  const lastDayOfMonth = new Date(monthOffset.getFullYear(), monthOffset.getMonth() + 1, 0).getDate();
+		                  const secondHalf = {
+		                      start: `16/${(`0${monthOffset.getMonth() + 1}`).slice(-2)}/${monthOffset.getFullYear()}`,
+		                      end: `${lastDayOfMonth}/${(`0${monthOffset.getMonth() + 1}`).slice(-2)}/${monthOffset.getFullYear()}`
+		                  };
+		                  
+		                  periods.push(firstHalf, secondHalf);
+		              }
+
+		              const todayDate = `${today.getDate()}/${today.getMonth() + 1 < 10 ? '0' + (today.getMonth() + 1) : today.getMonth() + 1}/${today.getFullYear()}`;
+		              periods.forEach((period, index) => {
+		                  if (isDateInRange(todayDate, period.start, period.end)) {
+		                      currentPeriodIndex = index;
+		                  }
+		              });
+		              
+		              return periods;
+		          }
+
+		          function isDateInRange(date, startDate, endDate) {
+		              const [dDay, dMonth, dYear] = date.split('/');
+		              const [sDay, sMonth, sYear] = startDate.split('/');
+		              const [eDay, eMonth, eYear] = endDate.split('/');
+		              const dateObj = new Date(dYear, dMonth - 1, dDay);
+		              const startObj = new Date(sYear, sMonth - 1, sDay);
+		              const endObj = new Date(eYear, eMonth - 1, eDay);
+		              return dateObj >= startObj && dateObj <= endObj;
+		          }
+		          const periods = getPeriods();
+
+		          function updateDropdown() {
+		              const periodDropdown = document.getElementById('periodDropdown');
+		              periodDropdown.innerHTML = '';
+		              periods.forEach((period, index) => {
+		                  const option = document.createElement('option');
+		                  option.value = index;
+		                  option.textContent = `${period.start} - ${period.end}`;
+		                  if (index === currentPeriodIndex) {
+		                      option.selected = true;
+		                  }
+		                  periodDropdown.appendChild(option);
+		              });
+		          }
+
+
+				  let chargeCodes = [];
+
+				  			   // Fetch charge codes from backend
+				  			   function fetchChargeCodes() {
+				  			       fetch("/getChargecodes")
+				  			           .then(response => response.json())
+				  			           .then(data => {
+				  			               chargeCodes = data;
+				  			               populateDropdowns(); // Populate static + new rows
+				  			           })
+				  			           .catch(error => console.error("Error fetching Charge codes:", error));
+				  			   }
+
+				  			   // Function to create a custom dropdown with search & scrolling
+				  			   function createDropdown() {
+				  			       const container = document.createElement("div");
+				  			       container.classList.add("dropdown-container");
+
+				  			       const button = document.createElement("div");
+				  			       button.classList.add("dropdown-button");
+				  			       button.textContent = "Select Charge Code";
+
+				  			       const panel = document.createElement("div");
+				  			       panel.classList.add("dropdown-panel");
+
+				  			       const searchInput = document.createElement("input");
+				  			       searchInput.type = "text";
+				  			       searchInput.placeholder = "Search...";
+				  			       searchInput.classList.add("dropdown-search");
+
+				  			       panel.appendChild(searchInput);
+
+				  			       chargeCodes.forEach(code => {
+				  			           const option = document.createElement("div");
+				  			           option.classList.add("dropdown-option");
+				  			           option.textContent = `${code.code} - ${code.description}`;
+				  			           option.dataset.value = code.code;
+
+				  			           // Handle selection
+				  			           option.addEventListener("click", function () {
+				  			               button.textContent = option.textContent;
+				  			               panel.style.display = "none";
+				  			           });
+
+				  			           panel.appendChild(option);
+				  			       });
+
+				  			       // Handle search functionality
+				  			       searchInput.addEventListener("input", function () {
+				  			           const filter = searchInput.value.toLowerCase();
+				  			           const options = panel.querySelectorAll(".dropdown-option");
+				  			           options.forEach(option => {
+				  			               if (option.textContent.toLowerCase().includes(filter)) {
+				  			                   option.style.display = "block";
+				  			               } else {
+				  			                   option.style.display = "none";
+				  			               }
+				  			           });
+				  			       });
+
+				  			       // Toggle dropdown visibility
+				  			       button.addEventListener("click", function () {
+				  			           panel.style.display = panel.style.display === "block" ? "none" : "block";
+				  			       });
+
+				  				   // Close dropdown when clicking outside
+				  				         document.addEventListener("click", function (event) {
+				  				             if (!container.contains(event.target)) {
+				  				                 panel.style.display = "none";
+				  				             }
+				  				         });
+				  						 
+				  			       container.appendChild(button);
+				  			       container.appendChild(panel);
+				  			       return container;
+				  			   }
+
+
+				  			    // Add static rows (Work Location & Company Code)
+				  			    function addStaticRows() {
+				  			        const tableBody = document.getElementById("tableBody");
+				  			        const staticRowNames = ["Work Location", "Company Code"];
+
+				  			        staticRowNames.forEach(name => {
+				  			            const row = document.createElement("tr");
+				  			            row.classList.add("static-row"); // Add class to identify static rows
+
+				  			            const firstCell = document.createElement("td");
+				  			            firstCell.textContent = name;
+				  			            row.appendChild(firstCell);
+
+				  			            // Add input fields for each day
+				  			            const period = periods[currentPeriodIndex];
+				  			            const [startDay, startMonth, startYear] = period.start.split("/");
+				  			            const [endDay, endMonth, endYear] = period.end.split("/");
+				  			            let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
+				  			            const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
+
+				  			            while (currentDate <= endDate) {
+				  			                const cell = document.createElement("td");
+				  			                const input = document.createElement("input");
+				  			                input.type = "text";
+				  			                input.style.border = "0px";
+				  			                input.style.width = "50px";
+				  			                input.style.outline = "none";
+				  			                cell.appendChild(input);
+				  			                row.appendChild(cell);
+
+				  			                input.addEventListener("input", calculateTotals);
+				  			                currentDate.setDate(currentDate.getDate() + 1);
+				  			            }
+
+				  			            // Add total column
+				  			            const totalCell = document.createElement("td");
+				  			            totalCell.textContent = "0.00";
+				  			            totalCell.classList.add("row-total");
+				  			            row.appendChild(totalCell);
+
+				  			            tableBody.appendChild(row);
+				  			        });
+				  					populateDropdowns();
+				  			    }
+
+				  				// Function to apply dropdowns to existing rows
+				  				   function populateDropdowns() {
+				  				       const rows = document.querySelectorAll("#tableBody tr");
+
+				  				       rows.forEach(row => {
+				  				           const firstCell = row.querySelector("td:first-child");
+				  				           if (!row.classList.contains("static-row")) {
+				  				               if (firstCell) {
+				  				                   firstCell.innerHTML = "";
+				  				                   firstCell.appendChild(createDropdown());
+				  				               }
+				  				           }
+				  				       });
+				  				   }
+
+		  function updateTable() {
+		      const selectedPeriod = periods[currentPeriodIndex];
+		      document.getElementById('selectedPeriod').textContent = ``;
+		      
+		      const [startDay, startMonth, startYear] = selectedPeriod.start.split('/');
+		      const [endDay, endMonth, endYear] = selectedPeriod.end.split('/');
+
+		      const tableHeaders = document.getElementById('tableHeaders');
+		      tableHeaders.innerHTML = '<tr><th style="width: 200px;">Charge Code</th></tr>'; // Set width for Charge Code
+		      const tableRows = document.getElementById('tableBody');
+		      tableRows.innerHTML = ''; // Clear existing rows
+
+		      let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
+		      const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
+
+		      // Add date headers with day names
+		      while (currentDate <= endDate) {
+		          const day = currentDate.getDate();
+		          const month = currentDate.getMonth() + 1;
+		          const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'short' });
+
+		          const headerCell = document.createElement('th');
+		          headerCell.textContent = `${day}/${month} (${dayName})`;
+		          tableHeaders.querySelector('tr').appendChild(headerCell);
+
+		          currentDate.setDate(currentDate.getDate() + 1);
+		      }
+
+		      // **Add "Total" column to the header**
+		      const totalHeader = document.createElement('th');
+		      totalHeader.textContent = "Total";
+		      tableHeaders.querySelector('tr').appendChild(totalHeader);
+
+		      // Add static rows
+		      addStaticRows();
+
+		      // Add 3 default dynamic rows
+		      for (let i = 0; i < 3; i++) {
+		          addRow();
+		      }
+
+		      // Update footer for totals
+		      updateFooter();
+		  }
+
+
+		  function updateFooter() {
+		      const period = periods[currentPeriodIndex];
+		      const [startDay, startMonth, startYear] = period.start.split('/');
+		      const [endDay, endMonth, endYear] = period.end.split('/');
+		      let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
+		      const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
+
+		      const footerRow = document.getElementById('	').querySelector('tr');
+		      footerRow.innerHTML = '<td>Total Hours</td>'; // Reset footer row
+
+		      while (currentDate <= endDate) {
+		          const totalCell = document.createElement('td');
+		          totalCell.textContent = '0.00'; // Initialize totals
+		          footerRow.appendChild(totalCell);
+		          currentDate.setDate(currentDate.getDate() + 1);
+		      }
+
+		      // **Ensure total column in the footer**
+		      const totalColumnFooter = document.createElement('td');
+		      totalColumnFooter.textContent = '0.00';
+		      totalColumnFooter.id = 'grandTotal';
+		      footerRow.appendChild(totalColumnFooter);
+
+		      // Attach event listeners to all input fields for dynamic updates
+		      const inputs = document.querySelectorAll('input[type="text"]');
+		      inputs.forEach(input => {
+		          input.addEventListener('input', calculateTotals);
+		      });
+		  }
+
+		  // Function to add a new row with dropdown
+		  	  function addRow() {
+		  	      const row = document.createElement("tr");
+
+		  	      const projectCell = document.createElement("td");
+		  	      projectCell.appendChild(createDropdown()); // Dropdown for charge code
+		  	      row.appendChild(projectCell);
+
+		  	      // Add input fields for each day
+		  	      const period = periods[currentPeriodIndex];
+		  	      const [startDay, startMonth, startYear] = period.start.split("/");
+		  	      const [endDay, endMonth, endYear] = period.end.split("/");
+		  	      let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
+		  	      const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
+
+		  	      while (currentDate <= endDate) {
+		  	          const cell = document.createElement("td");
+		  	          const input = document.createElement("input");
+		  	          input.type = "text";
+		  	          input.style.border = "0px";
+		  	          input.style.width = "50px";
+		  	          input.style.outline = "none";
+		  	          cell.appendChild(input);
+		  	          row.appendChild(cell);
+
+		  	          input.addEventListener("input", calculateTotals);
+		  	          currentDate.setDate(currentDate.getDate() + 1);
+		  	      }
+
+		  	      // Add total column
+		  	      const totalCell = document.createElement("td");
+		  	      totalCell.textContent = "0.00";
+		  	      totalCell.classList.add("row-total");
+		  	      row.appendChild(totalCell);
+
+		  	      document.getElementById("tableBody").appendChild(row);
+		  	  }
+
+		  	  // Attach event listener to "Add Row" button
+		  	  document.getElementById("addRow").addEventListener("click", addRow);
+
+		  	  // Ensure static rows are added on page load
+		  	  addStaticRows();
+
+		  	  // Fetch charge codes & populate existing table
+		  	  fetchChargeCodes();
+			  
+			  
+       function calculateTotals() {
+		      let grandTotal = 0;
+		      const rows = document.querySelectorAll('#tableBody tr');
+		      const footerCells = document.querySelectorAll('#tableFooter tr td');
+
+		      const period = periods[currentPeriodIndex];
+		      const [startDay, startMonth, startYear] = period.start.split('/');
+		      const [endDay, endMonth, endYear] = period.end.split('/');
+		      const totalDays = new Date(`${endYear}-${endMonth}-${endDay}`).getDate() - new Date(`${startYear}-${startMonth}-${startDay}`).getDate() + 1;
+
+		      // Initialize an array to store the total for each day
+		      const totals = new Array(totalDays).fill(0);
+
+		      // Ignore the first 2 static rows (Work Location, Company Code)
+		      rows.forEach((row, rowIndex) => {
+		          if (rowIndex < 2) return; // Skip static rows
+
+		          const inputs = row.querySelectorAll('input[type="text"]');
+		          let rowSum = 0; // Sum of this row's values
+
+		          inputs.forEach((input, index) => {
+		              const value = parseFloat(input.value) || 0;
+		              totals[index] += value;
+		              rowSum += value;
+		          });	
+
+		          // Update the row's total column
+		          const totalCell = row.querySelector('.row-total');
+		          if (totalCell) {
+		              totalCell.textContent = rowSum.toFixed(2);
+		          }
+
+		          grandTotal += rowSum;
+		      });
+
+		      // Update the footer cells with the calculated totals
+		      totals.forEach((total, index) => {
+		          footerCells[index + 1].textContent = total.toFixed(2);
+		      });
+
+		      // Update the total column in the footer
+		      document.getElementById('grandTotal').textContent = grandTotal.toFixed(2);
+		  }
+
+
+
+		            
+
+		          // When adding new rows, update totals on input
+		          document.getElementById('addRow').addEventListener('click', addRow);
+
+		          // Initially update the table
+		          updateTable();
+
+
+		          function updateDropdowns() {
+		              const selects = document.querySelectorAll('select');
+		              const selectedValues = [...selects].map(select => select.value).filter(val => val !== '');
+
+		              selects.forEach(select => {
+		                  [...select.options].forEach(option => {
+		                      if (selectedValues.includes(option.value) && option.value !== select.value) {
+		                          option.disabled = true;
+		                      } else {
+		                          option.disabled = false;
+		                      }
+		                  });
+		              });
+		          }
+
+		          document.getElementById('prevPeriod').addEventListener('click', function() {
+		              if (currentPeriodIndex > 0) {
+		                  currentPeriodIndex--;
+		                  updateDropdown();
+		                  updateTable();
+		              }
+		          });
+
+		          document.getElementById('nextPeriod').addEventListener('click', function() {
+		              if (currentPeriodIndex < periods.length - 1) {
+		                  currentPeriodIndex++;
+		                  updateDropdown();
+		                  updateTable();
+		              }
+		          });
+
+		          document.getElementById('periodDropdown').addEventListener('change', function() {
+		              currentPeriodIndex = parseInt(this.value);
+		              updateTable();
+		          });
+
+		          document.getElementById('calendarPicker').addEventListener('change', function() {
+		              const selectedDate = new Date(this.value);
+		              for (let i = 0; i < periods.length; i++) {
+		                  const [startDay, startMonth, startYear] = periods[i].start.split('/');
+		                  const [endDay, endMonth, endYear] = periods[i].end.split('/');
+		                  const periodStart = new Date(`${startYear}-${startMonth}-${startDay}`);
+		                  const periodEnd = new Date(`${endYear}-${endMonth}-${endDay}`);
+
+		                  if (selectedDate >= periodStart && selectedDate <= periodEnd) {
+		                      currentPeriodIndex = i;
+		                      updateDropdown();
+		                      updateTable();
+		                      break;
+		                  }
+		              }
+		          });
+
+		          document.getElementById('calendarPicker').value = today.toISOString().split('T')[0];
+		          setCalendarLimits();
+		          updateDropdown();
+		          updateTable();
+		          document.getElementById('addRow').addEventListener('click', addRow);
 </script>
  </body>
  </html>
