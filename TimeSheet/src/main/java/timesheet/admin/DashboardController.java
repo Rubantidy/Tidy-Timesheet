@@ -48,7 +48,7 @@ public class DashboardController {
 	  
 	 @GetMapping("/getEmployeesCount")
 	    public Long getEmployeescount() {
-		 System.out.println(EmpRepo.count());
+
 	        return EmpRepo.count();
 	    }
 	    

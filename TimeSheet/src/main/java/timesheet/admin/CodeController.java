@@ -69,7 +69,6 @@ public class CodeController {
 	    @GetMapping("/getChargecodes")
 	    public ResponseEntity<List<Codedao>> getCodes() {
 	        List<Codedao> Code = codeRepository.findAll();
-	        System.out.println(Code);
 	        return ResponseEntity.ok(Code);
 	    }
 	    

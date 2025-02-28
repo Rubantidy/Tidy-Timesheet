@@ -49,3 +49,12 @@
     cursor: pointer;
     margin-right: 15px; 
 }
+
+#tableBody td:first-child, 
+#tableHead th:first-child {
+    min-width: 200px; /* Adjust width as needed */
+    max-width: 250px; /* Prevent overflow */
+    white-space: nowrap; /* Prevent text from wrapping */
+    overflow: hidden;
+    text-overflow: ellipsis; /* Add '...' for long text */
+}

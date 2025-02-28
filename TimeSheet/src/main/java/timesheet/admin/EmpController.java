@@ -54,7 +54,7 @@ public class EmpController {
         
         EmpData.setCreatedDate(LocalDate.now());
         EmpRepo.save(EmpData);
-        System.out.println(EmpData);
+
 
         try {
             sendEmployeeEmail(EmpData);
