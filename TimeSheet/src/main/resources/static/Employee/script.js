@@ -1,7 +1,5 @@
 
 document.addEventListener("DOMContentLoaded", function () {
-	
-
         // Get all nav links
         const navLinks = document.querySelectorAll(".nav-link");
 
@@ -124,102 +122,5 @@ navLinks.forEach(link => {
 	    return timesheetData;
 	}
 
-	function convertToISODate(dateString) {
-	    let [day, month] = dateString.split("/");
-	    let year = new Date().getFullYear();
-	    
-	    // ✅ Ensure two-digit month and day using `.padStart(2, '0')`
-	    let formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-	    
-	    return formattedDate;
-	}
-	// ✅ Function to save the timesheet
-	function saveTimesheet() {
-	    console.log("Saving timesheet..."); // Debugging log
-	    const timesheetData = getTableData("Saved"); // ✅ Make sure getTableData() is defined
-
-	    fetch("/save", {
-	        method: "POST",
-	        headers: {
-	            "Content-Type": "application/json"
-	        },
-	        body: JSON.stringify(timesheetData)
-	    })
-	    .then(response => response.text())
-	    .then(message => {
-	        alert(message);
-	        console.log("Save response:", message);
-	    })
-	    .catch(error => console.error("Error saving timesheet:", error));
-	}
-
-	// ✅ Function to submit the timesheet
-	function submitTimesheet() {
-	    console.log("Submitting timesheet..."); // Debugging log
-	    const timesheetData = getTableData("Submitted"); // ✅ Make sure getTableData() is defined
-
-	    fetch("/submit", {
-	        method: "POST",
-	        headers: {
-	            "Content-Type": "application/json"
-	        },
-	        body: JSON.stringify(timesheetData)
-	    })
-	    .then(response => response.text())
-	    .then(message => {
-	        alert(message);
-	        console.log("Submit response:", message);
-	    })
-	    .catch(error => console.error("Error submitting timesheet:", error));
-	}
-
-	// ✅ Ensure event listeners are attached AFTER everything loads
-	document.addEventListener("DOMContentLoaded", function () {
-	    console.log("DOM fully loaded"); // ✅ Debugging log
-
-	    let saveButton = document.getElementById("saveBtn") || document.getElementById("saveIcon");
-	    if (saveButton) {
-	        console.log("Save button found"); // ✅ Debugging log
-	        saveButton.addEventListener("click", function() {
-	            console.log("Save button clicked"); // ✅ Debugging log
-	            saveTimesheet();
-	        });
-	    } else {
-	        console.error("Save button NOT found!"); // ❌ Debugging log
-	    }
-
-	    let submitButton = document.getElementById("submitBtn");
-	    if (submitButton) {
-	        console.log("Submit button found"); // ✅ Debugging log
-	        submitButton.addEventListener("click", function() {
-	            console.log("Submit button clicked"); // ✅ Debugging log
-	            submitTimesheet();
-	        });
-	    } else {
-	        console.error("Submit button NOT found!"); // ❌ Debugging log
-	    }
-	});
 	
-	
-	window.onload = function() {
-	    fetch('/getSavedTimesheetData')
-	    .then(response => response.json())
-	    .then(data => {
-	        console.log("Fetched Data:", data); // Debugging
-	        populateTable(data);
-	    })
-	    .catch(error => console.error("Error fetching timesheet data:", error));
-	};
-
-	function populateTable(data) {
-	    data.forEach(entry => {
-	        let formattedDate = formatDate(entry.date);
-	        let tableCell = document.querySelector(`[data-date="${formattedDate}"]`);
-	        if (tableCell) {
-	            tableCell.innerText = entry.hours;
-	        }
-	    });
-	}
-
-
 	
