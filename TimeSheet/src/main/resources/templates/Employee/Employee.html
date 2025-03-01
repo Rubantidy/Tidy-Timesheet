@@ -609,134 +609,166 @@
 		          }
 
 
-				  let chargeCodes = [];
+		 let chargeCodes = [];
 
-				  			   // Fetch charge codes from backend
-				  			   function fetchChargeCodes() {
-				  			       fetch("/getChargecodes")
-				  			           .then(response => response.json())
-				  			           .then(data => {
-				  			               chargeCodes = data;
-				  			               populateDropdowns(); // Populate static + new rows
-				  			           })
-				  			           .catch(error => console.error("Error fetching Charge codes:", error));
-				  			   }
+				  // Fetch charge codes from backend
+		     function fetchChargeCodes() {
+				  	fetch("/getChargecodes")
+				  		.then(response => response.json())
+				  		.then(data => {
+				  			  chargeCodes = data;
+				  			       populateDropdowns(); // Populate static + new rows
+				  			  })
+				  		.catch(error => console.error("Error fetching Charge codes:", error));
+				   }
 
-				  			   // Function to create a custom dropdown with search & scrolling
-				  			   function createDropdown() {
-				  			       const container = document.createElement("div");
-				  			       container.classList.add("dropdown-container");
+				   function createDropdown() {
+				       const container = document.createElement("div");
+				       container.classList.add("dropdown-container");
 
-				  			       const button = document.createElement("div");
-				  			       button.classList.add("dropdown-button");
-				  			       button.textContent = "Select Charge Code";
+				       // Dropdown button (displays selected charge code)
+				       const button = document.createElement("div");
+				       button.classList.add("dropdown-button");
+				       button.textContent = "Select Charge Code";
+				       button.style.display = "flex";
+				       button.style.alignItems = "center";
 
-				  			       const panel = document.createElement("div");
-				  			       panel.classList.add("dropdown-panel");
+				       // Remove (✖) button - small size
+				       const clearButton = document.createElement("span");
+				       clearButton.textContent = "✖";
+				       clearButton.style.cursor = "pointer";
+				       clearButton.style.marginLeft = "8px"; 
+				       clearButton.style.color = "red";
+				       clearButton.style.fontSize = "7px";  // Smaller size
+				       clearButton.style.fontWeight = "bold";
+				       clearButton.style.display = "none";   // Initially hidden
+				       clearButton.title = "Remove selected charge code";
 
-				  			       const searchInput = document.createElement("input");
-				  			       searchInput.type = "text";
-				  			       searchInput.placeholder = "Search...";
-				  			       searchInput.classList.add("dropdown-search");
+				       // Dropdown panel
+				       const panel = document.createElement("div");
+				       panel.classList.add("dropdown-panel");
 
-				  			       panel.appendChild(searchInput);
+				       // Search input inside dropdown
+				       const searchInput = document.createElement("input");
+				       searchInput.type = "text";
+				       searchInput.placeholder = "Search...";
+				       searchInput.classList.add("dropdown-search");
+				       panel.appendChild(searchInput);
 
-				  			       chargeCodes.forEach(code => {
-				  			           const option = document.createElement("div");
-				  			           option.classList.add("dropdown-option");
-				  			           option.textContent = `${code.code} - ${code.description}`;
-				  			           option.dataset.value = code.code;
+				       // Populate dropdown options from chargeCodes array
+				       chargeCodes.forEach(code => {
+				           const option = document.createElement("div");
+				           option.classList.add("dropdown-option");
+				           option.textContent = `${code.code} - ${code.description}`;
+				           option.dataset.value = code.code;
 
-				  			           // Handle selection
-				  			           option.addEventListener("click", function () {
-				  			               button.textContent = option.textContent;
-				  			               panel.style.display = "none";
-				  			           });
+				           // Handle selection
+				           option.addEventListener("click", function () {
+				               button.textContent = option.textContent; // Set selected charge code
+				               button.appendChild(clearButton); // Add remove button next to selected code
+				               panel.style.display = "none";
+				               clearButton.style.display = "inline"; // Show remove button
+				           });
 
-				  			           panel.appendChild(option);
-				  			       });
+				           panel.appendChild(option);
+				       });
 
-				  			       // Handle search functionality
-				  			       searchInput.addEventListener("input", function () {
-				  			           const filter = searchInput.value.toLowerCase();
-				  			           const options = panel.querySelectorAll(".dropdown-option");
-				  			           options.forEach(option => {
-				  			               if (option.textContent.toLowerCase().includes(filter)) {
-				  			                   option.style.display = "block";
-				  			               } else {
-				  			                   option.style.display = "none";
-				  			               }
-				  			           });
-				  			       });
+				       // Handle remove functionality
+				       clearButton.addEventListener("click", function (event) {
+				           event.stopPropagation(); // Prevent dropdown from opening when clicking remove
+				           button.textContent = "Select Charge Code"; // Reset text
+				           clearButton.style.display = "none"; // Hide remove button
+				       });
 
-				  			       // Toggle dropdown visibility
-				  			       button.addEventListener("click", function () {
-				  			           panel.style.display = panel.style.display === "block" ? "none" : "block";
-				  			       });
+				       // Handle search functionality
+				       searchInput.addEventListener("input", function () {
+				           const filter = searchInput.value.toLowerCase();
+				           const options = panel.querySelectorAll(".dropdown-option");
+				           options.forEach(option => {
+				               option.style.display = option.textContent.toLowerCase().includes(filter) ? "block" : "none";
+				           });
+				       });
 
-				  				   // Close dropdown when clicking outside
-				  				         document.addEventListener("click", function (event) {
-				  				             if (!container.contains(event.target)) {
-				  				                 panel.style.display = "none";
-				  				             }
-				  				         });
-				  						 
-				  			       container.appendChild(button);
-				  			       container.appendChild(panel);
-				  			       return container;
-				  			   }
+				       // Toggle dropdown visibility
+				       button.addEventListener("click", function () {
+				           panel.style.display = panel.style.display === "block" ? "none" : "block";
+				       });
+
+				       // Close dropdown when clicking outside
+				       document.addEventListener("click", function (event) {
+				           if (!container.contains(event.target)) {
+				               panel.style.display = "none";
+				           }
+				       });
+
+				       container.appendChild(button);
+				       container.appendChild(panel);
+				       return container;
+				   }
 
 
-				  			    // Add static rows (Work Location & Company Code)
-				  			    function addStaticRows() {
-				  			        const tableBody = document.getElementById("tableBody");
-				  			        const staticRowNames = ["Work Location", "Company Code"];
 
-				  			        staticRowNames.forEach(name => {
-				  			            const row = document.createElement("tr");
-				  			            row.classList.add("static-row"); // Add class to identify static rows
+							   // Add static rows (Work Location & Company Code)
+			function addStaticRows() {
+				
+					const tableBody = document.getElementById("tableBody");
+					const staticRowData = [
+							 { name: "Work Location", value: "00" },
+							 { name: "Company Code", value: "001" }
+						];
 
-				  			            const firstCell = document.createElement("td");
-				  			            firstCell.textContent = name;
-				  			            row.appendChild(firstCell);
+					staticRowData.forEach(item => {
+							const row = document.createElement("tr");
+							 row.classList.add("static-row"); // Add class to identify static rows
 
-				  			            // Add input fields for each day
-				  			            const period = periods[currentPeriodIndex];
-				  			            const [startDay, startMonth, startYear] = period.start.split("/");
-				  			            const [endDay, endMonth, endYear] = period.end.split("/");
-				  			            let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
-				  			            const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
+							 const firstCell = document.createElement("td");
+							        firstCell.textContent = item.name;
+							         row.appendChild(firstCell);
 
-				  			            while (currentDate <= endDate) {
-				  			                const cell = document.createElement("td");
-				  			                const input = document.createElement("input");
-				  			                input.type = "text";
-				  			                input.style.border = "0px";
-				  			                input.style.width = "50px";
-				  			                input.style.outline = "none";
-				  			                cell.appendChild(input);
-				  			                row.appendChild(cell);
+							           // Add input fields for each day
+							 const period = periods[currentPeriodIndex];
+							 const [startDay, startMonth, startYear] = period.start.split("/");
+							 const [endDay, endMonth, endYear] = period.end.split("/");
+							 let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
+							 const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
 
-				  			                input.addEventListener("input", calculateTotals);
-				  			                currentDate.setDate(currentDate.getDate() + 1);
-				  			            }
+							       while (currentDate <= endDate) {
+							             const cell = document.createElement("td");
+							             const input = document.createElement("input");
+							             input.type = "text";
+							             input.style.border = "0px";
+							             input.style.width = "50px";
+							             input.style.outline = "none";
 
-				  			            // Add total column
-				  			            const totalCell = document.createElement("td");
-				  			            totalCell.textContent = "0.00";
-				  			            totalCell.classList.add("row-total");
-				  			            row.appendChild(totalCell);
+							               // **Set static value**
+							           input.value = item.value;
+							           input.readOnly = true; // Prevent user from editing the static values
 
-				  			            tableBody.appendChild(row);
-				  			        });
-				  					populateDropdowns();
-				  			    }
+							               cell.appendChild(input);
+							               row.appendChild(cell);
+
+							               currentDate.setDate(currentDate.getDate() + 1);
+							         }
+
+							           // Add total column
+							    const totalCell = document.createElement("td");
+							           totalCell.textContent = "0.00";
+							           totalCell.classList.add("row-total");
+							           row.appendChild(totalCell);
+
+							           tableBody.appendChild(row);
+							       });
+
+							       populateDropdowns();
+							   }
+
 
 				  				// Function to apply dropdowns to existing rows
-				  				   function populateDropdowns() {
-				  				       const rows = document.querySelectorAll("#tableBody tr");
+				 function populateDropdowns() {
+					
+				  			const rows = document.querySelectorAll("#tableBody tr");
 
-				  				       rows.forEach(row => {
+				  				   rows.forEach(row => {
 				  				           const firstCell = row.querySelector("td:first-child");
 				  				           if (!row.classList.contains("static-row")) {
 				  				               if (firstCell) {
@@ -745,9 +777,11 @@
 				  				               }
 				  				           }
 				  				       });
-				  				   }
+				  		}
 
+						
 		  function updateTable() {
+			
 		      const selectedPeriod = periods[currentPeriodIndex];
 		      document.getElementById('selectedPeriod').textContent = ``;
 		      
@@ -755,7 +789,7 @@
 		      const [endDay, endMonth, endYear] = selectedPeriod.end.split('/');
 
 		      const tableHeaders = document.getElementById('tableHeaders');
-		      tableHeaders.innerHTML = '<tr><th style="width: 200px;">Charge Code</th></tr>'; // Set width for Charge Code
+		      tableHeaders.innerHTML = '<tr><th style="width: 300px;">Charge Code</th></tr>'; // Set width for Charge Code
 		      const tableRows = document.getElementById('tableBody');
 		      tableRows.innerHTML = ''; // Clear existing rows
 
@@ -794,13 +828,14 @@
 
 
 		  function updateFooter() {
+			
 		      const period = periods[currentPeriodIndex];
 		      const [startDay, startMonth, startYear] = period.start.split('/');
 		      const [endDay, endMonth, endYear] = period.end.split('/');
 		      let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
 		      const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
 
-		      const footerRow = document.getElementById('	').querySelector('tr');
+		      const footerRow = document.getElementById('tableFooter').querySelector('tr');
 		      footerRow.innerHTML = '<td>Total Hours</td>'; // Reset footer row
 
 		      while (currentDate <= endDate) {
@@ -823,8 +858,10 @@
 		      });
 		  }
 
+
 		  // Function to add a new row with dropdown
 		  	  function addRow() {
+				
 		  	      const row = document.createElement("tr");
 
 		  	      const projectCell = document.createElement("td");
@@ -871,59 +908,67 @@
 		  	  fetchChargeCodes();
 			  
 			  
-       function calculateTotals() {
-		      let grandTotal = 0;
-		      const rows = document.querySelectorAll('#tableBody tr');
-		      const footerCells = document.querySelectorAll('#tableFooter tr td');
+			  function calculateTotals() {
+			      let grandTotal = 0;
+			      const rows = document.querySelectorAll('#tableBody tr');
+			      const footerCells = document.querySelectorAll('#tableFooter tr td');
 
-		      const period = periods[currentPeriodIndex];
-		      const [startDay, startMonth, startYear] = period.start.split('/');
-		      const [endDay, endMonth, endYear] = period.end.split('/');
-		      const totalDays = new Date(`${endYear}-${endMonth}-${endDay}`).getDate() - new Date(`${startYear}-${startMonth}-${startDay}`).getDate() + 1;
+			      const period = periods[currentPeriodIndex];
+			      const [startDay, startMonth, startYear] = period.start.split('/');
+			      const [endDay, endMonth, endYear] = period.end.split('/');
+			      
+			      let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
+			      const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
+			      
+			      let totalDays = 0;
+			      while (currentDate <= endDate) {
+			          totalDays++;
+			          currentDate.setDate(currentDate.getDate() + 1);
+			      }
 
-		      // Initialize an array to store the total for each day
-		      const totals = new Array(totalDays).fill(0);
+			      // Initialize an array to store the total for each day
+			      const totals = new Array(totalDays).fill(0);
 
-		      // Ignore the first 2 static rows (Work Location, Company Code)
-		      rows.forEach((row, rowIndex) => {
-		          if (rowIndex < 2) return; // Skip static rows
+			      rows.forEach((row, rowIndex) => {
+			          if (row.classList.contains("static-row")) return; // Skip static rows
 
-		          const inputs = row.querySelectorAll('input[type="text"]');
-		          let rowSum = 0; // Sum of this row's values
+			          const inputs = row.querySelectorAll('td input[type="text"]');
+			          let rowSum = 0; // Sum of this row's values
 
-		          inputs.forEach((input, index) => {
-		              const value = parseFloat(input.value) || 0;
-		              totals[index] += value;
-		              rowSum += value;
-		          });	
+			          inputs.forEach((input, index) => {
+			              const value = parseFloat(input.value) || 0;
+			              totals[index - 1] += value; // Ensure correct column is updated
+			              rowSum += value;
+			          });
 
-		          // Update the row's total column
-		          const totalCell = row.querySelector('.row-total');
-		          if (totalCell) {
-		              totalCell.textContent = rowSum.toFixed(2);
-		          }
+			          // Update the row's total column
+			          const totalCell = row.querySelector('.row-total');
+			          if (totalCell) {
+			              totalCell.textContent = rowSum.toFixed(2);
+			          }
 
-		          grandTotal += rowSum;
-		      });
+			          grandTotal += rowSum;
+			      });
 
-		      // Update the footer cells with the calculated totals
-		      totals.forEach((total, index) => {
-		          footerCells[index + 1].textContent = total.toFixed(2);
-		      });
+			      // Update the footer cells with the correct totals
+			      totals.forEach((total, index) => {
+			          if (footerCells[index + 1]) {
+			              footerCells[index + 1].textContent = total.toFixed(2);
+			          }
+			      });
 
-		      // Update the total column in the footer
-		      document.getElementById('grandTotal').textContent = grandTotal.toFixed(2);
-		  }
+			      // Update the total column in the footer
+			      document.getElementById('grandTotal').textContent = grandTotal.toFixed(2);
+			  }
 
 
 
-		            
 
-		          // When adding new rows, update totals on input
-		          document.getElementById('addRow').addEventListener('click', addRow);
+			  	        // When adding new rows, update totals on input
+			  	        document.getElementById('addRow').addEventListener('click', addRow);
 
-		          // Initially update the table
-		          updateTable();
+			  	        // Initially update the table
+			  	        updateTable();
 
 
 		          function updateDropdowns() {
