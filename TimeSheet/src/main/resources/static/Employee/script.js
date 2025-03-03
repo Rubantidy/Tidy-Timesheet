@@ -83,6 +83,9 @@ navLinks.forEach(link => {
 document.addEventListener("DOMContentLoaded", function () {
     const saveIcon = document.getElementById("saveIcon");
     const periodDropdown = document.getElementById("periodDropdown");
+	const calender = document.getElementById('calendarPicker');
+	const preview = document.getElementById('prevPeriod');
+	const nextpre = document.getElementById('nextPeriod');
     const tableBody = document.getElementById("tableBody");
     const username = localStorage.getItem("userName"); // Logged-in employee
 
@@ -240,9 +243,82 @@ document.addEventListener("DOMContentLoaded", function () {
 
     saveIcon.addEventListener("click", saveTimesheetData);
     periodDropdown.addEventListener("change", fetchTimesheetData);
+	calender.addEventListener("change", fetchTimesheetData);
+	preview.addEventListener("click", fetchTimesheetData);
+	nextpre.addEventListener("click", fetchTimesheetData);
     fetchTimesheetData(); // Load data on page load
 	
 });
+
+
+
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    let selectedRow = null; // Store the selected row
+
+    // 🔥 Row Click Event Listener
+    document.getElementById("tableBody").addEventListener("click", function (event) {
+        let clickedRow = event.target.closest("tr"); // Get the full row
+        if (!clickedRow || isProtectedRow(clickedRow)) return;
+
+        // Remove old selection
+        if (selectedRow) selectedRow.classList.remove("selected-row");
+
+        // Select new row
+        selectedRow = clickedRow;
+        selectedRow.classList.add("selected-row"); // Highlight row
+
+        console.log("✅ Row Selected:", selectedRow);
+    });
+
+    // 🔥 Delete Row Function
+    document.getElementById("deleteIcon").addEventListener("click", function () {
+        if (!selectedRow) {
+            alert("⚠ Please select a row before deleting.");
+            return;
+        }
+
+        let chargeCode = selectedRow.cells[0]?.innerText.trim(); // Get Charge Code
+
+        // 🛑 Prevent deleting static rows
+        if (isProtectedRow(selectedRow)) {
+            alert("⚠ You cannot delete Work Location or Company Code rows!");
+            return;
+        }
+
+        // 🛑 Show Confirmation Message
+        let confirmDelete = confirm(`⚠ Are you sure you want to delete the row with Charge Code: ${chargeCode}?`);
+        if (!confirmDelete) return;
+
+        // 🔥 Send DELETE request to backend
+        fetch(`/deleteRow?chargeCode=${encodeURIComponent(chargeCode)}`, {
+            method: "DELETE",
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                selectedRow.remove(); // Remove row from UI
+                selectedRow = null; // Reset selection
+                alert("✅ Row deleted successfully!");
+            } else {
+                alert("❌ Failed to delete row from database.");
+            }
+        })
+        .catch(error => {
+            console.error("❌ Error deleting row:", error);
+            alert("❌ Error deleting row. Check console.");
+        });
+    });
+
+    // 🔥 Function to Protect Certain Rows (Work Location & Company Code)
+    function isProtectedRow(row) {
+        let firstCellText = row.cells[0]?.innerText.trim().toLowerCase();
+        return firstCellText.includes("work location") || firstCellText.includes("company code");
+    }
+});
+
+
 
 
 

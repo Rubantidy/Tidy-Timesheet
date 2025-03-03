@@ -88,6 +88,8 @@ public class TimesheetEntry {
 		return "TimesheetEntry [id=" + id + ", username=" + username + ", period=" + period + ", chargeCode="
 				+ chargeCode + ", cellIndex=" + cellIndex + ", hours=" + hours + "]";
 	}
+
+
     
     
 

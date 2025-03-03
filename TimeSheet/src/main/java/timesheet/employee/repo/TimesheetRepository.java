@@ -16,6 +16,9 @@ public interface TimesheetRepository extends JpaRepository<TimesheetEntry, Long>
     Optional<TimesheetEntry> findByUsernameAndPeriodAndChargeCodeAndCellIndex(
             String username, String period, String chargeCode, String cellIndex
     );
+    
+    List<TimesheetEntry> findByChargeCode(String chargeCode); // ✅ Return multiple rows
+    void deleteByChargeCode(String chargeCode); // ✅ Delete all matching rows
 }
 
 
