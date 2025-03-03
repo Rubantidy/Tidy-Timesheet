@@ -240,7 +240,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-
     saveIcon.addEventListener("click", saveTimesheetData);
     periodDropdown.addEventListener("change", fetchTimesheetData);
 	calender.addEventListener("change", fetchTimesheetData);
