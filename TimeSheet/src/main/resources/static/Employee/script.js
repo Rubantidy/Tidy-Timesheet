@@ -96,31 +96,13 @@ document.addEventListener("DOMContentLoaded", function () {
 	    fetch(`/getTimesheet?username=${username}&period=${selectedPeriod}`)
 	        .then(response => response.json())
 	        .then(data => {
-	            console.log("Fetched Data:", data); // Debugging
-				populateTable(data);
-				
-				console.log("✅ API Response:", data);
-
-	            data.forEach(entry => {
-	                let cellIndex = entry.cellIndex; // Get stored cell index
-	                let [rowIndex, columnIndex] = cellIndex.split("_").map(Number);
-
-	                let rows = document.querySelectorAll("#tableBody tr");
-	                if (rows[rowIndex]) {
-	                    let inputs = rows[rowIndex].querySelectorAll("td input");
-	                    if (inputs[columnIndex]) {
-	                        inputs[columnIndex].value = entry.hours; // Insert saved data
-	                        console.log(`✅ Inserted Data - Cell Index: ${cellIndex}, Hours: ${entry.hours}`);
-	                    } else {
-	                        console.log(`❌ Column ${columnIndex} Not Found in Row ${rowIndex}`);
-	                    }
-	                } else {
-	                    console.log(`❌ Row ${rowIndex} Not Found`);
-	                }
-	            });
+	            console.log("Fetched Data:", data);
+	            // Call populateTable() only once.
+	            populateTable(data);
 	        })
 	        .catch(error => console.error("Error fetching timesheet:", error));
 	}
+
 
 	function populateTable(fetchedData) {
 	    console.log("📌 Populating Table with Data:", fetchedData);
@@ -129,46 +111,43 @@ document.addEventListener("DOMContentLoaded", function () {
 	        let { chargeCode, cellIndex, hours } = entry;
 	        let [rowIndex, colIndex] = cellIndex.split("_").map(Number);
 
-	        let row = document.querySelector(`#tableBody tr:nth-child(${rowIndex + 1})`);
+	        let tableRows = document.querySelectorAll("#tableBody tr");
 
-	        if (!row) {
-	            console.warn(`⚠ Row ${rowIndex + 1} Not Found`);
-	            return;
-	        }
+	        // 🛑 Skip "Total Hours" row
+	        if (rowIndex >= tableRows.length) return;
 
-	        // ✅ Ensure Charge Code is Set
-	        let chargeCodeCell = row.cells[0];
-	        if (chargeCodeCell) {
-	            if (!chargeCodeCell.textContent.trim()) { // Prevent overwriting
-	                chargeCodeCell.textContent = chargeCode;
-	                console.log(`✅ Charge Code "${chargeCode}" set in Row ${rowIndex + 1}`);
+	        let row = tableRows[rowIndex];
+	        if (!row) return;
+
+	        // ✅ Fix: Properly update Charge Code Cell
+	        let chargeCodeCell = row.cells[0]; // First column (Charge Code)
+	        if (chargeCodeCell && chargeCode) {
+	            // Check if charge code dropdown exists inside the cell
+	            let chargeCodeDropdown = chargeCodeCell.querySelector("select");
+	            if (chargeCodeDropdown) {
+	                // Set dropdown value
+	                chargeCodeDropdown.value = chargeCode;
 	            } else {
-	                console.warn(`⚠ Charge Code already exists in Row ${rowIndex + 1}, skipping.`);
+	                // Directly set text if no dropdown exists
+	                chargeCodeCell.textContent = chargeCode;
 	            }
+	            console.log(`✅ Charge Code Set: "${chargeCode}" in Row ${rowIndex + 1}`);
 	        }
 
-	        // ✅ Insert Hours Correctly
+	        // ✅ Insert Hours only if empty
 	        let cell = row.cells[colIndex];
 	        if (cell) {
 	            let input = cell.querySelector("input");
-	            if (input) {
-	                if (input.value.trim() === "") { // Avoid overwriting
-	                    input.value = hours;
-	                    console.log(`✅ Inserted Hours: ${hours} at ${cellIndex}`);
-	                } else {
-	                    console.warn(`⚠ Skipped Duplicate Hours at ${cellIndex}`);
-	                }
-	            } else {
-	                console.warn(`⚠ Input Not Found in Cell ${cellIndex}`);
+	            if (input && input.value.trim() === "") {
+	                input.value = hours;
+	                console.log(`✅ Inserted Hours: ${hours} at ${cellIndex}`);
 	            }
-	        } else {
-	            console.error(`❌ Column ${colIndex} Not Found in Row ${rowIndex + 1}`);
 	        }
 	    });
+
+	    // ✅ Recalculate totals after populating
+	    calculateTotals();
 	}
-
-
-
 
 
 
@@ -244,14 +223,11 @@ document.addEventListener("DOMContentLoaded", function () {
 	            headers: { "Content-Type": "application/json" },
 	            body: jsonPayload
 	        })
-	        .then(response => {
-	            console.log("✅ Backend Response:", response);
-	            return response.json();
-	        })
-	        .then(result => {
-	            console.log("✅ Save Successful:", result);
-	            alert("Timesheet saved successfully!");
-	        })
+			.then(response => response.text()) // Change to .text() to handle plain responses
+			.then(result => {
+			    console.log("✅ Save Successful:", result);
+			    alert(result); // Show success message
+			})
 	        .catch(error => console.error("❌ Error saving timesheet:", error));
 
 	    } catch (e) {

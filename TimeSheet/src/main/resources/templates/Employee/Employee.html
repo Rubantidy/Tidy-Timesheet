@@ -828,7 +828,6 @@
 
 
 		  function updateFooter() {
-			
 		      const period = periods[currentPeriodIndex];
 		      const [startDay, startMonth, startYear] = period.start.split('/');
 		      const [endDay, endMonth, endYear] = period.end.split('/');
@@ -836,7 +835,14 @@
 		      const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
 
 		      const footerRow = document.getElementById('tableFooter').querySelector('tr');
-		      footerRow.innerHTML = '<td>Total Hours</td>'; // Reset footer row
+
+		      // ✅ Fix: Clear footer properly and ensure correct column count
+		      footerRow.innerHTML = ''; // Reset footer row
+
+		      // ✅ Fix: Add Charge Code column first to prevent misalignment
+		      const chargeCodeCell = document.createElement('td');
+		      chargeCodeCell.textContent = 'Total Hours';
+		      footerRow.appendChild(chargeCodeCell);
 
 		      while (currentDate <= endDate) {
 		          const totalCell = document.createElement('td');
@@ -845,18 +851,22 @@
 		          currentDate.setDate(currentDate.getDate() + 1);
 		      }
 
-		      // **Ensure total column in the footer**
+		      // ✅ Ensure total column in the footer remains aligned
 		      const totalColumnFooter = document.createElement('td');
 		      totalColumnFooter.textContent = '0.00';
 		      totalColumnFooter.id = 'grandTotal';
 		      footerRow.appendChild(totalColumnFooter);
 
-		      // Attach event listeners to all input fields for dynamic updates
+		      // ✅ Ensure event listeners are correctly attached
 		      const inputs = document.querySelectorAll('input[type="text"]');
 		      inputs.forEach(input => {
+		          input.removeEventListener('input', calculateTotals); // Avoid duplicate bindings
 		          input.addEventListener('input', calculateTotals);
 		      });
+
+		    
 		  }
+
 
 
 		  // Function to add a new row with dropdown
@@ -916,32 +926,32 @@
 			      const period = periods[currentPeriodIndex];
 			      const [startDay, startMonth, startYear] = period.start.split('/');
 			      const [endDay, endMonth, endYear] = period.end.split('/');
-			      
+
 			      let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
 			      const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
-			      
+
 			      let totalDays = 0;
 			      while (currentDate <= endDate) {
 			          totalDays++;
 			          currentDate.setDate(currentDate.getDate() + 1);
 			      }
 
-			      // Initialize an array to store the total for each day
+			      // ✅ Ensure total array matches the number of date columns
 			      const totals = new Array(totalDays).fill(0);
 
 			      rows.forEach((row, rowIndex) => {
 			          if (row.classList.contains("static-row")) return; // Skip static rows
 
 			          const inputs = row.querySelectorAll('td input[type="text"]');
-			          let rowSum = 0; // Sum of this row's values
+			          let rowSum = 0;
 
 			          inputs.forEach((input, index) => {
 			              const value = parseFloat(input.value) || 0;
-			              totals[index - 1] += value; // Ensure correct column is updated
+			              totals[index] += value; // ✅ Fix: Do not subtract 1 from index
 			              rowSum += value;
 			          });
 
-			          // Update the row's total column
+			          // ✅ Fix: Use correct column for row total
 			          const totalCell = row.querySelector('.row-total');
 			          if (totalCell) {
 			              totalCell.textContent = rowSum.toFixed(2);
@@ -950,25 +960,29 @@
 			          grandTotal += rowSum;
 			      });
 
-			      // Update the footer cells with the correct totals
+			      // ✅ Update the footer cells correctly
 			      totals.forEach((total, index) => {
 			          if (footerCells[index + 1]) {
 			              footerCells[index + 1].textContent = total.toFixed(2);
 			          }
 			      });
 
-			      // Update the total column in the footer
-			      document.getElementById('grandTotal').textContent = grandTotal.toFixed(2);
+			      // ✅ Ensure grand total column updates correctly
+			      const grandTotalCell = document.getElementById('grandTotal');
+			      if (grandTotalCell) {
+			          grandTotalCell.textContent = grandTotal.toFixed(2);
+			      }
 			  }
 
+			  // ✅ Ensure this function runs when new rows are added
+			  document.getElementById('addRow').addEventListener('click', () => {
+			      addRow();
+			      calculateTotals(); // Recalculate totals after adding rows
+			  });
 
-
-
-			  	        // When adding new rows, update totals on input
-			  	        document.getElementById('addRow').addEventListener('click', addRow);
-
-			  	        // Initially update the table
-			  	        updateTable();
+			  // ✅ Run calculateTotals after initializing the table
+			  updateTable();
+			  calculateTotals();
 
 
 		          function updateDropdowns() {
