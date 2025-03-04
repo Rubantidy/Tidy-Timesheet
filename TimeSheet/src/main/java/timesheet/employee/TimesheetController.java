@@ -34,7 +34,7 @@ public class TimesheetController {
     public ResponseEntity<List<TimesheetEntry>> getTimesheet(
             @RequestParam String username, @RequestParam String period) {
     	
-    	System.out.println("hello");
+    
 
         List<TimesheetEntry> entries = timesheetService.getTimesheet(username, period);
 
@@ -85,7 +85,8 @@ public class TimesheetController {
         int totalHours = 0;
         int totalAbsences = 0;
 
-        List<Map<String, String>> processedEntries = new ArrayList<>();
+        // Store charge code totals in a Map to merge duplicates
+        Map<String, Integer> chargeCodeTotals = new HashMap<>();
 
         for (TimesheetEntry entry : entries) {
             String code = entry.getChargeCode();
@@ -96,18 +97,24 @@ public class TimesheetController {
             }
 
             int hours = entry.getHours() == null || entry.getHours().isEmpty() ? 0 : Integer.parseInt(entry.getHours());
+
+            // Merge same charge codes by summing hours
+            chargeCodeTotals.put(code, chargeCodeTotals.getOrDefault(code, 0) + hours);
+
             totalHours += hours;
 
             // Check for leave codes and count absences
-            if ("TdL2 - Casual Leave".equals(code)) {
-                totalAbsences += hours; // Sick leave
-            } else if ("TdL1 - Sick Leave".equals(code)) {
-                totalAbsences += hours; // Casual leave
-            }
+            if ("TdL1 - Sick Leave".equals(code) || "TdL2 - Casual Leave".equals(code)) {
+                totalAbsences += hours; //leaves
+            } 
+        }
 
+        // Convert the merged data into a list for frontend
+        List<Map<String, String>> processedEntries = new ArrayList<>();
+        for (Map.Entry<String, Integer> entry : chargeCodeTotals.entrySet()) {
             Map<String, String> row = new HashMap<>();
-            row.put("chargeCode", code);
-            row.put("hours", String.valueOf(hours));
+            row.put("chargeCode", entry.getKey());
+            row.put("hours", String.valueOf(entry.getValue()));
 
             processedEntries.add(row);
         }
@@ -115,10 +122,11 @@ public class TimesheetController {
         Map<String, Object> summaryData = new HashMap<>();
         summaryData.put("totalHours", totalHours);
         summaryData.put("totalAbsences", totalAbsences);
-        summaryData.put("entries", processedEntries); // Send modified list
+        summaryData.put("entries", processedEntries); // Send merged list
 
         return ResponseEntity.ok(summaryData);
     }
+
 
 
 

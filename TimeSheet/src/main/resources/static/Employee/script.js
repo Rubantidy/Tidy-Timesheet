@@ -284,6 +284,7 @@ document.addEventListener("DOMContentLoaded", function () {
         if (isProtectedRow(selectedRow)) {
             alert("⚠ You cannot delete Work Location or Company Code rows!");
             return;
+			
         }
 
         // 🛑 Show Confirmation Message
@@ -321,14 +322,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 function generateSummary() {
-    console.log("Generating summary...");
+	
+
 
     const username = localStorage.getItem("userName");
     
     function getSelectedPeriod() {
         return periodDropdown.options[periodDropdown.selectedIndex].text;
     }
-    
+	
     const selectedPeriod = getSelectedPeriod();
 
     fetch(`/getSummary?username=${username}&period=${selectedPeriod}`)
@@ -354,6 +356,10 @@ function generateSummary() {
             document.getElementById("totalHours").textContent = data.totalHours;
             document.getElementById("totalAbsences").textContent = data.totalAbsences;
             document.getElementById("locationTotalHours").textContent = data.totalHours; // Location total
+			document.getElementById("totalworking").textContent = (data.totalHours - data.totalAbsences);
+
+			
+		
         })
         .catch(error => {
             console.error("Error fetching summary data:", error);
@@ -363,17 +369,32 @@ function generateSummary() {
 
 document.addEventListener("DOMContentLoaded", function () {
     let timePeriodElement = document.getElementById("periodDropdown");
+	let calender = document.getElementById('calendarPicker');
+		let preview = document.getElementById('prevPeriod');
+		let nextpre = document.getElementById('nextPeriod');
     
-    if (timePeriodElement) {
-        timePeriodElement.addEventListener("change", function () {
+    if (timePeriodElement || calender ) {
+        addEventListener("change", function () {
             if (document.getElementById("summarySection").style.display !== "none") {
                 generateSummary();
             }
         });
-    } else {
+    } 
+	
+	else {
         console.error("Element with ID 'timePeriod' not found.");
     }
 
+	if(preview || nextpre) {
+		addEventListener("click", function(){
+			if(document.getElementById("summarySection").style.display !== "none") {
+				generateSummary();
+			}
+		});
+	}
+	else{
+		console.log("Element with ID not found.")
+	}
     // Call generateSummary once page loads (if needed)
     generateSummary();
 });

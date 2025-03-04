@@ -166,11 +166,11 @@
     </div>
 
 
-<!-- Section for Expense -->
+<!-- Section for Expense
 <div id="expenseSection" class="content-section" style="display: none;">
     <h3>Expense Section</h3>
     <p>This is where expense details will go.</p>
-</div>
+</div>  -->
 
 <!-- Section for Location -->
 <div id="locationSection" class="content-section" style="display: none;">
@@ -214,23 +214,23 @@
 
 
 	
-<!-- Section for Adjustment -->
+<!-- Section for Adjustment 
 <div id="adjustmentSection" class="content-section" style="display: none;">
     <h3>Adjustment Section</h3>
     <p>This is where adjustments will go.</p>
-</div>
+</div> -->
 
 <!-- Section for Summary -->
 <div id="summarySection" class="content-section" style="display: none;">
 	<div id="summarySection">
-	    <h2>General Summary</h2>
-	    <table class="summary-table" border="1">
+	    <h2 style="text-align: center;">General Summary</h2>
+	    <table class="summary-table" border="1" align="center">
 	        <thead>
 	            <tr>
 	                <th>Charge Code</th>
-	                <th>Hours</th>
-	                <th>Expense</th>
-	                <th>Absences</th>
+	                <th>Working Hours</th>
+	                <th>Total Expense</th>
+	                <th>Absences Hours</th>
 	            </tr>
 	        </thead>
 	        <tbody id="summaryBody">
@@ -238,22 +238,30 @@
 	        </tbody>
 	        <tfoot>
 	            <tr>
-	                <td>Total</td>
+	                <td>Total Hours</td>
 	                <td id="totalHours">0</td>
 	                <td id="totalExpense">0</td>
 	                <td id="totalAbsences">0</td>
 	            </tr>
+				
 	            <tr>
-	                <td>Standard Available Hours</td>
-	                <td id="standardHours">90</td>
+	                <td>Standard Allocated Hours</td>
+	                <td id="standardHours">135</td>
 	                <td>-</td>
 	                <td>-</td>
 	            </tr>
+				
+				<tr>
+				    <td>Total Working Hours</td>
+					<td id="totalworking">0</td>
+					<td>-</td>
+					<td>-</td>
+				</tr>
 	        </tfoot>
 	    </table>
 
-	    <h3>Location Summary</h3>
-	    <table class="summary-table" border="1">
+	    <h3 style="text-align: center;">Location Summary</h3>
+	    <table class="summary-table" border="1" align="center">
 	        <thead>
 	            <tr>
 	                <th>Country</th>
@@ -264,17 +272,14 @@
 	        <tbody>
 	            <tr>
 	                <td>India</td>
-	                <td>Salem</td>
+	                <td>Salem - 00 | Company code - 001  - Salem</td>
 	                <td id="locationTotalHours">0</td>
 	            </tr>
 	        </tbody>
 	    </table>
+	</div><br><br>
+	
 	</div>
-
-	</div>
-
-
-
 
 <!-- Section for Preference -->
 <div id="preferenceSection" class="content-section" style="display: none;">
@@ -286,12 +291,7 @@
 
 <script>
 	
-	document.addEventListener("DOMContentLoaded", function () {
-	           const newDropdown = document.querySelector(".customDropdown");
-	           newDropdown.addEventListener("change", function () {
-	               console.log("Selected value:", newDropdown.value);
-	           });
-	       });
+
 		   
 		   
 	document.addEventListener("DOMContentLoaded", function () {
@@ -582,7 +582,7 @@
 		          let currentYear = today.getFullYear();
 		          let currentMonth = today.getMonth() + 1;
 		          let currentPeriodIndex = 0; 
-		          let availableProjects = ['Project A', 'Project B', 'Project C', 'Project D', 'Project E','Project f'];
+		  
 
 		          function formatDate(date) {
 		              const year = date.getFullYear();
@@ -689,9 +689,9 @@
 				       clearButton.style.cursor = "pointer";
 				       clearButton.style.marginLeft = "8px"; 
 				       clearButton.style.color = "red";
-				       clearButton.style.fontSize = "7px";  // Smaller size
+				       clearButton.style.fontSize = "7px";  
 				       clearButton.style.fontWeight = "bold";
-				       clearButton.style.display = "none";   // Initially hidden
+				       clearButton.style.display = "none";   
 				       clearButton.title = "Remove selected charge code";
 
 				       // Dropdown panel
@@ -758,7 +758,7 @@
 
 
 
-							   // Add static rows (Work Location & Company Code)
+		// Add static rows (Work Location & Company Code)
 			function addStaticRows() {
 				
 					const tableBody = document.getElementById("tableBody");
@@ -766,10 +766,11 @@
 							 { name: "Work Location", value: "00" },
 							 { name: "Company Code", value: "001" }
 						];
-
+						
 					staticRowData.forEach(item => {
 							const row = document.createElement("tr");
 							 row.classList.add("static-row"); // Add class to identify static rows
+							 
 
 							 const firstCell = document.createElement("td");
 							        firstCell.textContent = item.name;
@@ -802,6 +803,7 @@
 
 							           // Add total column
 							    const totalCell = document.createElement("td");
+								  
 							           totalCell.textContent = "0.00";
 							           totalCell.classList.add("row-total");
 							           row.appendChild(totalCell);
