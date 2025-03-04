@@ -1,7 +1,10 @@
 package timesheet.employee;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,6 +33,8 @@ public class TimesheetController {
     @GetMapping("/getTimesheet")
     public ResponseEntity<List<TimesheetEntry>> getTimesheet(
             @RequestParam String username, @RequestParam String period) {
+    	
+    	System.out.println("hello");
 
         List<TimesheetEntry> entries = timesheetService.getTimesheet(username, period);
 
@@ -68,6 +73,52 @@ public class TimesheetController {
         }
     }
 
+
+    @GetMapping("/getSummary")
+    public ResponseEntity<Map<String, Object>> getSummary(
+            @RequestParam String username, @RequestParam String period) {
+        
+        System.out.println("Fetching summary for: " + username + " | Period: " + period);
+
+        List<TimesheetEntry> entries = timesheetService.getTimesheet(username, period);
+
+        int totalHours = 0;
+        int totalAbsences = 0;
+
+        List<Map<String, String>> processedEntries = new ArrayList<>();
+
+        for (TimesheetEntry entry : entries) {
+            String code = entry.getChargeCode();
+            
+            // Exclude "Company Code" & "Work Location"
+            if ("Company Code".equals(code) || "Work Location".equals(code)) {
+                continue;
+            }
+
+            int hours = entry.getHours() == null || entry.getHours().isEmpty() ? 0 : Integer.parseInt(entry.getHours());
+            totalHours += hours;
+
+            // Check for leave codes and count absences
+            if ("TdL2 - Casual Leave".equals(code)) {
+                totalAbsences += hours; // Sick leave
+            } else if ("TdL1 - Sick Leave".equals(code)) {
+                totalAbsences += hours; // Casual leave
+            }
+
+            Map<String, String> row = new HashMap<>();
+            row.put("chargeCode", code);
+            row.put("hours", String.valueOf(hours));
+
+            processedEntries.add(row);
+        }
+
+        Map<String, Object> summaryData = new HashMap<>();
+        summaryData.put("totalHours", totalHours);
+        summaryData.put("totalAbsences", totalAbsences);
+        summaryData.put("entries", processedEntries); // Send modified list
+
+        return ResponseEntity.ok(summaryData);
+    }
 
 
 

@@ -554,7 +554,7 @@ function createForm(type) {
                 <form action="/addEmployee" method="POST" autocomplete="off">
                     ${inputField("Name", "text", "E-name")}
 					${inputField("Email", "email", "E-mail")}
-					${inputField("Password", "text", "E-pass")}
+					${inputField("Password", "password", "E-pass")}
 					${inputField("Designation", "text", "E-desg")}
                     ${selectField("Role", "E-role", ["Admin","Employee"])}
                     ${formButtons()}

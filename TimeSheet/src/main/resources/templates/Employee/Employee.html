@@ -222,9 +222,59 @@
 
 <!-- Section for Summary -->
 <div id="summarySection" class="content-section" style="display: none;">
-    <h3>Summary Section</h3>
-    <p>This is the summary of your timesheet.</p>
-</div>
+	<div id="summarySection">
+	    <h2>General Summary</h2>
+	    <table class="summary-table" border="1">
+	        <thead>
+	            <tr>
+	                <th>Charge Code</th>
+	                <th>Hours</th>
+	                <th>Expense</th>
+	                <th>Absences</th>
+	            </tr>
+	        </thead>
+	        <tbody id="summaryBody">
+	            <!-- Data will be inserted here dynamically -->
+	        </tbody>
+	        <tfoot>
+	            <tr>
+	                <td>Total</td>
+	                <td id="totalHours">0</td>
+	                <td id="totalExpense">0</td>
+	                <td id="totalAbsences">0</td>
+	            </tr>
+	            <tr>
+	                <td>Standard Available Hours</td>
+	                <td id="standardHours">90</td>
+	                <td>-</td>
+	                <td>-</td>
+	            </tr>
+	        </tfoot>
+	    </table>
+
+	    <h3>Location Summary</h3>
+	    <table class="summary-table" border="1">
+	        <thead>
+	            <tr>
+	                <th>Country</th>
+	                <th>Location</th>
+	                <th>Total Hours</th>
+	            </tr>
+	        </thead>
+	        <tbody>
+	            <tr>
+	                <td>India</td>
+	                <td>Salem</td>
+	                <td id="locationTotalHours">0</td>
+	            </tr>
+	        </tbody>
+	    </table>
+	</div>
+
+	</div>
+
+
+
 
 <!-- Section for Preference -->
 <div id="preferenceSection" class="content-section" style="display: none;">

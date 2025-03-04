@@ -320,6 +320,67 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
+function generateSummary() {
+    console.log("Generating summary...");
+
+    const username = localStorage.getItem("userName");
+    
+    function getSelectedPeriod() {
+        return periodDropdown.options[periodDropdown.selectedIndex].text;
+    }
+    
+    const selectedPeriod = getSelectedPeriod();
+
+    fetch(`/getSummary?username=${username}&period=${selectedPeriod}`)
+        .then(response => response.json())
+        .then(data => {
+            let summaryBody = document.getElementById("summaryBody");
+            summaryBody.innerHTML = ""; // Clear previous data
+
+            if (data.entries.length === 0) {
+                summaryBody.innerHTML = `<tr><td colspan="3">No data available</td></tr>`;
+            } else {
+                data.entries.forEach(entry => {
+                    let row = `<tr>
+                        <td>${entry.chargeCode}</td>
+                        <td>${entry.hours}</td>
+                        <td>${entry.chargeCode === "TDL1" || entry.chargeCode === "TDL2" ? entry.hours : 0}</td>
+                    </tr>`;
+                    summaryBody.innerHTML += row;
+                }); 
+            }
+
+            // Update total values
+            document.getElementById("totalHours").textContent = data.totalHours;
+            document.getElementById("totalAbsences").textContent = data.totalAbsences;
+            document.getElementById("locationTotalHours").textContent = data.totalHours; // Location total
+        })
+        .catch(error => {
+            console.error("Error fetching summary data:", error);
+        });
+}
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    let timePeriodElement = document.getElementById("periodDropdown");
+    
+    if (timePeriodElement) {
+        timePeriodElement.addEventListener("change", function () {
+            if (document.getElementById("summarySection").style.display !== "none") {
+                generateSummary();
+            }
+        });
+    } else {
+        console.error("Element with ID 'timePeriod' not found.");
+    }
+
+    // Call generateSummary once page loads (if needed)
+    generateSummary();
+});
+
+
+
+
 
 
 
