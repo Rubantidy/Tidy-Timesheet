@@ -372,13 +372,12 @@ function generateSummary() {
 
 
 function calculateStandardAllocatedHours(selectedPeriod) {
-    // Extract start and end date from the selected period string
     let [startDateStr, endDateStr] = selectedPeriod.split(" - "); // Example: "01/03/2025 - 15/03/2025"
-    
-    // Convert "DD/MM/YYYY" to a proper format "YYYY-MM-DD"
+
+    // Convert "DD/MM/YYYY" to "YYYY-MM-DD" for correct parsing
     function parseDate(dateStr) {
-        let parts = dateStr.split("/"); // Split by "/"
-        return new Date(`${parts[2]}-${parts[1]}-${parts[0]}`); // Convert to "YYYY-MM-DD"
+        let parts = dateStr.split("/");
+        return new Date(parts[2], parts[1] - 1, parts[0]); // YYYY, MM (0-based), DD
     }
 
     let startDate = parseDate(startDateStr);
@@ -392,20 +391,17 @@ function calculateStandardAllocatedHours(selectedPeriod) {
     let totalWorkingDays = 0;
 
     while (startDate <= endDate) {
-        let dayOfWeek = startDate.getDay(); // Get the day of the week (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
-
-        if (dayOfWeek !== 0) { // If it's NOT Sunday, count it as a working day
+        if (startDate.getDay() !== 0) { // Exclude Sundays (0 = Sunday)
             totalWorkingDays++;
         }
-
-        // Move to the next day
-        startDate.setDate(startDate.getDate() + 1);
+        startDate.setDate(startDate.getDate() + 1); // Move to next day
     }
 
     console.log(`Total Working Days (excluding Sundays): ${totalWorkingDays}`);
 
     return totalWorkingDays * 9; // 1 working day = 9 hours
 }
+
 
 
 document.addEventListener("DOMContentLoaded", function () {
