@@ -290,11 +290,22 @@
 
 
 <script>
-	
+	document.addEventListener("DOMContentLoaded", function () {
+		const submitbtn = document.getElementById('submitBtn');
+		const addname = localStorage.getItem('userAddRole');
+		if (addname === "-") {
+			submitbtn.disabled = true;
+			submitbtn.style.display="none";
+		}  
+		else{
+			submitbtn.disabled = false;
+		}
+		});
 
 		   
 		   
 	document.addEventListener("DOMContentLoaded", function () {
+
 	    const saveIcon = document.querySelector(".bi-floppy-fill");
 	    const deleteIcon = document.querySelector(".bi-trash");
 	    const addRowIcon = document.getElementById("addRow");
@@ -558,9 +569,10 @@
 				           .then(data => {
 				               if (data.success) {
 				                   // The user is authorized to switch to Admin panel
-				                   localStorage.setItem('userName', data.eName);  // Store the new name (from Admin or Delegator)
+				                   localStorage.setItem('userName', data.eName);  // Store the new name (from Admin)
 				                   localStorage.setItem('userRole', "Admin");  // Update role to Admin
 				                   
+								   
 				                   // Redirect to Admin Dashboard
 				                   window.location.href = "/Admin_Dashboard";
 				               } else {
@@ -576,6 +588,8 @@
 
 				       
 						
+				
+					   
 		  /*script for calender*/
 		  
 		  const today = new Date();
@@ -831,93 +845,124 @@
 				  				       });
 				  		}
 
-						
-		  function updateTable() {
-			
-		      const selectedPeriod = periods[currentPeriodIndex];
-		      document.getElementById('selectedPeriod').textContent = ``;
-		      
-		      const [startDay, startMonth, startYear] = selectedPeriod.start.split('/');
-		      const [endDay, endMonth, endYear] = selectedPeriod.end.split('/');
+						function updateTable() {
+						    const selectedPeriod = periods[currentPeriodIndex];
+						    document.getElementById('selectedPeriod').textContent = ``;
 
-		      const tableHeaders = document.getElementById('tableHeaders');
-		      tableHeaders.innerHTML = '<tr><th style="width: 300px;">Charge Code</th></tr>'; // Set width for Charge Code
-		      const tableRows = document.getElementById('tableBody');
-		      tableRows.innerHTML = ''; // Clear existing rows
+						    const [startDay, startMonth, startYear] = selectedPeriod.start.split('/');
+						    const [endDay, endMonth, endYear] = selectedPeriod.end.split('/');
 
-		      let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
-		      const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
+						    const tableHeaders = document.getElementById('tableHeaders');
+						    tableHeaders.innerHTML = '<tr><th style="width: 300px;">Charge Code</th></tr>';
+						    const tableRows = document.getElementById('tableBody');
+						    tableRows.innerHTML = '';
 
-		      // Add date headers with day names
-		      while (currentDate <= endDate) {
-		          const day = currentDate.getDate();
-		          const month = currentDate.getMonth() + 1;
-		          const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'short' });
+						    let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
+						    const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
 
-		          const headerCell = document.createElement('th');
-		          headerCell.textContent = `${day}/${month} (${dayName})`;
-		          tableHeaders.querySelector('tr').appendChild(headerCell);
+						    let sundayIndexes = []; // Store Sunday indexes
 
-		          currentDate.setDate(currentDate.getDate() + 1);
-		      }
+						    // Add date headers with day names
+						    let colIndex = 1;
+						    while (currentDate <= endDate) {
+						        const day = currentDate.getDate();
+						        const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'short' });
 
-		      // **Add "Total" column to the header**
-		      const totalHeader = document.createElement('th');
-		      totalHeader.textContent = "Total";
-		      tableHeaders.querySelector('tr').appendChild(totalHeader);
+						        const headerCell = document.createElement('th');
+						        headerCell.innerHTML = `${day}<br>${dayName}`;
 
-		      // Add static rows
-		      addStaticRows();
+						        if (dayName === "Sun") {
+						            sundayIndexes.push(colIndex);
+						            headerCell.style.backgroundColor = "#d3d3d3"; // Grey out Sunday headers
+						        }
 
-		      // Add 3 default dynamic rows
-		      for (let i = 0; i < 3; i++) {
-		          addRow();
-		      }
+						        tableHeaders.querySelector('tr').appendChild(headerCell);
+						        currentDate.setDate(currentDate.getDate() + 1);
+						        colIndex++;
+						    }
 
-		      // Update footer for totals
-		      updateFooter();
-		  }
+						    // Add "Total" column
+						    const totalHeader = document.createElement('th');
+						    totalHeader.textContent = "Total";
+						    tableHeaders.querySelector('tr').appendChild(totalHeader);
+
+						    // **Add static rows**
+						    addStaticRows();
+
+						    // **Add 3 default dynamic rows**
+						    for (let i = 0; i < 3; i++) {
+						        addRow();
+						    }
+
+						    // ✅ Fix: Fully grey out the entire Sunday column
+						    setTimeout(() => {
+						        document.querySelectorAll("#tableBody tr").forEach(row => {
+						            sundayIndexes.forEach(index => {
+						                let cell = row.cells[index]; // Target Sunday column
+						                if (cell) {
+						                    let input = cell.querySelector("input");
+						                    if (input) {
+						                        input.disabled = true; // Disable input on Sundays
+						                        input.style.backgroundColor = "#d3d3d3"; // Grey background
+						                    }
+						                    cell.style.backgroundColor = "#d3d3d3"; // Ensure entire Sunday column is grey
+						                }
+						            });
+						        });
+						    }, 100);
+
+						    // Update footer for totals
+						    updateFooter(sundayIndexes);
+						}
 
 
-		  function updateFooter() {
-		      const period = periods[currentPeriodIndex];
-		      const [startDay, startMonth, startYear] = period.start.split('/');
-		      const [endDay, endMonth, endYear] = period.end.split('/');
-		      let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
-		      const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
+						function updateFooter(sundayIndexes) {
+						    const period = periods[currentPeriodIndex];
+						    const [startDay, startMonth, startYear] = period.start.split('/');
+						    const [endDay, endMonth, endYear] = period.end.split('/');
+						    let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
+						    const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
 
-		      const footerRow = document.getElementById('tableFooter').querySelector('tr');
+						    const footerRow = document.getElementById('tableFooter').querySelector('tr');
 
-		      // ✅ Fix: Clear footer properly and ensure correct column count
-		      footerRow.innerHTML = ''; // Reset footer row
+						    // ✅ Fix: Clear footer properly and ensure correct column count
+						    footerRow.innerHTML = ''; // Reset footer row
 
-		      // ✅ Fix: Add Charge Code column first to prevent misalignment
-		      const chargeCodeCell = document.createElement('td');
-		      chargeCodeCell.textContent = 'Total Hours';
-		      footerRow.appendChild(chargeCodeCell);
+						    // ✅ Fix: Add Charge Code column first to prevent misalignment
+						    const chargeCodeCell = document.createElement('td');
+						    chargeCodeCell.textContent = 'Total Hours';
+						    footerRow.appendChild(chargeCodeCell);
 
-		      while (currentDate <= endDate) {
-		          const totalCell = document.createElement('td');
-		          totalCell.textContent = '0.00'; // Initialize totals
-		          footerRow.appendChild(totalCell);
-		          currentDate.setDate(currentDate.getDate() + 1);
-		      }
+						    let colIndex = 1;
+						    while (currentDate <= endDate) {
+						        const totalCell = document.createElement('td');
 
-		      // ✅ Ensure total column in the footer remains aligned
-		      const totalColumnFooter = document.createElement('td');
-		      totalColumnFooter.textContent = '0.00';
-		      totalColumnFooter.id = 'grandTotal';
-		      footerRow.appendChild(totalColumnFooter);
+						        if (sundayIndexes.includes(colIndex)) {
+						            totalCell.textContent = ""; // Remove 0.00 from Sundays
+						            totalCell.style.backgroundColor = "#d3d3d3"; // Grey out Sunday footer cells
+						        } else {
+						            totalCell.textContent = '0.00'; // Initialize totals
+						        }
 
-		      // ✅ Ensure event listeners are correctly attached
-		      const inputs = document.querySelectorAll('input[type="text"]');
-		      inputs.forEach(input => {
-		          input.removeEventListener('input', calculateTotals); // Avoid duplicate bindings
-		          input.addEventListener('input', calculateTotals);
-		      });
+						        footerRow.appendChild(totalCell);
+						        currentDate.setDate(currentDate.getDate() + 1);
+						        colIndex++;
+						    }
 
-		    
-		  }
+						    // ✅ Ensure total column in the footer remains aligned
+						    const totalColumnFooter = document.createElement('td');
+						    totalColumnFooter.textContent = '0.00';
+						    totalColumnFooter.id = 'grandTotal';
+						    footerRow.appendChild(totalColumnFooter);
+
+						    // ✅ Ensure event listeners are correctly attached
+						    const inputs = document.querySelectorAll('input[type="text"]');
+						    inputs.forEach(input => {
+						        input.removeEventListener('input', calculateTotals); // Avoid duplicate bindings
+						        input.addEventListener('input', calculateTotals);
+						    });
+						}
+
 
 
 

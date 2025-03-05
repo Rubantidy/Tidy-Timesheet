@@ -352,11 +352,15 @@ function generateSummary() {
                 }); 
             }
 
+			let standardHours = calculateStandardAllocatedHours(selectedPeriod);
+			
+
             // Update total values
             document.getElementById("totalHours").textContent = data.totalHours;
             document.getElementById("totalAbsences").textContent = data.totalAbsences;
             document.getElementById("locationTotalHours").textContent = data.totalHours; // Location total
 			document.getElementById("totalworking").textContent = (data.totalHours - data.totalAbsences);
+			document.getElementById("standardHours").textContent = standardHours; // ✅ Update dynamically
 
 			
 		
@@ -364,6 +368,43 @@ function generateSummary() {
         .catch(error => {
             console.error("Error fetching summary data:", error);
         });
+}
+
+
+function calculateStandardAllocatedHours(selectedPeriod) {
+    // Extract start and end date from the selected period string
+    let [startDateStr, endDateStr] = selectedPeriod.split(" - "); // Example: "01/03/2025 - 15/03/2025"
+    
+    // Convert "DD/MM/YYYY" to a proper format "YYYY-MM-DD"
+    function parseDate(dateStr) {
+        let parts = dateStr.split("/"); // Split by "/"
+        return new Date(`${parts[2]}-${parts[1]}-${parts[0]}`); // Convert to "YYYY-MM-DD"
+    }
+
+    let startDate = parseDate(startDateStr);
+    let endDate = parseDate(endDateStr);
+
+    if (isNaN(startDate) || isNaN(endDate)) {
+        console.error("Invalid date format:", selectedPeriod);
+        return 0; // Return 0 if dates are invalid
+    }
+
+    let totalWorkingDays = 0;
+
+    while (startDate <= endDate) {
+        let dayOfWeek = startDate.getDay(); // Get the day of the week (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+
+        if (dayOfWeek !== 0) { // If it's NOT Sunday, count it as a working day
+            totalWorkingDays++;
+        }
+
+        // Move to the next day
+        startDate.setDate(startDate.getDate() + 1);
+    }
+
+    console.log(`Total Working Days (excluding Sundays): ${totalWorkingDays}`);
+
+    return totalWorkingDays * 9; // 1 working day = 9 hours
 }
 
 

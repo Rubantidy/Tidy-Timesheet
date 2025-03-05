@@ -8,16 +8,29 @@ public class LoginResponse {
  private String role;
  private String status;
  private String name;
+ private String additionalrole;
  
- public LoginResponse(boolean success, String role, String status, String name) {
+ public LoginResponse(boolean success, String role, String status, String name, String additionalrole) {
      this.success = success;
      this.role = role;
      this.status = status;
      this.name = name;
+     this.additionalrole = additionalrole;
      
  }
 
- public String getStatus() {
+ 
+ public String getAdditionalrole() {
+	return additionalrole;
+}
+
+
+public void setAdditionalrole(String additionalrole) {
+	this.additionalrole = additionalrole;
+}
+
+
+public String getStatus() {
 	return status;
 }
 

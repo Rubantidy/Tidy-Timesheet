@@ -119,3 +119,8 @@
 	background-color: gainsboro;
 }*/
 
+.sunday {
+       background-color: #d3d3d3;
+       pointer-events: none;
+   }
+
