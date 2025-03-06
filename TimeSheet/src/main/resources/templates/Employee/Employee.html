@@ -818,7 +818,7 @@
 							           // Add total column
 							    const totalCell = document.createElement("td");
 								  
-							           totalCell.textContent = "0.00";
+							           totalCell.textContent = "";
 							           totalCell.classList.add("row-total");
 							           row.appendChild(totalCell);
 
@@ -890,7 +890,7 @@
 						    addStaticRows();
 
 						    // **Add 3 default dynamic rows**
-						    for (let i = 0; i < 3; i++) {
+						    for (let i = 0; i < 1; i++) {
 						        addRow();
 						    }
 
@@ -941,7 +941,7 @@
 						            totalCell.textContent = ""; // Remove 0.00 from Sundays
 						            totalCell.style.backgroundColor = "#d3d3d3"; // Grey out Sunday footer cells
 						        } else {
-						            totalCell.textContent = '0.00'; // Initialize totals
+						            totalCell.textContent = ''; // Initialize totals
 						        }
 
 						        footerRow.appendChild(totalCell);
@@ -951,7 +951,7 @@
 
 						    // ✅ Ensure total column in the footer remains aligned
 						    const totalColumnFooter = document.createElement('td');
-						    totalColumnFooter.textContent = '0.00';
+						    totalColumnFooter.textContent = '';
 						    totalColumnFooter.id = 'grandTotal';
 						    footerRow.appendChild(totalColumnFooter);
 
@@ -967,43 +967,73 @@
 
 
 		  // Function to add a new row with dropdown
-		  	  function addRow() {
-				
-		  	      const row = document.createElement("tr");
+		  function addRow() {
+		      const row = document.createElement("tr");
 
-		  	      const projectCell = document.createElement("td");
-		  	      projectCell.appendChild(createDropdown()); // Dropdown for charge code
-		  	      row.appendChild(projectCell);
+		      const projectCell = document.createElement("td");
+		      projectCell.appendChild(createDropdown()); // Dropdown for charge code
+		      row.appendChild(projectCell);
 
-		  	      // Add input fields for each day
-		  	      const period = periods[currentPeriodIndex];
-		  	      const [startDay, startMonth, startYear] = period.start.split("/");
-		  	      const [endDay, endMonth, endYear] = period.end.split("/");
-		  	      let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
-		  	      const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
+		      // Get selected period
+		      const period = periods[currentPeriodIndex];
+		      const [startDay, startMonth, startYear] = period.start.split("/");
+		      const [endDay, endMonth, endYear] = period.end.split("/");
+		      
+		      let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
+		      const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
 
-		  	      while (currentDate <= endDate) {
-		  	          const cell = document.createElement("td");
-		  	          const input = document.createElement("input");
-		  	          input.type = "text";
-		  	          input.style.border = "0px";
-		  	          input.style.width = "50px";
-		  	          input.style.outline = "none";
-		  	          cell.appendChild(input);
-		  	          row.appendChild(cell);
+		      let colIndex = 1;
+		      let sundayIndexes = []; // Store Sunday indexes
 
-		  	          input.addEventListener("input", calculateTotals);
-		  	          currentDate.setDate(currentDate.getDate() + 1);
-		  	      }
+		      while (currentDate <= endDate) {
+		          const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'short' });
 
-		  	      // Add total column
-		  	      const totalCell = document.createElement("td");
-		  	      totalCell.textContent = "0.00";
-		  	      totalCell.classList.add("row-total");
-		  	      row.appendChild(totalCell);
+		          const cell = document.createElement("td");
+		          const input = document.createElement("input");
+		          input.type = "text";
+		          input.style.border = "0px";
+		          input.style.width = "50px";
+		          input.style.outline = "none";
 
-		  	      document.getElementById("tableBody").appendChild(row);
-		  	  }
+		          if (dayName === "Sun") {
+		              input.disabled = true; // Disable input on Sundays
+		              input.style.backgroundColor = "#d3d3d3"; // Grey background
+		              cell.style.backgroundColor = "#d3d3d3"; // Ensure entire Sunday column is grey
+		              sundayIndexes.push(colIndex); // Store Sunday index
+		          }
+
+		          cell.appendChild(input);
+		          row.appendChild(cell);
+
+		          input.addEventListener("input", calculateTotals);
+		          currentDate.setDate(currentDate.getDate() + 1);
+		          colIndex++;
+		      }
+
+		      // Add total column
+		      const totalCell = document.createElement("td");
+		      totalCell.textContent = "";
+		      totalCell.classList.add("row-total");
+		      row.appendChild(totalCell);
+
+		      document.getElementById("tableBody").appendChild(row);
+
+		      // ✅ Apply Sunday disabling logic for new rows
+		      setTimeout(() => {
+		          sundayIndexes.forEach(index => {
+		              let cell = row.cells[index];
+		              if (cell) {
+		                  let input = cell.querySelector("input");
+		                  if (input) {
+		                      input.disabled = true;
+		                      input.style.backgroundColor = "#d3d3d3";
+		                  }
+		                  cell.style.backgroundColor = "#d3d3d3";
+		              }
+		          });
+		      }, 100);
+		  }
+
 
 		  	  // Attach event listener to "Add Row" button
 		  	  document.getElementById("addRow").addEventListener("click", addRow);
@@ -1073,7 +1103,7 @@
 
 			  // ✅ Ensure this function runs when new rows are added
 			  document.getElementById('addRow').addEventListener('click', () => {
-			      addRow();
+			     
 			      calculateTotals(); // Recalculate totals after adding rows
 			  });
 

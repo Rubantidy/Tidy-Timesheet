@@ -106,137 +106,184 @@ document.addEventListener("DOMContentLoaded", function () {
 	        .catch(error => console.error("Error fetching timesheet:", error));
 	}
 
-
 	function populateTable(fetchedData) {
-	    console.log("📌 Populating Table with Data:", fetchedData);
+		    console.log("📌 Populating Table with Data:", fetchedData);
 
-	    fetchedData.forEach(entry => {
-	        let { chargeCode, cellIndex, hours } = entry;
-	        let [rowIndex, colIndex] = cellIndex.split("_").map(Number);
+		    fetchedData.forEach(entry => {
+		        let { chargeCode, cellIndex, hours } = entry;
+		        let [rowIndex, colIndex] = cellIndex.split("_").map(Number);
 
-	        let tableRows = document.querySelectorAll("#tableBody tr");
+		        let tableRows = document.querySelectorAll("#tableBody tr");
 
-	        // 🛑 Skip "Total Hours" row
-	        if (rowIndex >= tableRows.length) return;
+		        // 🔄 Ensure row exists before inserting data
+		        while (tableRows.length <= rowIndex) {
+		            addRow(); // Dynamically add missing rows
+		            tableRows = document.querySelectorAll("#tableBody tr"); // Update list after adding
+		        }
 
-	        let row = tableRows[rowIndex];
-	        if (!row) return;
+		        let row = tableRows[rowIndex];
+		        if (!row) return;
 
-	        // ✅ Fix: Properly update Charge Code Cell
-	        let chargeCodeCell = row.cells[0]; // First column (Charge Code)
-	        if (chargeCodeCell && chargeCode) {
-	            // Check if charge code dropdown exists inside the cell
-	            let chargeCodeDropdown = chargeCodeCell.querySelector("select");
-	            if (chargeCodeDropdown) {
-	                // Set dropdown value
-	                chargeCodeDropdown.value = chargeCode;
-	            } else {
-	                // Directly set text if no dropdown exists
-	                chargeCodeCell.textContent = chargeCode;
-	            }
-	            console.log(`✅ Charge Code Set: "${chargeCode}" in Row ${rowIndex + 1}`);
-	        }
+		        // ✅ Fix: Properly update Charge Code Cell
+		        let chargeCodeCell = row.cells[0]; // First column (Charge Code)
+		        if (chargeCodeCell && chargeCode) {
+		            let chargeCodeDropdown = chargeCodeCell.querySelector("select");
+		            if (chargeCodeDropdown) {
+		                chargeCodeDropdown.value = chargeCode;
+		            } else {
+		                chargeCodeCell.textContent = chargeCode;
+		            }
+		            console.log(`✅ Charge Code Set: "${chargeCode}" in Row ${rowIndex + 1}`);
+		        }
 
-	        // ✅ Insert Hours only if empty
-	        let cell = row.cells[colIndex];
-	        if (cell) {
-	            let input = cell.querySelector("input");
-	            if (input && input.value.trim() === "") {
-	                input.value = hours;
-	                console.log(`✅ Inserted Hours: ${hours} at ${cellIndex}`);
-	            }
-	        }
-	    });
+		        // ✅ Insert Hours
+		        let cell = row.cells[colIndex];
+		        if (cell) {
+		            let input = cell.querySelector("input");
+		            if (input && input.value.trim() === "") {
+		                input.value = hours;
+		                console.log(`✅ Inserted Hours: ${hours} at ${cellIndex}`);
+		            }
+		        }
+		    });
 
-	    // ✅ Recalculate totals after populating
-	    calculateTotals();
-	}
+		    // ✅ Recalculate totals after populating
+		    calculateTotals();
+		}
 
 
 
-	function saveTimesheetData() {
-	    const selectedPeriod = getSelectedPeriod();
-	    const rows = document.querySelectorAll("#tableBody tr");
-	    let timesheetEntries = [];
+		function saveTimesheetData() {
+		    const selectedPeriod = getSelectedPeriod();
+		    const rows = document.querySelectorAll("#tableBody tr");
+		    let timesheetEntries = [];
+		    let columnFilled = {};
+		    let hasValidDynamicRow = false;
 
-	    console.log("Checking Table Rows:", rows);
+		    function parseDate(dateStr) {
+		        let parts = dateStr.split("/");
+		        return new Date(parts[2], parts[1] - 1, parts[0]);
+		    }
 
-	    rows.forEach((row, rowIndex) => {
-	        let chargeCodeCell = row.cells[0]; 
-	        if (!chargeCodeCell) return; 
+		    let [startDateStr, endDateStr] = selectedPeriod.split(" - ");
+		    let startDate = parseDate(startDateStr);
+		    let endDate = parseDate(endDateStr);
 
-	        let chargeCode = chargeCodeCell.textContent.trim();
+		    let sundayColumns = [];
+		    let currentDate = new Date(startDate);
+		    let columnIndex = 1;
 
-	        if (chargeCode.includes("Select Charge Code")) {
-	            console.log("❌ Skipping Row: Select Charge Code");
-	            return;
-	        }
+		    while (currentDate <= endDate) {
+		        if (currentDate.getDay() === 0) {
+		            sundayColumns.push(columnIndex);
+		        }
+		        currentDate.setDate(currentDate.getDate() + 1);
+		        columnIndex++;
+		    }
 
-	        chargeCode = chargeCode.replace(/✖.*/, "").trim();
+		    console.log("📌 Excluding Sunday Columns:", sundayColumns);
 
-	        if (!chargeCode || chargeCode === "") {
-	            console.log("❌ Skipping Empty or Invalid Charge Code Row");
-	            return;
-	        }
+		    // Clear previous highlights
+		    document.querySelectorAll("#tableBody tr td input").forEach(input => {
+		        input.style.border = "";
+		    });
 
-	        console.log("✅ Valid Charge Code Found:", chargeCode);
+		    rows.forEach((row, rowIndex) => {
+		        let chargeCodeCell = row.cells[0];
+		        if (!chargeCodeCell) return;
 
-	        // Select all valid input fields
-	        const inputs = row.querySelectorAll("td input:not(.dropdown-search)");
+		        let chargeCode = chargeCodeCell.textContent.trim();
+		        if (chargeCode.includes("Select Charge Code")) {
+		            console.log("❌ Skipping Row: Select Charge Code");
+		            return;
+		        }
+		        chargeCode = chargeCode.replace(/✖.*/, "").trim();
+		        if (!chargeCode || chargeCode === "") {
+		            console.log("❌ Skipping Empty or Invalid Charge Code Row");
+		            return;
+		        }
+		        console.log("✅ Valid Charge Code Found:", chargeCode);
 
-	        if (inputs.length === 0) {
-	            console.log("❌ Skipping Row: No Valid Input Fields");
-	            return;
-	        }
+		        let isStaticRow = chargeCode.toLowerCase().includes("work location") || chargeCode.toLowerCase().includes("company code");
+		        let rowHasValue = false;
+		        const inputs = row.querySelectorAll("td input:not(.dropdown-search)");
 
-	        console.log("🎯 Found Valid Inputs in Row:", inputs);
+		        inputs.forEach((input, colIndex) => {
+		            let actualColIndex = colIndex + 1;
+		            let cellIndex = `${rowIndex}_${actualColIndex}`;
 
-	        inputs.forEach((input, colIndex) => {
-	            let actualColIndex = colIndex + 1; // Adjust for column shift like in populateTable()
-	            let cellIndex = `${rowIndex}_${actualColIndex}`; // ✅ Store the correct column index
+		            if (sundayColumns.includes(actualColIndex)) return;
 
-	            console.log(`🔍 Checking Input - Cell Index: ${cellIndex}, Hours: ${input.value.trim()}`);
+		            if (input.value.trim() !== "") {
+		                rowHasValue = true;
+		                if (!isStaticRow) columnFilled[actualColIndex] = true;
 
-	            if (input.value.trim() !== "") { 
-	                timesheetEntries.push({
-	                    username: localStorage.getItem("userName"),
-	                    period: selectedPeriod,
-	                    chargeCode: chargeCode,
-	                    cellIndex: cellIndex, // ✅ Store cellIndex instead of ID
-	                    hours: input.value.trim()
-	                });
-	            }
-	        });
-	    });
+		                timesheetEntries.push({
+		                    username: localStorage.getItem("userName"),
+		                    period: selectedPeriod,
+		                    chargeCode: chargeCode,
+		                    cellIndex: cellIndex,
+		                    hours: input.value.trim()
+		                });
 
-	    console.log("Final Data to Send:", timesheetEntries);
+		                // Remove red border when value is entered
+		                input.style.border = "";
+		            } else if (!isStaticRow) {
+		                // Add red border only for dynamic rows
+		                input.style.border = "2px solid red";
 
-	    if (timesheetEntries.length === 0) {
-	        console.error("❌ No valid data collected! Not calling backend.");
-	        alert("⚠ No changes detected to save!");
-	        return;
-	    }
+		                // Add event listener to remove border when value is entered
+		                input.addEventListener("input", function () {
+		                    if (input.value.trim() !== "") {
+		                        input.style.border = "";
+		                    }
+		                });
+		            }
+		        });
 
-	    try {
-	        const jsonPayload = JSON.stringify(timesheetEntries);
-	        console.log("✅ JSON Payload:", jsonPayload);
+		        if (rowHasValue) {
+		            hasValidDynamicRow = true;
+		        }
+		    });
 
-	        fetch("/saveTimesheet", {
-	            method: "POST",
-	            headers: { "Content-Type": "application/json" },
-	            body: jsonPayload
-	        })
-			.then(response => response.text()) // Change to .text() to handle plain responses
-			.then(result => {
-			    console.log("✅ Save Successful:", result);
-			    alert(result); // Show success message
-			})
-	        .catch(error => console.error("❌ Error saving timesheet:", error));
+		    const totalColumns = document.querySelectorAll("#tableBody tr:first-child td input").length;
+		    let emptyColumns = [];
 
-	    } catch (e) {
-	        console.error("❌ JSON Formatting Error:", e);
-	    }
-	}
+		    for (let col = 1; col <= totalColumns; col++) {
+		        if (sundayColumns.includes(col)) continue;
+		        if (!columnFilled[col]) emptyColumns.push(col);
+		    }
+
+		    if (emptyColumns.length > 0) {
+		        alert("⚠ Some columns in dynamic rows are completely empty (excluding Sundays). Please fill all required fields.");
+		        return;
+		    }
+
+		    if (!hasValidDynamicRow) {
+		        alert("⚠ No valid data entered in dynamic rows!");
+		        return;
+		    }
+
+		    try {
+		        const jsonPayload = JSON.stringify(timesheetEntries);
+		        console.log("✅ JSON Payload:", jsonPayload);
+
+		        fetch("/saveTimesheet", {
+		            method: "POST",
+		            headers: { "Content-Type": "application/json" },
+		            body: jsonPayload
+		        })
+		        .then(response => response.text())
+		        .then(result => {
+		            console.log("✅ Save Successful:", result);
+		            alert(result);
+		        })
+		        .catch(error => console.error("❌ Error saving timesheet:", error));
+		    } catch (e) {
+		        console.error("❌ JSON Formatting Error:", e);
+		    }
+		}
+
 
 
 
@@ -358,7 +405,7 @@ function generateSummary() {
             // Update total values
             document.getElementById("totalHours").textContent = data.totalHours;
             document.getElementById("totalAbsences").textContent = data.totalAbsences;
-            document.getElementById("locationTotalHours").textContent = data.totalHours; // Location total
+            document.getElementById("locationTotalHours").textContent = (data.totalHours - data.totalAbsences); // Location total
 			document.getElementById("totalworking").textContent = (data.totalHours - data.totalAbsences);
 			document.getElementById("standardHours").textContent = standardHours; // ✅ Update dynamically
 
