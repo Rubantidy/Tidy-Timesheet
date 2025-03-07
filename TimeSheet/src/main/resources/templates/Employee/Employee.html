@@ -103,7 +103,6 @@
             <li class="nav-item"><a class="nav-link" data-target="expenseSection" href="#">Expense</a></li>
             <li class="nav-item"><a class="nav-link" data-target="locationSection" href="#">Location</a></li>
             <li class="nav-item"><a class="nav-link" data-target="chargecodesSection" href="#">Charge Codes</a></li>
-            <li class="nav-item"><a class="nav-link" data-target="adjustmentSection" href="#">Adjustment</a></li>
             <li class="nav-item"><a class="nav-link" data-target="summarySection" href="#">Summary</a></li>
             <li class="nav-item"><a class="nav-link" data-target="preferenceSection" href="#">Preference</a></li>
         </ul>
@@ -161,16 +160,16 @@
             <tbody id="tableBody"></tbody>
             <tfoot id="tableFooter">
                 <tr></tr>
-            </tfoot>
+            </tfoot> 
         </table>
     </div>
 
 
-<!-- Section for Expense
+<!-- Section for Expense -->
 <div id="expenseSection" class="content-section" style="display: none;">
     <h3>Expense Section</h3>
     <p>This is where expense details will go.</p>
-</div>  -->
+</div>  
 
 <!-- Section for Location -->
 <div id="locationSection" class="content-section" style="display: none;">
@@ -212,13 +211,6 @@
     </div>
 </div>
 
-
-	
-<!-- Section for Adjustment 
-<div id="adjustmentSection" class="content-section" style="display: none;">
-    <h3>Adjustment Section</h3>
-    <p>This is where adjustments will go.</p>
-</div> -->
 
 <!-- Section for Summary -->
 <div id="summarySection" class="content-section" style="display: none;">
@@ -686,27 +678,49 @@
 				  		.catch(error => console.error("Error fetching Charge codes:", error));
 				   }
 
-				   function createDropdown() {
+				   function createDropdown(isDynamicRow = false) {
 				       const container = document.createElement("div");
 				       container.classList.add("dropdown-container");
+				       container.style.display = "flex";
+				       container.style.alignItems = "center";
+				       container.style.justifyContent = "space-between";
+				       container.style.width = "100%";
 
-				       // Dropdown button (displays selected charge code)
+				       // Dropdown button (Displays selected charge code)
 				       const button = document.createElement("div");
 				       button.classList.add("dropdown-button");
 				       button.textContent = "Select Charge Code";
 				       button.style.display = "flex";
 				       button.style.alignItems = "center";
+				       button.style.flexGrow = "1";
 
-				       // Remove (✖) button - small size
+				       // Remove (✖) button
 				       const clearButton = document.createElement("span");
 				       clearButton.textContent = "✖";
 				       clearButton.style.cursor = "pointer";
-				       clearButton.style.marginLeft = "8px"; 
+				       clearButton.style.marginLeft = "8px";
 				       clearButton.style.color = "red";
-				       clearButton.style.fontSize = "7px";  
+				       clearButton.style.fontSize = "10px";
 				       clearButton.style.fontWeight = "bold";
-				       clearButton.style.display = "none";   
+				       clearButton.style.display = "none";
 				       clearButton.title = "Remove selected charge code";
+
+				       // Right Arrow Icon (➤) - Calls fillRowWithFirstValue()
+				       const arrowIcon = document.createElement("span");
+				       arrowIcon.textContent = "➤";
+				       arrowIcon.style.cursor = "pointer";
+				       arrowIcon.style.marginLeft = "auto"; 
+				       arrowIcon.style.fontSize = "14px";  
+				       arrowIcon.style.fontWeight = "bold";
+				       arrowIcon.style.color = "#000";  
+				       arrowIcon.style.display = isDynamicRow ? "inline" : "none"; 
+				       arrowIcon.title = "Replication";
+				       
+				       // ✅ Ensure it calls the function on click
+				       arrowIcon.addEventListener("click", function(event) {
+				           event.stopPropagation(); // Prevent dropdown from closing
+				           fillRowWithFirstValue(this);
+				       });
 
 				       // Dropdown panel
 				       const panel = document.createElement("div");
@@ -726,12 +740,12 @@
 				           option.textContent = `${code.code} - ${code.description}`;
 				           option.dataset.value = code.code;
 
-				           // Handle selection
 				           option.addEventListener("click", function () {
-				               button.textContent = option.textContent; // Set selected charge code
-				               button.appendChild(clearButton); // Add remove button next to selected code
+				               button.textContent = option.textContent;  
+				               button.appendChild(clearButton);  
 				               panel.style.display = "none";
-				               clearButton.style.display = "inline"; // Show remove button
+				               clearButton.style.display = "inline";  
+				               arrowIcon.style.display = "inline";  // Ensure arrow remains after selection
 				           });
 
 				           panel.appendChild(option);
@@ -739,9 +753,10 @@
 
 				       // Handle remove functionality
 				       clearButton.addEventListener("click", function (event) {
-				           event.stopPropagation(); // Prevent dropdown from opening when clicking remove
-				           button.textContent = "Select Charge Code"; // Reset text
-				           clearButton.style.display = "none"; // Hide remove button
+				           event.stopPropagation();  
+				           button.textContent = "Select Charge Code";  
+				           clearButton.style.display = "none";  
+				           arrowIcon.style.display = isDynamicRow ? "inline" : "none"; // Keep arrow for dynamic rows
 				       });
 
 				       // Handle search functionality
@@ -766,9 +781,46 @@
 				       });
 
 				       container.appendChild(button);
+				       container.appendChild(clearButton);
+				       container.appendChild(arrowIcon); 
 				       container.appendChild(panel);
+				       
 				       return container;
 				   }
+
+				   function fillRowWithFirstValue(button) {
+				       const row = button.closest("tr"); 
+				       const inputs = row.querySelectorAll("td input[type='text']"); 
+				       let firstValue = null;
+
+				       console.log("Before filling:", Array.from(inputs).map(input => input.value)); 
+
+				       // Find the first non-empty, non-disabled value (ONLY from columns 1-14)
+				       inputs.forEach((input, index) => {
+				           if (index >= 1 && index <= 15 && !input.disabled && firstValue === null && input.value.trim() !== "") {
+				               firstValue = input.value;
+				           }
+				       });
+
+				       // If a valid value is found, fill the row (ONLY in columns 1-14)
+				       if (firstValue !== null) {
+				           inputs.forEach((input, index) => {
+				               if (index >= 1 && index <= 15 && !input.disabled) { // ✅ Skip 0th and 15th column
+				                   input.value = firstValue;  
+				                   input.dispatchEvent(new Event('input')); // Ensure change is registered
+				               }
+				           });
+
+				           console.log("After filling:", Array.from(inputs).map(input => input.value)); 
+
+				           // ✅ Ensure the total is updated correctly
+				           setTimeout(() => {
+				               calculateTotals();
+				           }, 10);
+				       }
+				   }
+
+
 
 
 
@@ -961,6 +1013,8 @@
 						        input.removeEventListener('input', calculateTotals); // Avoid duplicate bindings
 						        input.addEventListener('input', calculateTotals);
 						    });
+							
+							
 						}
 
 

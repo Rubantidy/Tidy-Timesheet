@@ -105,51 +105,85 @@ document.addEventListener("DOMContentLoaded", function () {
 	        })
 	        .catch(error => console.error("Error fetching timesheet:", error));
 	}
-
+	
 	function populateTable(fetchedData) {
-		    console.log("📌 Populating Table with Data:", fetchedData);
+	    console.log("📌 Populating Table with Data:", fetchedData);
 
-		    fetchedData.forEach(entry => {
-		        let { chargeCode, cellIndex, hours } = entry;
-		        let [rowIndex, colIndex] = cellIndex.split("_").map(Number);
+	    fetchedData.forEach(entry => {
+	        let { chargeCode, cellIndex, hours } = entry;
+	        let [rowIndex, colIndex] = cellIndex.split("_").map(Number);
 
-		        let tableRows = document.querySelectorAll("#tableBody tr");
+	        let tableRows = document.querySelectorAll("#tableBody tr");
 
-		        // 🔄 Ensure row exists before inserting data
-		        while (tableRows.length <= rowIndex) {
-		            addRow(); // Dynamically add missing rows
-		            tableRows = document.querySelectorAll("#tableBody tr"); // Update list after adding
-		        }
+	        // 🔄 Ensure row exists before inserting data
+	        while (tableRows.length <= rowIndex + 1) {
+	            addRow(); // Dynamically add missing rows
+	            tableRows = document.querySelectorAll("#tableBody tr"); // Update list after adding
+	        }
 
-		        let row = tableRows[rowIndex];
-		        if (!row) return;
+	        let row = tableRows[rowIndex];
+	        if (!row) return; // ❌ Skip if row is missing
 
-		        // ✅ Fix: Properly update Charge Code Cell
-		        let chargeCodeCell = row.cells[0]; // First column (Charge Code)
-		        if (chargeCodeCell && chargeCode) {
-		            let chargeCodeDropdown = chargeCodeCell.querySelector("select");
-		            if (chargeCodeDropdown) {
-		                chargeCodeDropdown.value = chargeCode;
-		            } else {
-		                chargeCodeCell.textContent = chargeCode;
-		            }
-		            console.log(`✅ Charge Code Set: "${chargeCode}" in Row ${rowIndex + 1}`);
-		        }
+	        let firstCell = row.cells[0]; // First column (Charge Code)
 
-		        // ✅ Insert Hours
-		        let cell = row.cells[colIndex];
-		        if (cell) {
-		            let input = cell.querySelector("input");
-		            if (input && input.value.trim() === "") {
-		                input.value = hours;
-		                console.log(`✅ Inserted Hours: ${hours} at ${cellIndex}`);
-		            }
-		        }
-		    });
+	        // ✅ Skip static rows (Work Location, Company Code)
+	        let firstCellText = firstCell.textContent.trim().toLowerCase();
+	        if (firstCellText === "work location" || firstCellText === "company code") {
+	            return;
+	        }
 
-		    // ✅ Recalculate totals after populating
-		    calculateTotals();
-		}
+	        // ✅ Fix: Show stored charge code as text, replace with dropdown when clicked
+	        if (firstCell) {
+	            firstCell.innerHTML = ""; // Clear existing content
+
+	            let chargeCodeDisplay = document.createElement("div");
+	            chargeCodeDisplay.classList.add("stored-charge-code");
+	            chargeCodeDisplay.style.cursor = "pointer";
+	            chargeCodeDisplay.textContent = chargeCode ? chargeCode : "Select Charge Code"; // Show stored or default
+
+	            firstCell.appendChild(chargeCodeDisplay);
+
+	            // 👉 On Click: Replace text with dropdown
+	            chargeCodeDisplay.addEventListener("click", function () {
+	                firstCell.innerHTML = ""; // Clear cell
+	                let dropdownContainer = createDropdown();
+	                let button = dropdownContainer.querySelector(".dropdown-button");
+	                let clearButton = dropdownContainer.querySelector("span"); // Clear (✖) button
+
+	                // ✅ If a stored charge code exists, update the dropdown button text
+	                if (chargeCode && chargeCode.trim() !== "") {
+	                    let matchingOption = chargeCodes.find(c => c.code === chargeCode);
+	                    if (matchingOption) {
+	                        button.textContent = `${matchingOption.code} - ${matchingOption.description}`;
+	                        button.dataset.value = chargeCode;
+	                        clearButton.style.display = "inline"; // Show (✖) button
+	                    }
+	                }
+
+	                firstCell.appendChild(dropdownContainer);
+	            });
+	        }
+
+	        // ✅ Insert Hours
+	        let cell = row.cells[colIndex];
+	        if (cell) {
+	            let input = cell.querySelector("input");
+	            if (!input) {
+	                input = document.createElement("input");
+	                input.type = "number";
+	                input.classList.add("hourInput");
+	                cell.innerHTML = ''; // Clear previous content
+	                cell.appendChild(input);
+	            }
+	            input.value = hours || ""; // ✅ Set value but allow editing
+	            console.log(`✅ Inserted Hours: ${hours} at ${cellIndex}`);
+	        }
+	    });
+
+	    // ✅ Recalculate totals after populating
+	    calculateTotals();
+	}
+
 
 
 
@@ -160,9 +194,10 @@ document.addEventListener("DOMContentLoaded", function () {
 		    let columnFilled = {};
 		    let hasValidDynamicRow = false;
 
+		    // Convert selected period into date range
 		    function parseDate(dateStr) {
 		        let parts = dateStr.split("/");
-		        return new Date(parts[2], parts[1] - 1, parts[0]);
+		        return new Date(parts[2], parts[1] - 1, parts[0]); // YYYY, MM (0-based), DD
 		    }
 
 		    let [startDateStr, endDateStr] = selectedPeriod.split(" - ");
@@ -173,6 +208,7 @@ document.addEventListener("DOMContentLoaded", function () {
 		    let currentDate = new Date(startDate);
 		    let columnIndex = 1;
 
+		    // Identify Sunday columns dynamically
 		    while (currentDate <= endDate) {
 		        if (currentDate.getDay() === 0) {
 		            sundayColumns.push(columnIndex);
@@ -185,7 +221,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 		    // Clear previous highlights
 		    document.querySelectorAll("#tableBody tr td input").forEach(input => {
-		        input.style.border = "";
+		        input.style.backgroundColor = "";
 		    });
 
 		    rows.forEach((row, rowIndex) => {
@@ -212,6 +248,7 @@ document.addEventListener("DOMContentLoaded", function () {
 		            let actualColIndex = colIndex + 1;
 		            let cellIndex = `${rowIndex}_${actualColIndex}`;
 
+		            // ✅ Skip validation for Sunday columns
 		            if (sundayColumns.includes(actualColIndex)) return;
 
 		            if (input.value.trim() !== "") {
@@ -225,21 +262,19 @@ document.addEventListener("DOMContentLoaded", function () {
 		                    cellIndex: cellIndex,
 		                    hours: input.value.trim()
 		                });
-
-		                // Remove red border when value is entered
-		                input.style.border = "";
-		            } else if (!isStaticRow) {
-		                // Add red border only for dynamic rows
-		                input.style.border = "2px solid red";
-
-		                // Add event listener to remove border when value is entered
-		                input.addEventListener("input", function () {
-		                    if (input.value.trim() !== "") {
-		                        input.style.border = "";
-		                    }
-		                });
 		            }
 		        });
+
+		        if (isStaticRow) {
+		            timesheetEntries.push({
+		                username: localStorage.getItem("userName"),
+		                period: selectedPeriod,
+		                chargeCode: chargeCode,
+		                cellIndex: "static",
+		                hours: "-"
+		            });
+		            return;
+		        }
 
 		        if (rowHasValue) {
 		            hasValidDynamicRow = true;
@@ -255,6 +290,11 @@ document.addEventListener("DOMContentLoaded", function () {
 		    }
 
 		    if (emptyColumns.length > 0) {
+		        emptyColumns.forEach(colIndex => {
+		            document.querySelectorAll(`#tableBody tr td:nth-child(${colIndex + 1}) input`).forEach(input => {
+		                input.style.backgroundColor = "red";
+		            });
+		        });
 		        alert("⚠ Some columns in dynamic rows are completely empty (excluding Sundays). Please fill all required fields.");
 		        return;
 		    }
@@ -277,6 +317,7 @@ document.addEventListener("DOMContentLoaded", function () {
 		        .then(result => {
 		            console.log("✅ Save Successful:", result);
 		            alert(result);
+					location.reload();
 		        })
 		        .catch(error => console.error("❌ Error saving timesheet:", error));
 		    } catch (e) {
@@ -348,6 +389,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 selectedRow.remove(); // Remove row from UI
                 selectedRow = null; // Reset selection
                 alert("✅ Row deleted successfully!");
+				location.reload();
             } else {
                 alert("❌ Failed to delete row from database.");
             }

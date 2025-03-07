@@ -18,22 +18,33 @@ public class TimesheetService {
 	    public List<TimesheetEntry> getTimesheet(String username, String period) {
 	        return timesheetRepository.findByUsernameAndPeriod(username, period);
 	    }
-
+ 
 	    public void saveOrUpdateTimesheet(List<TimesheetEntry> timesheetEntries) {
 	        for (TimesheetEntry entry : timesheetEntries) {
-	            Optional<TimesheetEntry> existingEntry = timesheetRepository.findByUsernameAndPeriodAndChargeCodeAndCellIndex(
-	                    entry.getUsername(), entry.getPeriod(), entry.getChargeCode(), entry.getCellIndex()
+	            Optional<TimesheetEntry> existingEntry = timesheetRepository.findByUsernameAndPeriodAndCellIndex(
+	                    entry.getUsername(), entry.getPeriod(), entry.getCellIndex()
 	            );
 
 	            if (existingEntry.isPresent()) {
 	                TimesheetEntry updateEntry = existingEntry.get();
-	                updateEntry.setHours(entry.getHours());
-	                timesheetRepository.save(updateEntry);
+
+	                if (entry.getHours() == null) {
+	                    // 🚀 Only delete if the value was moved to another cell
+	                    System.out.println("🗑 Deleting moved value at " + entry.getCellIndex());
+	                    timesheetRepository.delete(updateEntry);
+	                } else {
+	                    updateEntry.setChargeCode(entry.getChargeCode());
+	                    updateEntry.setHours(entry.getHours());
+	                    timesheetRepository.save(updateEntry);
+	                }
 	            } else {
-	                timesheetRepository.save(entry);
+	                if (entry.getHours() != null) {
+	                    timesheetRepository.save(entry);
+	                }
 	            }
 	        }
 	    }
+
 
 
 }

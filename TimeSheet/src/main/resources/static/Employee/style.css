@@ -123,4 +123,147 @@
        background-color: #d3d3d3;
        pointer-events: none;
    }
+   
+   
+  /*Updated  table styling
+   
+
+
+  #timesheetTable {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      background-color: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  #tableHeaders th {
+      background-color: #004080; 
+      color: white;
+      padding: 12px;
+      text-align: center;
+      border: 1px solid #ccc;
+      font-weight: bold;
+  }
+
+
+  .sunday-header {
+      background-color: #5c87b2 !important; 
+      color: #fff;
+  }
+
+
+  #tableBody td {
+      padding: 10px;
+      text-align: center;
+      border: 1px solid #ddd;
+      transition: background-color 0.3s;
+  }
+
+
+  #tableBody input {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      text-align: center;
+      font-size: 14px;
+  }
+
+
+  .sunday-column {
+      background-color: #d9e2f3 !important; 
+      color: #333;
+  }
+  .sunday-column input {
+      background-color: #cfd9e8 !important;
+      pointer-events: none;
+      border: none;
+  }
+
+
+  .button-container button {
+      background-color: #008060; 
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: 0.3s;
+  }
+  .button-container button:hover {
+      background-color: #005c46;
+  }
+
+
+  #tableFooter {
+      background-color: #f8f8f8;
+      font-weight: bold;
+      text-align: center;
+  }
+
+
+  @media (max-width: 768px) {
+      #timesheetTable {
+          font-size: 12px;
+      }
+      #tableBody input {
+          padding: 6px;
+          font-size: 12px;
+      }
+  }
+
+
+  .dropdown-panel {
+      position: absolute;
+      width: 40%;
+      max-height: 200px; 
+      border: 1px solid #ccc;
+      background-color: #fff;
+      overflow-y: auto;
+      display: none;
+      z-index: 1000;
+      margin: auto;
+      max-width: 90vw; 
+      border-radius: 6px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+
+  .dropdown-search {
+      width: 95%;
+      margin: 5px;
+      padding: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+  }
+
+
+  .dropdown-option {
+      padding: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s;
+  }
+
+  .dropdown-option:hover {
+      background-color: #0056b3;
+      color: white;
+  }
+
+
+  .charge-code-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 10px 0;
+      font-weight: bold;
+  }
+*/
+
 
