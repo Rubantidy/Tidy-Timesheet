@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import timesheet.employee.dao.TimesheetEntry;
+import timesheet.employee.dao.TimesheetTemplate;
 import timesheet.employee.repo.TimesheetRepository;
 import timesheet.employee.service.TimesheetService;
 
@@ -125,6 +126,19 @@ public class TimesheetController {
         summaryData.put("entries", processedEntries); // Send merged list
 
         return ResponseEntity.ok(summaryData);
+    }
+    
+    
+    @PostMapping("/saveTemplate")
+    public ResponseEntity<String> saveTemplate(@RequestBody List<TimesheetTemplate> templateEntries) {
+        timesheetService.saveTemplate(templateEntries);
+        return ResponseEntity.ok("Template saved successfully");
+    }
+
+    @GetMapping("/getTemplate")
+    public ResponseEntity<List<TimesheetTemplate>> getTemplate(@RequestParam String username) {
+        List<TimesheetTemplate> template = timesheetService.getTemplateByUsername(username);
+        return ResponseEntity.ok(template);
     }
 
 

@@ -265,3 +265,19 @@
 	  vertical-align: middle;
   }
 
+  /*icons*/
+  
+ #templateIcon  {
+	cursor: pointer;
+  }
+ #addRow{
+	cursor: pointer;
+ }
+ 
+ #saveIcon{
+	cursor: pointer;
+ }
+
+ #deleteIcon{
+	cursor: pointer;
+ }

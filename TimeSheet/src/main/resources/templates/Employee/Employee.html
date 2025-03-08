@@ -138,7 +138,7 @@
             </svg>
 			
 			<!-- Set Template -->
-			<i class="bi bi-copy"></i> 
+			<i class="bi bi-copy" id="templateIcon"></i> 
 			
             <!-- Add Row Icon -->
             <svg  xmlns="http://www.w3.org/2000/svg" id="addRow" width="26" height="26" fill="currentColor" class="bi bi-plus-circle-dotted" viewBox="0 0 16 16">
@@ -306,6 +306,7 @@
 	    const saveIcon = document.querySelector(".bi-floppy-fill");
 	    const deleteIcon = document.querySelector(".bi-trash");
 	    const addRowIcon = document.getElementById("addRow");
+		const templateIcon = document.getElementById("templateIcon");
 
 	    function updateIcons() {
 	        const activeSection = document.querySelector(".content-section:not([style*='display: none'])");
@@ -317,14 +318,17 @@
 	            saveIcon.style.display = "inline-block";
 	            deleteIcon.style.display = "inline-block";
 	            addRowIcon.style.display = "inline-block"; // Keep addRow functional
+				templateIcon.style.display = "inline-block"
 	        } else if (activeSection.id === "locationSection" || activeSection.id === "preferenceSection") {
 	            saveIcon.style.display = "inline-block";
 	            deleteIcon.style.display = "inline-block";
 	            addRowIcon.style.display = "none"; // Hide addRow but keep it in DOM
+				templateIcon.style.display = "none"
 	        } else {
 	            saveIcon.style.display = "none";
 	            deleteIcon.style.display = "none";
 	            addRowIcon.style.display = "none";
+				templateIcon.style.display = "none"
 	        }
 	    }
 
@@ -766,7 +770,7 @@
 				           arrowIcon.style.display = isDynamicRow ? "inline" : "none"; // Keep arrow for dynamic rows
 				       });
 
-				       // Handle search functionality 
+				       // Handle search functionality  
 				       searchInput.addEventListener("input", function () {
 				           const filter = searchInput.value.toLowerCase();
 				           const options = panel.querySelectorAll(".dropdown-option");
@@ -778,7 +782,7 @@
 				       // Toggle dropdown visibility
 				       button.addEventListener("click", function () {
 				           panel.style.display = panel.style.display === "block" ? "none" : "block";
-						   /*addRow();*/
+						   addRow();
 				       });
 
 				       // Close dropdown when clicking outside

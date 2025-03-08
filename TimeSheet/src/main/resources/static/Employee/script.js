@@ -530,9 +530,118 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
+document.addEventListener("DOMContentLoaded", function () {
+    const templateIcon = document.getElementById("templateIcon");
+    const username = localStorage.getItem("userName"); // Logged-in employee
 
+    if (!username) {
+        console.error("❌ Error: No username found in local storage.");
+        return;
+    }
 
+    // ✅ Click event for saving the template
+    templateIcon.addEventListener("click", function () {
+        console.log("📌 Template icon clicked! Saving template...");
+        saveTemplate();
+    });
 
+    function saveTemplate() {
+        let templateEntries = [];
+
+        document.querySelectorAll("#tableBody tr").forEach((row, rowIndex) => {
+            let chargeCodeCell = row.cells[0];
+            if (!chargeCodeCell) return;
+
+            let chargeCode = chargeCodeCell.textContent.trim();
+            if (!chargeCode || chargeCode === "Select Charge Code") return;
+
+            let isStaticRow = chargeCode.toLowerCase().includes("work location") || chargeCode.toLowerCase().includes("company code");
+            if (isStaticRow) return; // ❌ Skip static rows
+
+            let weekdayValues = {};
+            let hasValidEntry = false;
+
+            row.querySelectorAll("td input:not(.dropdown-search)").forEach((input, colIndex) => {
+                let dayIndex = colIndex + 1; // Adjust column index
+                if (dayIndex % 7 === 0) return; // ❌ Ignore Sundays
+
+                let value = input.value.trim();
+                weekdayValues[dayIndex] = value || "0"; // Default to "0" if empty
+
+                if (value && value !== "0") hasValidEntry = true; // ✅ Track valid data
+            });
+
+            if (hasValidEntry) {
+                templateEntries.push({
+                    username: username,
+                    chargeCode: chargeCode,
+                    weekdays: weekdayValues
+                });
+            }
+        });
+
+        if (templateEntries.length === 0) {
+            console.warn("⚠ No valid data to save in template.");
+            alert("⚠ No valid data to save in template!");
+            return;
+        }
+
+        console.log("📌 Sending Template Data to Backend:", templateEntries);
+
+        fetch("/saveTemplate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(templateEntries)
+        })
+        .then(response => response.text())
+        .then(result => {
+            console.log("✅ Template Save Successful:", result);
+            alert(result);
+        })
+        .catch(error => console.error("❌ Error saving template:", error));
+    }
+
+    function fetchAndApplyTemplate() {
+        fetch(`/getTemplate?username=${username}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.length > 0) {
+                    console.log("📌 Applying template:", data);
+                    applyTemplate(data);
+                } else {
+                    console.warn("⚠ No template data found for this user.");
+                }
+            })
+            .catch(error => console.error("❌ Error fetching template:", error));
+    }
+
+    function applyTemplate(templateData) {
+        document.querySelectorAll("#tableBody tr").forEach((row, rowIndex) => {
+            let chargeCodeCell = row.cells[0];
+            if (!chargeCodeCell) return;
+
+            let chargeCode = chargeCodeCell.textContent.trim();
+            if (!chargeCode || chargeCode === "Select Charge Code") return;
+
+            let isStaticRow = chargeCode.toLowerCase().includes("work location") || chargeCode.toLowerCase().includes("company code");
+            if (isStaticRow) return;
+
+            let matchedTemplate = templateData.find(entry => entry.chargeCode === chargeCode);
+            if (!matchedTemplate) return;
+
+            row.querySelectorAll("td input:not(.dropdown-search)").forEach((input, colIndex) => {
+                let dayIndex = colIndex + 1;
+                if (dayIndex % 7 === 0) return; // ❌ Skip Sundays
+
+                if (!input.value) {
+                    input.value = matchedTemplate.weekdays[dayIndex] || "";
+                }
+            });
+        });
+    }
+
+    fetchAndApplyTemplate();
+});
 
 
 	
