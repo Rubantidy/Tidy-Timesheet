@@ -118,11 +118,11 @@ document.addEventListener("DOMContentLoaded", function () {
 	        // 🔄 Ensure row exists before inserting data
 	        while (tableRows.length <= rowIndex + 1) {
 	            addRow(); // Dynamically add missing rows
-	            tableRows = document.querySelectorAll("#tableBody tr"); // Update list after adding
+	            tableRows = document.querySelectorAll("#tableBody tr");
 	        }
 
 	        let row = tableRows[rowIndex];
-	        if (!row) return; // ❌ Skip if row is missing
+	        if (!row) return;
 
 	        let firstCell = row.cells[0]; // First column (Charge Code)
 
@@ -132,7 +132,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	            return;
 	        }
 
-	        // ✅ Fix: Show stored charge code as text, replace with dropdown when clicked
+	        // ✅ Show stored charge code as text, replace with dropdown when clicked
 	        if (firstCell) {
 	            firstCell.innerHTML = ""; // Clear existing content
 
@@ -164,7 +164,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	            });
 	        }
 
-	        // ✅ Insert Hours
+	        // ✅ Insert Hours and Set `data-prev`
 	        let cell = row.cells[colIndex];
 	        if (cell) {
 	            let input = cell.querySelector("input");
@@ -176,7 +176,11 @@ document.addEventListener("DOMContentLoaded", function () {
 	                cell.appendChild(input);
 	            }
 	            input.value = hours || ""; // ✅ Set value but allow editing
-	            console.log(`✅ Inserted Hours: ${hours} at ${cellIndex}`);
+
+	            // ✅ Ensure `data-prev` is set correctly during population
+	            input.setAttribute("data-prev", hours || "");
+
+	            console.log(`✅ Populated ${cellIndex} → Value: ${hours}, Data-prev: ${input.getAttribute("data-prev")}`);
 	        }
 	    });
 
@@ -185,146 +189,146 @@ document.addEventListener("DOMContentLoaded", function () {
 	}
 
 
+	function saveTimesheetData() {
+	    const selectedPeriod = getSelectedPeriod();
+	    const rows = document.querySelectorAll("#tableBody tr");
+	    let timesheetEntries = [];
+	    let columnFilled = {};
+	    let hasValidDynamicRow = false;
 
+	    function parseDate(dateStr) {
+	        let parts = dateStr.split("/");
+	        return new Date(parts[2], parts[1] - 1, parts[0]); // YYYY, MM (0-based), DD
+	    }
 
-		function saveTimesheetData() {
-		    const selectedPeriod = getSelectedPeriod();
-		    const rows = document.querySelectorAll("#tableBody tr");
-		    let timesheetEntries = [];
-		    let columnFilled = {};
-		    let hasValidDynamicRow = false;
+	    let [startDateStr, endDateStr] = selectedPeriod.split(" - ");
+	    let startDate = parseDate(startDateStr);
+	    let endDate = parseDate(endDateStr);
 
-		    // Convert selected period into date range
-		    function parseDate(dateStr) {
-		        let parts = dateStr.split("/");
-		        return new Date(parts[2], parts[1] - 1, parts[0]); // YYYY, MM (0-based), DD
-		    }
+	    let sundayColumns = [];
+	    let currentDate = new Date(startDate);
+	    let columnIndex = 1;
 
-		    let [startDateStr, endDateStr] = selectedPeriod.split(" - ");
-		    let startDate = parseDate(startDateStr);
-		    let endDate = parseDate(endDateStr);
+	    while (currentDate <= endDate) {
+	        if (currentDate.getDay() === 0) {
+	            sundayColumns.push(columnIndex);
+	        }
+	        currentDate.setDate(currentDate.getDate() + 1);
+	        columnIndex++;
+	    }
 
-		    let sundayColumns = [];
-		    let currentDate = new Date(startDate);
-		    let columnIndex = 1;
+	    console.log("📌 Excluding Sunday Columns:", sundayColumns);
 
-		    // Identify Sunday columns dynamically
-		    while (currentDate <= endDate) {
-		        if (currentDate.getDay() === 0) {
-		            sundayColumns.push(columnIndex);
-		        }
-		        currentDate.setDate(currentDate.getDate() + 1);
-		        columnIndex++;
-		    }
+	    document.querySelectorAll("#tableBody tr td input").forEach(input => {
+	        input.style.backgroundColor = "";
+	    });
 
-		    console.log("📌 Excluding Sunday Columns:", sundayColumns);
+	    rows.forEach((row, rowIndex) => {
+	        let chargeCodeCell = row.cells[0];
+	        if (!chargeCodeCell) return;
 
-		    // Clear previous highlights
-		    document.querySelectorAll("#tableBody tr td input").forEach(input => {
-		        input.style.backgroundColor = "";
-		    });
+	        let chargeCode = chargeCodeCell.textContent.trim();
+	        if (chargeCode.includes("Select Charge Code")) return;
+	        chargeCode = chargeCode.replace(/✖.*/, "").trim();
+	        if (!chargeCode) return;
 
-		    rows.forEach((row, rowIndex) => {
-		        let chargeCodeCell = row.cells[0];
-		        if (!chargeCodeCell) return;
+	        console.log("✅ Valid Charge Code Found:", chargeCode);
 
-		        let chargeCode = chargeCodeCell.textContent.trim();
-		        if (chargeCode.includes("Select Charge Code")) {
-		            console.log("❌ Skipping Row: Select Charge Code");
-		            return;
-		        }
-		        chargeCode = chargeCode.replace(/✖.*/, "").trim();
-		        if (!chargeCode || chargeCode === "") {
-		            console.log("❌ Skipping Empty or Invalid Charge Code Row");
-		            return;
-		        }
-		        console.log("✅ Valid Charge Code Found:", chargeCode);
+	        let isStaticRow = chargeCode.toLowerCase().includes("work location") || chargeCode.toLowerCase().includes("company code");
+	        let rowHasValue = false;
+	        const inputs = row.querySelectorAll("td input:not(.dropdown-search)");
 
-		        let isStaticRow = chargeCode.toLowerCase().includes("work location") || chargeCode.toLowerCase().includes("company code");
-		        let rowHasValue = false;
-		        const inputs = row.querySelectorAll("td input:not(.dropdown-search)");
+	        inputs.forEach((input, colIndex) => {
+	            let actualColIndex = colIndex + 1;
+	            let cellIndex = `${rowIndex}_${actualColIndex}`;
 
-		        inputs.forEach((input, colIndex) => {
-		            let actualColIndex = colIndex + 1;
-		            let cellIndex = `${rowIndex}_${actualColIndex}`;
+	            if (sundayColumns.includes(actualColIndex)) return;
 
-		            // ✅ Skip validation for Sunday columns
-		            if (sundayColumns.includes(actualColIndex)) return;
+	            // ✅ Ensure "data-prev" is set during population
+	            if (!input.hasAttribute("data-prev")) {
+	                input.setAttribute("data-prev", input.value.trim());
+	            }
 
-		            if (input.value.trim() !== "") {
-		                rowHasValue = true;
-		                if (!isStaticRow) columnFilled[actualColIndex] = true;
+	            let previousValue = input.getAttribute("data-prev");
+	            let currentValue = input.value.trim();
 
-		                timesheetEntries.push({
-		                    username: localStorage.getItem("userName"),
-		                    period: selectedPeriod,
-		                    chargeCode: chargeCode,
-		                    cellIndex: cellIndex,
-		                    hours: input.value.trim()
-		                });
-		            }
-		        });
+	            if (currentValue !== "") {
+	                rowHasValue = true;
+	                if (!isStaticRow) columnFilled[actualColIndex] = true;
 
-		        if (isStaticRow) {
-		            timesheetEntries.push({
-		                username: localStorage.getItem("userName"),
-		                period: selectedPeriod,
-		                chargeCode: chargeCode,
-		                cellIndex: "static",
-		                hours: "-"
-		            });
-		            return;
-		        }
+	                timesheetEntries.push({
+	                    username: localStorage.getItem("userName"),
+	                    period: selectedPeriod,
+	                    chargeCode: chargeCode,
+	                    cellIndex: cellIndex,
+	                    hours: currentValue
+	                });
 
-		        if (rowHasValue) {
-		            hasValidDynamicRow = true;
-		        }
-		    });
+	                input.setAttribute("data-prev", currentValue); // Update stored value
+	            } 
+	            // ✅ Handle cleared cells: If the cell had a value before but is now empty, mark for deletion
+	            else if (previousValue !== "" && currentValue === "") {
+	                console.log(`🛑 Cell CLEARED at ${cellIndex} (Previous: "${previousValue}", Now: "EMPTY")`);
 
-		    const totalColumns = document.querySelectorAll("#tableBody tr:first-child td input").length;
-		    let emptyColumns = [];
+	                timesheetEntries.push({
+	                    username: localStorage.getItem("userName"),
+	                    period: selectedPeriod,
+	                    chargeCode: chargeCode,
+	                    cellIndex: cellIndex,
+	                    hours: null // Indicating deletion
+	                });
 
-		    for (let col = 1; col <= totalColumns; col++) {
-		        if (sundayColumns.includes(col)) continue;
-		        if (!columnFilled[col]) emptyColumns.push(col);
-		    }
+	                input.setAttribute("data-prev", ""); // Update stored value
+	            }
+	        });
 
-		    if (emptyColumns.length > 0) {
-		        emptyColumns.forEach(colIndex => {
-		            document.querySelectorAll(`#tableBody tr td:nth-child(${colIndex + 1}) input`).forEach(input => {
-		                input.style.backgroundColor = "red";
-		            });
-		        });
-		        alert("⚠ Some columns in dynamic rows are completely empty (excluding Sundays). Please fill all required fields.");
-		        return;
-		    }
+	  
 
-		    if (!hasValidDynamicRow) {
-		        alert("⚠ No valid data entered in dynamic rows!");
-		        return;
-		    }
+	        if (rowHasValue) hasValidDynamicRow = true;
+	    });
 
-		    try {
-		        const jsonPayload = JSON.stringify(timesheetEntries);
-		        console.log("✅ JSON Payload:", jsonPayload);
+	    const totalColumns = document.querySelectorAll("#tableBody tr:first-child td input").length;
+	    let emptyColumns = [];
 
-		        fetch("/saveTimesheet", {
-		            method: "POST",
-		            headers: { "Content-Type": "application/json" },
-		            body: jsonPayload
-		        })
-		        .then(response => response.text())
-		        .then(result => {
-		            console.log("✅ Save Successful:", result);
-		            alert(result);
-					location.reload();
-		        })
-		        .catch(error => console.error("❌ Error saving timesheet:", error));
-		    } catch (e) {
-		        console.error("❌ JSON Formatting Error:", e);
-		    }
-		}
+	    for (let col = 1; col <= totalColumns; col++) {
+	        if (sundayColumns.includes(col)) continue;
+	        if (!columnFilled[col]) emptyColumns.push(col);
+	    }
 
+	    if (emptyColumns.length > 0) {
+	        emptyColumns.forEach(colIndex => {
+	            document.querySelectorAll(`#tableBody tr td:nth-child(${colIndex + 1}) input`).forEach(input => {
+	                input.style.backgroundColor = "red";
+	            });
+	        });
+	        alert("⚠ Some columns in dynamic rows are completely empty (excluding Sundays). Please fill all required fields.");
+	        return;
+	    }
+
+	    if (!hasValidDynamicRow) {
+	        alert("⚠ No valid data entered in dynamic rows!");
+	        return;
+	    }
+
+	    try {
+	        console.log("✅ JSON Payload Before Sending:", timesheetEntries); // Debugging Log
+
+	        fetch("/saveTimesheet", {
+	            method: "POST",
+	            headers: { "Content-Type": "application/json" },
+	            body: JSON.stringify(timesheetEntries)
+	        })
+	        .then(response => response.text())
+	        .then(result => {
+	            console.log("✅ Save Successful:", result);
+	            alert(result);
+	            location.reload();
+	        })
+	        .catch(error => console.error("❌ Error saving timesheet:", error));
+	    } catch (e) {
+	        console.error("❌ JSON Formatting Error:", e);
+	    }
+	}
 
 
 

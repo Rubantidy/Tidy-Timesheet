@@ -28,22 +28,25 @@ public class TimesheetService {
 	            if (existingEntry.isPresent()) {
 	                TimesheetEntry updateEntry = existingEntry.get();
 
-	                if (entry.getHours() == null) {
-	                    // 🚀 Only delete if the value was moved to another cell
-	                    System.out.println("🗑 Deleting moved value at " + entry.getCellIndex());
+	                if (entry.getHours() == null || entry.getHours().trim().isEmpty()) {
+	                    // ✅ Delete the cleared cell entry from the database
+	                  
 	                    timesheetRepository.delete(updateEntry);
 	                } else {
+	                    // ✅ Update charge code and hours if a value exists
 	                    updateEntry.setChargeCode(entry.getChargeCode());
 	                    updateEntry.setHours(entry.getHours());
 	                    timesheetRepository.save(updateEntry);
 	                }
 	            } else {
-	                if (entry.getHours() != null) {
+	                if (entry.getHours() != null && !entry.getHours().trim().isEmpty()) {
+	                    // ✅ Save new entry if it has a value
 	                    timesheetRepository.save(entry);
 	                }
 	            }
 	        }
 	    }
+
 
 
 

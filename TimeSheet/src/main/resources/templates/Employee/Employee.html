@@ -749,7 +749,9 @@
 				           });
 
 				           panel.appendChild(option);
+						   
 				       });
+					   
 
 				       // Handle remove functionality
 				       clearButton.addEventListener("click", function (event) {
@@ -759,7 +761,7 @@
 				           arrowIcon.style.display = isDynamicRow ? "inline" : "none"; // Keep arrow for dynamic rows
 				       });
 
-				       // Handle search functionality
+				       // Handle search functionality 
 				       searchInput.addEventListener("input", function () {
 				           const filter = searchInput.value.toLowerCase();
 				           const options = panel.querySelectorAll(".dropdown-option");
@@ -771,6 +773,7 @@
 				       // Toggle dropdown visibility
 				       button.addEventListener("click", function () {
 				           panel.style.display = panel.style.display === "block" ? "none" : "block";
+						   addRow();
 				       });
 
 				       // Close dropdown when clicking outside
@@ -779,13 +782,16 @@
 				               panel.style.display = "none";
 				           }
 				       });
-
+					   
+				
 				       container.appendChild(button);
 				       container.appendChild(clearButton);
 				       container.appendChild(arrowIcon); 
 				       container.appendChild(panel);
 				       
 				       return container;
+					   
+					  
 				   }
 
 				   function fillRowWithFirstValue(button) {
@@ -793,25 +799,25 @@
 				       const inputs = row.querySelectorAll("td input[type='text']"); 
 				       let firstValue = null;
 
-				       console.log("Before filling:", Array.from(inputs).map(input => input.value)); 
+				       console.log("Before filling:", Array.from(inputs).map(input => input.value));
 
-				       // Find the first non-empty, non-disabled value (ONLY from columns 1-14)
+				       // Find the first non-empty, non-disabled value (ONLY from columns 1-16)
 				       inputs.forEach((input, index) => {
-				           if (index >= 1 && index <= 15 && !input.disabled && firstValue === null && input.value.trim() !== "") {
+				           if (index >= 1 && index <= 16 && !input.disabled && firstValue === null && input.value.trim() !== "") {
 				               firstValue = input.value;
 				           }
 				       });
 
-				       // If a valid value is found, fill the row (ONLY in columns 1-14)
+				       // If a valid value is found, fill the row (ONLY in columns 1-16)
 				       if (firstValue !== null) {
 				           inputs.forEach((input, index) => {
-				               if (index >= 1 && index <= 15 && !input.disabled) { // ✅ Skip 0th and 15th column
+				               if (index >= 1 && index <= 16 && !input.disabled) { // ✅ Includes 16th column for longer months
 				                   input.value = firstValue;  
 				                   input.dispatchEvent(new Event('input')); // Ensure change is registered
 				               }
 				           });
 
-				           console.log("After filling:", Array.from(inputs).map(input => input.value)); 
+				           console.log("After filling:", Array.from(inputs).map(input => input.value));
 
 				           // ✅ Ensure the total is updated correctly
 				           setTimeout(() => {
@@ -819,6 +825,7 @@
 				           }, 10);
 				       }
 				   }
+
 
 
 
@@ -905,7 +912,7 @@
 						    const [endDay, endMonth, endYear] = selectedPeriod.end.split('/');
 
 						    const tableHeaders = document.getElementById('tableHeaders');
-						    tableHeaders.innerHTML = '<tr><th style="width: 300px;">Charge Code</th></tr>';
+						    tableHeaders.innerHTML = '<tr><th style="width: 400px;">Charge Code</th></tr>';
 						    const tableRows = document.getElementById('tableBody');
 						    tableRows.innerHTML = '';
 
