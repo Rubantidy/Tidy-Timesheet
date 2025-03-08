@@ -119,13 +119,10 @@
 	background-color: gainsboro;
 }*/
 
-.sunday {
-       background-color: #d3d3d3;
-       pointer-events: none;
-   }
+
    
    
-  /*Updated  table styling
+  /*Updated  table styling */
    
 
 
@@ -150,17 +147,14 @@
   }
 
 
-  .sunday-header {
-      background-color: #5c87b2 !important; 
-      color: #fff;
-  }
 
 
   #tableBody td {
-      padding: 10px;
+      padding: 0px;
       text-align: center;
       border: 1px solid #ddd;
       transition: background-color 0.3s;
+	  vertical-align: middle;
   }
 
 
@@ -224,7 +218,7 @@
       max-height: 200px; 
       border: 1px solid #ccc;
       background-color: #fff;
-      overflow-y: auto;
+      overflow-x: hidden;
       display: none;
       z-index: 1000;
       margin: auto;
@@ -264,6 +258,10 @@
       margin: 10px 0;
       font-weight: bold;
   }
-*/
 
+  .dropdown-container {
+      padding-left: 20px;
+	  padding-right: 20px;
+	  vertical-align: middle;
+  }
 

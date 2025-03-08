@@ -221,6 +221,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 	    document.querySelectorAll("#tableBody tr td input").forEach(input => {
 	        input.style.backgroundColor = "";
+	        input.removeAttribute("title"); // Clear previous tooltip
 	    });
 
 	    rows.forEach((row, rowIndex) => {
@@ -282,8 +283,6 @@ document.addEventListener("DOMContentLoaded", function () {
 	            }
 	        });
 
-	  
-
 	        if (rowHasValue) hasValidDynamicRow = true;
 	    });
 
@@ -297,11 +296,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
 	    if (emptyColumns.length > 0) {
 	        emptyColumns.forEach(colIndex => {
-	            document.querySelectorAll(`#tableBody tr td:nth-child(${colIndex + 1}) input`).forEach(input => {
-	                input.style.backgroundColor = "red";
+	            document.querySelectorAll(`#tableBody tr:not(.static-row) td:nth-child(${colIndex + 1}) input`).forEach(input => {
+	                input.style.border = "1px solid red";
+	                input.setAttribute("title", "⚠ Field is required!"); // Tooltip on hover
 	            });
 	        });
-	        alert("⚠ Some columns in dynamic rows are completely empty (excluding Sundays). Please fill all required fields.");
 	        return;
 	    }
 
@@ -329,6 +328,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	        console.error("❌ JSON Formatting Error:", e);
 	    }
 	}
+
 
 
 
