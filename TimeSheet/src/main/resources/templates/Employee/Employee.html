@@ -22,6 +22,7 @@
     <div class="header-section d-flex justify-content-between align-items-center p-3 bg-light border-bottom">
         <h2 class="m-0">myTimesheet</h2>
 		<div class="iconsmenu">
+							<button>Review Another</button>
 						    <i class="bi bi-bell"></i>
 
 						    <i class="bi bi-person-circle" id="userIcon" onclick="toggleDropdown()"></i>
@@ -146,12 +147,12 @@
             </svg>
 			
 		
-        </div>
+        </div> 
 
     
         <div class="col-6 d-flex justify-content-end gap-3 ">
               
-            <button class="btn btn-success">Send Approval</button>
+            <button class="btn btn-success" >Send Approval</button>
             <button id="submitBtn" class="btn btn-info">Submit</button>
         </div>
     </div>
@@ -278,11 +279,83 @@
 	
 	</div>
 
-<!-- Section for Preference -->
-<div id="preferenceSection" class="content-section" style="display: none;">
-    <h3>Preference Section</h3>
-    <p>This is where you can adjust your preferences.</p>
-</div>
+	<!-- Section for Preference -->
+	<div id="preferenceSection" class="content-section" style="display: none;">
+	    <h3 class="text-center mb-4">Preference Section</h3>
+	    <p class="text-center text-muted">Adjust your preferences here.</p>
+
+	    <div class="container preference-container">
+	        <!-- Approvers -->
+	        <div class="row preference-row">
+	            <div class="col-md-5">
+	                <label class="form-label">Approvers</label>
+	                <div class="dropdown">
+	                    <button class="btn btn-light dropdown-toggle form-control" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="approversDropdown">
+	                        Select Approver
+	                    </button>
+	                    <ul class="dropdown-menu" id="approversList"></ul>
+	                </div>
+	            </div>
+	            <div class="col-md-2 d-flex flex-column align-items-center justify-content-center">
+	               <!--  <button class="btn btn-primary btn-sm mb-2" onclick="addApprover()">➝</button> -->
+	                <button class="btn btn-danger btn-sm" onclick="removeLastEntry('selectedApprovers')">←</button>
+	            </div>
+	            <div class="col-md-5">
+	                <label class="form-label">Selected Approvers</label>
+	                <textarea class="form-control selected-box" id="selectedApprovers" readonly></textarea>
+	            </div>
+	        </div>
+
+	        <!-- Reviewers -->
+	        <div class="row preference-row">
+	            <div class="col-md-5">
+	                <label class="form-label">Reviewer</label>
+	                <div class="dropdown">
+	                    <button class="btn btn-light dropdown-toggle form-control" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="reviewersDropdown">
+	                        Select Reviewer
+	                    </button>
+	                    <ul class="dropdown-menu" id="reviewersList"></ul>
+	                </div>
+	            </div>
+	            <div class="col-md-2 d-flex flex-column align-items-center justify-content-center">
+	                <!-- <button class="btn btn-primary btn-sm mb-2" onclick="addReviewer()">➝</button> -->
+	                <button class="btn btn-danger btn-sm" onclick="removeLastEntry('selectedReviewers')">←</button>
+	            </div>
+	            <div class="col-md-5">
+	                <label class="form-label">Selected Reviewers</label>
+	                <textarea class="form-control selected-box" id="selectedReviewers" readonly></textarea>
+	            </div>
+	        </div>
+
+	        <!-- Delegators -->
+	        <div class="row preference-row">
+	            <div class="col-md-5">
+	                <label class="form-label">Delegators</label>
+	                <div class="dropdown">
+	                    <button class="btn btn-light dropdown-toggle form-control" type="button" data-bs-toggle="dropdown" aria-expanded="false" id="delegatorsDropdown">
+	                        Select Delegator
+	                    </button>
+	                    <ul class="dropdown-menu" id="delegatorsList"></ul>
+	                </div>
+	            </div>
+	            <div class="col-md-2 d-flex flex-column align-items-center justify-content-center">
+	                <!-- <button class="btn btn-primary btn-sm mb-2" onclick="addDelegator()">➝</button> -->
+	                <button class="btn btn-danger btn-sm" onclick="removeLastEntry('selectedDelegators')">←</button>
+	            </div>
+	            <div class="col-md-5">
+	                <label class="form-label">Selected Delegators</label>
+	                <textarea class="form-control selected-box" id="selectedDelegators" readonly></textarea>
+	            </div>
+	        </div>
+
+	        <!-- Buttons Section -->
+	        <div class="text-center mt-4">
+	            <button class="btn btn-secondary me-2" onclick="resetPreferences()">Reset</button>
+	            <button class="btn btn-success" onclick="savePreferences()">Save</button>
+	        </div>
+	    </div>
+	</div>
+
 
 
 

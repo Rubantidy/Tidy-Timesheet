@@ -7,8 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import timesheet.employee.dao.TimesheetEntry;
-import timesheet.employee.dao.TimesheetTemplate;
-import timesheet.employee.repo.TemplateRepository;
 import timesheet.employee.repo.TimesheetRepository;
 
 @Service
@@ -17,8 +15,7 @@ public class TimesheetService {
 	 @Autowired
 	    private TimesheetRepository timesheetRepository;
 	 
-	 @Autowired
-	    private TemplateRepository templateRepository;
+
 
 	    public List<TimesheetEntry> getTimesheet(String username, String period) {
 	        return timesheetRepository.findByUsernameAndPeriod(username, period);
@@ -53,24 +50,7 @@ public class TimesheetService {
 	    }
 
 	    
-	    public void saveTemplate(List<TimesheetTemplate> templateEntries) {
-	        for (TimesheetTemplate template : templateEntries) {
-	            TimesheetTemplate existingTemplate = templateRepository.findByUsernameAndChargeCode(
-	                template.getUsername(), template.getChargeCode());
-
-	            if (existingTemplate != null) {
-	                existingTemplate.setWeekdays(template.getWeekdays());
-	                templateRepository.save(existingTemplate); // ✅ Update existing template
-	            } else {
-	            	templateRepository.save(template); // ✅ Save new template
-	            }
-	        }
-	    }
-
-	    public List<TimesheetTemplate> getTemplateByUsername(String username) {
-	        return templateRepository.findByUsername(username);
-	    }
-
+	   
 
 
 }

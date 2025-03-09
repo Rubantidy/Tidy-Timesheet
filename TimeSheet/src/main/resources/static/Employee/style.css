@@ -281,3 +281,105 @@
  #deleteIcon{
 	cursor: pointer;
  }
+ 
+ 
+ /*Preference section*/
+ .preference-container {
+     max-width: 800px;
+     margin: auto;
+     padding: 20px;
+     background: #f8f9fa;
+     border-radius: 8px;
+     box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+ }
+
+ .preference-row {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     padding: 10px 0;
+     border-bottom: 1px solid #ddd;
+ }
+
+ .preference-row:last-child {
+     border-bottom: none;
+ }
+
+ .selected-box {
+     height: 80px;
+     resize: none;
+     background: #fff;
+     border: 1px solid #ced4da;
+     border-radius: 5px;
+ }
+
+ .btn-sm {
+     width: 40px;
+     height: 35px;
+     font-size: 18px;
+ }
+
+ .text-center button {
+     width: 120px;
+ }
+
+ 
+ 
+ /* Sidebar Styling */
+ .sidebar {
+     position: fixed;
+     top: 0;
+     right: -300px;
+     width: 300px;
+     height: 100%;
+     background: #fff;
+     box-shadow: -2px 0px 10px rgba(0, 0, 0, 0.2);
+     transition: right 0.3s ease-in-out;
+     padding: 15px;
+     overflow-y: auto;
+ }
+ .sidebar h3 {
+     margin-top: 10px;
+ }
+ .sidebar ul {
+     list-style: none;
+     padding: 0;
+ }
+ .sidebar ul li {
+     padding: 10px;
+     border-bottom: 1px solid #ddd;
+ }
+
+ /* Review Panel */
+ #reviewPanel {
+     margin-top: 20px;
+     padding: 10px;
+     background: #f4f4f4;
+     display: flex;
+     justify-content: space-between;
+     max-width: 300px;
+     border-radius: 5px;
+ }
+ #reviewPanel button {
+     padding: 5px 10px;
+     border: none;
+     cursor: pointer;
+ }
+ #noIssueBtn {
+     background: green;
+     color: white;
+ }
+ #issueBtn {
+     background: red;
+     color: white;
+ }
+
+ /* Close Sidebar Button */
+ #closeSidebar {
+     background: red;
+     color: white;
+     border: none;
+     padding: 5px 10px;
+     font-size: 18px;
+     cursor: pointer;
+ }

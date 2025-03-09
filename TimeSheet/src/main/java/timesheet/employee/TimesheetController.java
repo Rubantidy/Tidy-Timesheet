@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -16,8 +17,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import timesheet.employee.dao.Preference;
 import timesheet.employee.dao.TimesheetEntry;
-import timesheet.employee.dao.TimesheetTemplate;
+import timesheet.employee.repo.PreferenceRepository;
 import timesheet.employee.repo.TimesheetRepository;
 import timesheet.employee.service.TimesheetService;
 
@@ -29,6 +31,9 @@ public class TimesheetController {
     
     @Autowired
     private TimesheetRepository timesheetRepository;
+    
+    @Autowired
+    private PreferenceRepository preferenceRepository;
 
 
     @GetMapping("/getTimesheet")
@@ -129,20 +134,36 @@ public class TimesheetController {
     }
     
     
-    @PostMapping("/saveTemplate")
-    public ResponseEntity<String> saveTemplate(@RequestBody List<TimesheetTemplate> templateEntries) {
-        timesheetService.saveTemplate(templateEntries);
-        return ResponseEntity.ok("Template saved successfully");
+   
+ // Save or update preferences
+    @PostMapping("/savePreferences")
+    public ResponseEntity<String> savePreferences(@RequestBody Preference preference) {
+        Optional<Preference> existingPreference = preferenceRepository.findByPeriod(preference.getPeriod());
+
+        if (existingPreference.isPresent()) {
+            Preference updatedPreference = existingPreference.get();
+            updatedPreference.setApprovers(preference.getApprovers());
+            updatedPreference.setReviewers(preference.getReviewers());
+            updatedPreference.setDelegator(preference.getDelegator());
+            preferenceRepository.save(updatedPreference);
+        } else {
+            preferenceRepository.save(preference);
+        }
+
+        return ResponseEntity.ok("Preferences saved successfully!");
     }
 
-    @GetMapping("/getTemplate")
-    public ResponseEntity<List<TimesheetTemplate>> getTemplate(@RequestParam String username) {
-        List<TimesheetTemplate> template = timesheetService.getTemplateByUsername(username);
-        return ResponseEntity.ok(template);
+    // Fetch preferences for a specific period
+    @GetMapping("/getPreferences")
+    public ResponseEntity<Preference> getPreferences(@RequestParam String period) {
+        Optional<Preference> preference = preferenceRepository.findByPeriod(period);
+        return ResponseEntity.ok(preference.orElse(new Preference()));
     }
-
-
-
-
+    
+    
 }
+
+
+
+
 

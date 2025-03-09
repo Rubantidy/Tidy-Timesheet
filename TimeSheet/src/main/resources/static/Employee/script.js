@@ -530,120 +530,336 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-document.addEventListener("DOMContentLoaded", function () {
-    const templateIcon = document.getElementById("templateIcon");
-    const username = localStorage.getItem("userName"); // Logged-in employee
 
-    if (!username) {
-        console.error("❌ Error: No username found in local storage.");
+/* Fetch Employee Data */
+function fetchEmployeeData() {
+    fetch("/getEmployees")
+        .then(response => response.json())
+        .then(data => {
+            console.log("Fetched Employees:", data); // Debugging log
+
+            // Populate Approvers with only Admins
+            const adminEmployees = data.filter(employee => employee.e_Role === "Admin" && employee.status === "active");
+            populateEmployeeDropdown("approversDropdown", "approversList", adminEmployees);
+
+            // Populate Reviewers & Delegators with all active employees
+            const activeEmployees = data.filter(employee => employee.status === "active");
+            populateEmployeeDropdown("reviewersDropdown", "reviewersList", activeEmployees);
+            populateEmployeeDropdown("delegatorDropdown", "delegatorsList", activeEmployees);
+        })
+        .catch(error => console.error("Error fetching employees:", error));
+}
+
+/* Populate Employee Dropdown */
+function populateEmployeeDropdown(dropdownButtonId, dropdownListId, employees) {
+    const dropdownList = document.getElementById(dropdownListId);
+    dropdownList.innerHTML = ""; // Clear existing items
+
+    if (!dropdownList) {
+        console.error("Dropdown list not found:", dropdownListId);
         return;
     }
 
-    // ✅ Click event for saving the template
-    templateIcon.addEventListener("click", function () {
-        console.log("📌 Template icon clicked! Saving template...");
-        saveTemplate();
+    employees.forEach(employee => {
+        const li = document.createElement("li");
+        li.innerHTML = `<a class="dropdown-item" href="#" data-name="${employee["E-name"]}" data-email="${employee["E-mail"]}">${employee["E-name"]}</a>`;
+        dropdownList.appendChild(li);
     });
 
-    function saveTemplate() {
-        let templateEntries = [];
-
-        document.querySelectorAll("#tableBody tr").forEach((row, rowIndex) => {
-            let chargeCodeCell = row.cells[0];
-            if (!chargeCodeCell) return;
-
-            let chargeCode = chargeCodeCell.textContent.trim();
-            if (!chargeCode || chargeCode === "Select Charge Code") return;
-
-            let isStaticRow = chargeCode.toLowerCase().includes("work location") || chargeCode.toLowerCase().includes("company code");
-            if (isStaticRow) return; // ❌ Skip static rows
-
-            let weekdayValues = {};
-            let hasValidEntry = false;
-
-            row.querySelectorAll("td input:not(.dropdown-search)").forEach((input, colIndex) => {
-                let dayIndex = colIndex + 1; // Adjust column index
-                if (dayIndex % 7 === 0) return; // ❌ Ignore Sundays
-
-                let value = input.value.trim();
-                weekdayValues[dayIndex] = value || "0"; // Default to "0" if empty
-
-                if (value && value !== "0") hasValidEntry = true; // ✅ Track valid data
-            });
-
-            if (hasValidEntry) {
-                templateEntries.push({
-                    username: username,
-                    chargeCode: chargeCode,
-                    weekdays: weekdayValues
-                });
-            }
-        });
-
-        if (templateEntries.length === 0) {
-            console.warn("⚠ No valid data to save in template.");
-            alert("⚠ No valid data to save in template!");
-            return;
+    // Event delegation to handle dropdown clicks
+    dropdownList.addEventListener("click", function (event) {
+        event.preventDefault();
+        const target = event.target;
+        if (target.tagName === "A") {
+            selectEmployee(target.dataset.name, target.dataset.email, dropdownButtonId);
         }
+    });
+}
 
-        console.log("📌 Sending Template Data to Backend:", templateEntries);
+/* Fetch Employee Data */
+function fetchEmployeeData() {
+    fetch("/getEmployees")
+        .then(response => response.json())
+        .then(data => {
+            console.log("Fetched Employees:", data); // Debugging log
 
-        fetch("/saveTemplate", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(templateEntries)
+            // Filter Admin employees who are also active
+            const activeAdmins = data.filter(employee => employee.e_Role === "Admin" && employee.status === "active");
+            populateEmployeeDropdown("approversDropdown", "approversList", activeAdmins);
+
+            // Filter all active employees for Reviewers & Delegators
+            const activeEmployees = data.filter(employee => employee.status === "active");
+            populateEmployeeDropdown("reviewersDropdown", "reviewersList", activeEmployees);
+            populateEmployeeDropdown("delegatorDropdown", "delegatorsList", activeEmployees);
         })
-        .then(response => response.text())
-        .then(result => {
-            console.log("✅ Template Save Successful:", result);
-            alert(result);
-        })
-        .catch(error => console.error("❌ Error saving template:", error));
+        .catch(error => console.error("Error fetching employees:", error));
+}
+
+/* Populate Employee Dropdown */
+function populateEmployeeDropdown(dropdownButtonId, dropdownListId, employees) {
+    const dropdownList = document.getElementById(dropdownListId);
+    dropdownList.innerHTML = ""; // Clear existing items
+
+    if (!dropdownList) {
+        console.error("Dropdown list not found:", dropdownListId);
+        return;
     }
 
-    function fetchAndApplyTemplate() {
-        fetch(`/getTemplate?username=${username}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.length > 0) {
-                    console.log("📌 Applying template:", data);
-                    applyTemplate(data);
-                } else {
-                    console.warn("⚠ No template data found for this user.");
-                }
+    employees.forEach(employee => {
+        const li = document.createElement("li");
+        li.innerHTML = `<a class="dropdown-item" href="#" data-name="${employee["E-name"]}" data-email="${employee["E-mail"]}">${employee["E-name"]}</a>`;
+        dropdownList.appendChild(li);
+    });
+
+    // Event delegation to handle dropdown clicks
+    dropdownList.addEventListener("click", function (event) {
+        event.preventDefault();
+        const target = event.target;
+        if (target.tagName === "A") {
+            selectEmployee(target.dataset.name, target.dataset.email, dropdownButtonId);
+        }
+    });
+}
+
+
+/* Select Employee */
+function selectEmployee(name, email, dropdownButtonId) {
+    console.log(`Selected Employee: ${name}, ${email}`);
+
+    if (!email || email === "undefined") {
+        alert(`Email not found for ${name}`);
+        return;
+    }
+
+    let textAreaId;
+    if (dropdownButtonId === "approversDropdown") {
+        textAreaId = "selectedApprovers";
+    } else if (dropdownButtonId === "reviewersDropdown") {
+        textAreaId = "selectedReviewers";
+    }
+	else if(dropdownButtonId == "delegatorDropdown") {
+		textAreaId = "selectedDelegators";
+	}
+
+    const textArea = document.getElementById(textAreaId);
+    const currentEmails = textArea.value.split("\n").map(e => e.trim());
+
+    // Prevent duplicate emails
+    if (!currentEmails.includes(email)) {
+        textArea.value += (textArea.value ? "\n" : "") + email;
+        document.getElementById(dropdownButtonId).innerText = name; // Update dropdown button text
+    } else {
+        alert("This employee is already added!");
+    }
+}
+
+/* Remove Specific Employee */
+function removeLastEntry(textAreaId) {
+    const textArea = document.getElementById(textAreaId);
+    if (!textArea) {
+        console.error("Text area not found:", textAreaId);
+        return;
+    }
+
+    let lines = textArea.value.trim().split("\n");
+    if (lines.length > 0) {
+        lines.pop();
+        textArea.value = lines.join("\n"); // Update textarea
+    } else {
+        alert("No employees to remove!");
+    }
+}
+
+/* Reset Preferences */
+function resetPreferences() {
+    document.getElementById("selectedApprovers").value = "";
+    document.getElementById("selectedReviewers").value = "";
+    document.getElementById("selectedDelegators").value = "";
+}
+
+/* Show Custom Popup */
+function showConfirmationPopup(callback) {
+    // Create overlay
+    let overlay = document.createElement("div");
+    overlay.id = "confirmationOverlay";
+    overlay.style.position = "fixed";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100%";
+    overlay.style.height = "100%";
+    overlay.style.background = "rgba(0,0,0,0.5)";
+    overlay.style.display = "flex";
+    overlay.style.justifyContent = "center";
+    overlay.style.alignItems = "center";
+    overlay.style.zIndex = "1000";
+
+    // Create popup box
+    let popup = document.createElement("div");
+    popup.style.background = "#fff";
+    popup.style.padding = "20px";
+    popup.style.borderRadius = "10px";
+    popup.style.boxShadow = "0px 4px 6px rgba(0,0,0,0.1)";
+    popup.style.textAlign = "center";
+    popup.style.width = "350px";
+
+    // Add message
+    let message = document.createElement("p");
+    message.innerText = "Do you want to assign these employees for your timesheet?";
+    popup.appendChild(message);
+
+    // Create button container
+    let buttonContainer = document.createElement("div");
+    buttonContainer.style.display = "flex";
+    buttonContainer.style.justifyContent = "space-between";
+    buttonContainer.style.marginTop = "15px";
+
+    // Yes button
+    let yesButton = document.createElement("button");
+    yesButton.innerText = "Yes";
+    yesButton.style.background = "#28a745";
+    yesButton.style.color = "#fff";
+    yesButton.style.border = "none";
+    yesButton.style.padding = "10px 20px";
+    yesButton.style.borderRadius = "5px";
+    yesButton.style.cursor = "pointer";
+    yesButton.onclick = function () {
+        document.body.removeChild(overlay);
+        callback(true);
+    };
+
+    // No button
+    let noButton = document.createElement("button");
+    noButton.innerText = "No";
+    noButton.style.background = "#dc3545";
+    noButton.style.color = "#fff";
+    noButton.style.border = "none";
+    noButton.style.padding = "10px 20px";
+    noButton.style.borderRadius = "5px";
+    noButton.style.cursor = "pointer";
+    noButton.onclick = function () {
+        document.body.removeChild(overlay);
+        callback(false);
+    };
+
+    // Append buttons
+    buttonContainer.appendChild(yesButton);
+    buttonContainer.appendChild(noButton);
+    popup.appendChild(buttonContainer);
+    overlay.appendChild(popup);
+    document.body.appendChild(overlay);
+}
+
+/* Save Preferences with Custom Popup */
+function savePreferences() {
+    showConfirmationPopup(function (confirmed) {
+        if (confirmed) {
+            console.log("Proceeding with saving...");
+
+            const periodDropdown = document.getElementById("periodDropdown");
+
+            if (!periodDropdown) {
+                alert("Period dropdown not found!");
+                return;
+            }
+
+            function getSelectedPeriod() {
+                return periodDropdown.options[periodDropdown.selectedIndex]?.text || null;
+            }
+
+            const selectedPeriod = getSelectedPeriod();
+            if (!selectedPeriod) {
+                alert("Please select a period first!");
+                return;
+            }
+
+            const preferences = {
+                period: selectedPeriod,
+                approvers: document.getElementById("selectedApprovers").value.trim().split("\n").join(","), // Convert new lines to commas
+                reviewers: document.getElementById("selectedReviewers").value.trim().split("\n").join(","),
+                delegator: document.getElementById("selectedDelegators").value.trim().split("\n").join(",")
+            };
+
+            fetch("/savePreferences", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(preferences)
             })
-            .catch(error => console.error("❌ Error fetching template:", error));
+            .then(response => response.text())
+            .then(data => {
+                console.log("Preferences saved:", data);
+                alert("Preferences Saved!");
+            })
+            .catch(error => console.error("Error saving preferences:", error));
+
+        } else {
+            console.log("Saving canceled.");
+        }
+    });
+}
+
+
+/* Fetch Preferences when Period is Selected */
+function fetchPreferences() {
+    const periodDropdown = document.getElementById("periodDropdown");
+
+    if (!periodDropdown) {
+        console.error("Period dropdown not found!");
+        return;
     }
 
-    function applyTemplate(templateData) {
-        document.querySelectorAll("#tableBody tr").forEach((row, rowIndex) => {
-            let chargeCodeCell = row.cells[0];
-            if (!chargeCodeCell) return;
-
-            let chargeCode = chargeCodeCell.textContent.trim();
-            if (!chargeCode || chargeCode === "Select Charge Code") return;
-
-            let isStaticRow = chargeCode.toLowerCase().includes("work location") || chargeCode.toLowerCase().includes("company code");
-            if (isStaticRow) return;
-
-            let matchedTemplate = templateData.find(entry => entry.chargeCode === chargeCode);
-            if (!matchedTemplate) return;
-
-            row.querySelectorAll("td input:not(.dropdown-search)").forEach((input, colIndex) => {
-                let dayIndex = colIndex + 1;
-                if (dayIndex % 7 === 0) return; // ❌ Skip Sundays
-
-                if (!input.value) {
-                    input.value = matchedTemplate.weekdays[dayIndex] || "";
-                }
-            });
-        });
+    function getSelectedPeriod() {
+        return periodDropdown.options[periodDropdown.selectedIndex]?.text || null;
     }
 
-    fetchAndApplyTemplate();
+    const selectedPeriod = getSelectedPeriod();
+    if (!selectedPeriod) {
+        resetPreferences(); // Clear fields if no period is selected
+        return;
+    }
+
+    console.log("Fetching preferences for period:", selectedPeriod); // Debug log
+
+    fetch(`/getPreferences?period=${selectedPeriod}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log("Fetched Preferences:", data); // Debugging
+
+            if (!data) {
+                console.warn("No data received for this period.");
+                return;
+            }
+
+            function formatEmails(emails) {
+                return (emails || "").split(",").map(email => email.trim()).join("\n");
+            }
+
+            document.getElementById("selectedApprovers").value = formatEmails(data.approvers);
+            document.getElementById("selectedReviewers").value = formatEmails(data.reviewers);
+            document.getElementById("selectedDelegators").value = formatEmails(data.delegator);
+        })
+        .catch(error => console.error("Error fetching preferences:", error));
+}
+
+
+// Wait for the DOM to load before adding event listeners
+document.addEventListener("DOMContentLoaded", function () {
+	fetchEmployeeData();
+    fetchPreferences();
+
+    const periodDropdown = document.getElementById("periodDropdown");
+	const calender = document.getElementById('calendarPicker');
+	const preview = document.getElementById('prevPeriod');
+	const nextpre = document.getElementById('nextPeriod');
+	
+    if (periodDropdown) {
+        periodDropdown.addEventListener("change", fetchPreferences);
+		calender.addEventListener("change", fetchPreferences);
+		preview.addEventListener("click", fetchPreferences);
+		nextpre.addEventListener("click", fetchPreferences);
+    } else {
+        console.error("Element with ID 'periodDropdown' not found!");
+    }
 });
 
 
-	
 
-	
