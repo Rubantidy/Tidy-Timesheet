@@ -416,8 +416,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 function generateSummary() {
 	
-
-
     const username = localStorage.getItem("userName");
     
     function getSelectedPeriod() {
@@ -624,7 +622,7 @@ function populateEmployeeDropdown(dropdownButtonId, dropdownListId, employees) {
 
 /* Select Employee */
 function selectEmployee(name, email, dropdownButtonId) {
-    console.log(`Selected Employee: ${name}, ${email}`);
+
 
     if (!email || email === "undefined") {
         alert(`Email not found for ${name}`);
@@ -749,14 +747,10 @@ function showConfirmationPopup(callback) {
     document.body.appendChild(overlay);
 }
 
-/* Save Preferences with Custom Popup */
 function savePreferences() {
     showConfirmationPopup(function (confirmed) {
         if (confirmed) {
-            console.log("Proceeding with saving...");
-
             const periodDropdown = document.getElementById("periodDropdown");
-
             if (!periodDropdown) {
                 alert("Period dropdown not found!");
                 return;
@@ -767,17 +761,22 @@ function savePreferences() {
             }
 
             const selectedPeriod = getSelectedPeriod();
-            if (!selectedPeriod) {
-                alert("Please select a period first!");
+            const loggedInUser = localStorage.getItem("userName"); // ✅ Get username from local storage
+
+            if (!selectedPeriod || !loggedInUser) {
+                alert("Please select a period and ensure you're logged in!");
                 return;
             }
 
             const preferences = {
                 period: selectedPeriod,
-                approvers: document.getElementById("selectedApprovers").value.trim().split("\n").join(","), // Convert new lines to commas
+                Employeename: loggedInUser,  // ✅ Ensure username is included
+                approvers: document.getElementById("selectedApprovers").value.trim().split("\n").join(","),
                 reviewers: document.getElementById("selectedReviewers").value.trim().split("\n").join(","),
                 delegator: document.getElementById("selectedDelegators").value.trim().split("\n").join(",")
             };
+
+            console.log("Sending Preferences:", preferences);
 
             fetch("/savePreferences", {
                 method: "POST",
@@ -786,11 +785,9 @@ function savePreferences() {
             })
             .then(response => response.text())
             .then(data => {
-                console.log("Preferences saved:", data);
                 alert("Preferences Saved!");
             })
             .catch(error => console.error("Error saving preferences:", error));
-
         } else {
             console.log("Saving canceled.");
         }
@@ -798,7 +795,6 @@ function savePreferences() {
 }
 
 
-/* Fetch Preferences when Period is Selected */
 function fetchPreferences() {
     const periodDropdown = document.getElementById("periodDropdown");
 
@@ -812,22 +808,29 @@ function fetchPreferences() {
     }
 
     const selectedPeriod = getSelectedPeriod();
-    if (!selectedPeriod) {
+    const loggedInUser = localStorage.getItem("userName"); // ✅ Get logged-in username
+
+    if (!selectedPeriod || !loggedInUser) {
+        console.warn("Period or username missing!"); 
         resetPreferences(); // Clear fields if no period is selected
         return;
     }
 
-    console.log("Fetching preferences for period:", selectedPeriod); // Debug log
+    console.log(`Fetching preferences for ${loggedInUser} - ${selectedPeriod}`);
 
-    fetch(`/getPreferences?period=${selectedPeriod}`)
-        .then(response => response.json())
-        .then(data => {
-            console.log("Fetched Preferences:", data); // Debugging
-
-            if (!data) {
-                console.warn("No data received for this period.");
-                return;
+    fetch(`/getPreferences?period=${selectedPeriod}&employeename=${encodeURIComponent(loggedInUser)}`)
+        .then(response => {
+            if (!response.ok) {
+                console.warn("No saved preferences found.");
+                resetPreferences();
+                return null;
             }
+            return response.json();
+        })
+        .then(data => {
+            if (!data) return;
+            
+            console.log("Fetched Preferences:", data);
 
             function formatEmails(emails) {
                 return (emails || "").split(",").map(email => email.trim()).join("\n");
@@ -839,6 +842,7 @@ function fetchPreferences() {
         })
         .catch(error => console.error("Error fetching preferences:", error));
 }
+
 
 
 // Wait for the DOM to load before adding event listeners
@@ -863,3 +867,40 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
+document.addEventListener("DOMContentLoaded", function () {
+    const sendApprovalBtn = document.getElementById("sendApprovalBtn");
+
+
+    sendApprovalBtn.addEventListener("click", function() {
+		
+        const username = localStorage.getItem("userName");
+
+		function getSelectedPeriod() {
+		      return periodDropdown.options[periodDropdown.selectedIndex].text; // Example: "01/03/2024 - 15/03/2024"
+		  }
+
+        const selectedPeriod = getSelectedPeriod();
+		console.log("save period:" + selectedPeriod);
+		
+        if (!selectedPeriod) {
+            alert("⚠ Please select a period before sending approval.");
+            return;
+        }
+
+        fetch("/sendForApproval", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ username, period: selectedPeriod })
+
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                this.textContent = "Reviewing";
+                this.disabled = true;
+                alert("Sent for approval!");
+            }
+        })
+        .catch(error => console.error("Error sending for approval:", error));
+    });
+});

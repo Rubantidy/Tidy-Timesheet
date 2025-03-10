@@ -40,6 +40,7 @@ document.getElementById('logout').addEventListener('click', function(event) {
 function showContent(section) {
     const title = document.getElementById("content-title");
     const contentBox = document.getElementById("content-box");
+	const summery = document.getElementById("summery");
 
     const sections = {
         "dashboard": `
@@ -153,13 +154,125 @@ function showContent(section) {
 
 	            // Update the content-box with the dynamically generated content
 	            contentBox.innerHTML = dynamicDashboard;
+				
 	        })
 	        .catch(error => console.error("Error fetching data for dashboard:", error));
-	    }	
-		
-}
+			
+			
+			        /* ---- ADMIN PANEL: Pending Approvals ---- */
+			        const adminPanelUI = `
+			            <h3>Pending Approvals</h3>
+			            <select id="employeeDropdown" class="form-select mb-3">
+			                <option value="">Select Employee</option>
+			            </select>
+			            <div id="summaryContent" class="border p-3 bg-light">
+			                <table class="table table-bordered">
+			                    <thead>
+			                        <tr>
+			                            <th>Username</th>
+			                            <th>Period</th>
+			                            <th>Total Hours</th>
+			                            <th>Total Absences</th>
+			                            <th>Charge Code Details</th>
+			                        </tr>
+			                    </thead>
+			                    <tbody id="adminSummaryBody">
+			                        <!-- Data will be inserted here dynamically -->
+			                    </tbody>
+			                </table>
+			            </div>
+			            <div class="d-flex gap-3 mt-3">
+			                <button id="approveBtn" class="btn btn-success">✅ Approve</button>
+			                <button id="issueBtn" class="btn btn-danger">🛑 Issue</button>
+			            </div>
+			        `;
+			        summery.innerHTML = adminPanelUI;
+
+			        fetchPendingApprovals();
+			    }
+			}
+
+			function fetchPendingApprovals() {
+			    fetch("/getPendingApprovals")
+			        .then(response => response.json())
+			        .then(data => {
+			            console.log("Received Data:", data); // ✅ Debug Response
+			            let dropdown = document.getElementById("employeeDropdown");
+			            dropdown.innerHTML = '<option value="">Select Employee</option>'; // Reset dropdown
+			            
+			            if (!Array.isArray(data)) {
+			                console.error("Error: Data is not an array", data);
+			                return;
+			            }
+
+			            data.forEach(entry => {
+			                let option = document.createElement("option");
+			                option.value = entry.username;
+			                option.textContent = `${entry.username} - ${entry.period}`;
+			                dropdown.appendChild(option);
+			            });
+			        })
+			        .catch(error => console.error("Error fetching pending approvals:", error));
+			}
+
+			// Call function on page load
+			fetchPendingApprovals();
 
 
+			// ✅ Fetch summary for selected employee
+			document.addEventListener("DOMContentLoaded", () => {
+			    document.getElementById("employeeDropdown").addEventListener("change", function () {
+			        let selectedUser = this.value;
+			        if (selectedUser) {
+			            fetchEmployeeSummary(selectedUser);
+			        }
+			    });
+			});
+
+			// ✅ Fetch specific employee's timesheet summary
+			document.getElementById("employeeDropdown").addEventListener("change", function () {
+			    let selectedOption = this.value;
+			    if (!selectedOption) return;
+
+			    // Extract username and period from the selected option
+			    let [username, period] = selectedOption.split(" - ");
+			    
+			    fetchEmployeeSummary(username, period);
+			});
+
+			function fetchEmployeeSummary(username, period) {
+			    fetch(`/getSummary?username=${username}&period=${period}`)
+			        .then(response => response.json())
+			        .then(summary => {
+			            console.log("Fetched Summary:", summary); // ✅ Debugging Output
+
+			            let adminSummaryBody = document.getElementById("adminSummaryBody");
+			            adminSummaryBody.innerHTML = ""; // Clear previous data
+
+			            if (!summary || Object.keys(summary).length === 0) {
+			                adminSummaryBody.innerHTML = `<tr><td colspan="5">No data available</td></tr>`;
+			                return;
+			            }
+
+			            let chargeCodeRows = summary.entries.map(entry =>
+			                `<tr>
+			                    <td></td> 
+			                    <td>${entry.chargeCode}</td>
+			                    <td>${entry.hours}</td>
+			                </tr>`
+			            ).join("");
+
+			            let row = `<tr>
+			                <td rowspan="${summary.entries.length + 1}">${username}</td>
+			                <td rowspan="${summary.entries.length + 1}">${period}</td>
+			                <td rowspan="${summary.entries.length + 1}">${summary.totalHours}</td>
+			                <td rowspan="${summary.entries.length + 1}">${summary.totalAbsences}</td>
+			            </tr>`;
+
+			            adminSummaryBody.innerHTML = row + chargeCodeRows;
+			        })
+			        .catch(error => console.error("Error fetching summary data:", error));
+			}
 
 
 
@@ -355,7 +468,7 @@ function fetchCodeDatas() {
                         <td>${code.country}</td>
                         <td>
                             <div class="dropdown">
-                                <button class="btn btn-success dropdown-toggle" type="button" id="dropdownMenu${code.id}" data-bs-toggle="dropdown" aria-expanded="false">
+                                <button class="btn btn-success " type="button" id="dropdownMenu${code.id}" data-bs-toggle="dropdown" aria-expanded="false">
                                     &#8942; <!-- Vertical 3 dots -->
                                 </button>
                                 <ul class="dropdown-menu" aria-labelledby="dropdownMenu${code.id}">
@@ -780,3 +893,8 @@ document.querySelectorAll(".nav-link").forEach(link => {
     });
 });
 
+
+
+
+
+	

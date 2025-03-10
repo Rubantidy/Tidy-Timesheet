@@ -1,5 +1,7 @@
 package timesheet.employee.dao;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -14,9 +16,13 @@ public class Preference {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    
+    @JsonProperty("Employeename")
+    @Column(nullable = false)
+    private String employeename;  // ✅ Employee name should NOT be unique
 
-    @Column(nullable = false, unique = true)
-    private String period;  // Stores selected period (e.g., "01/03/2024 - 15/03/2024")
+    @Column(nullable = false)  // ❌ Removed `unique = true`
+    private String period;  // ✅ Multiple users can have the same period
 
     @Column(columnDefinition = "TEXT")
     private String approvers;
@@ -33,6 +39,14 @@ public class Preference {
 
 	public void setId(Long id) {
 		this.id = id;
+	}
+
+	public String getEmployeename() {
+		return employeename;
+	}
+
+	public void setEmployeename(String employeename) {
+		this.employeename = employeename;
 	}
 
 	public String getPeriod() {
@@ -69,10 +83,14 @@ public class Preference {
 
 	@Override
 	public String toString() {
-		return "Preference [id=" + id + ", period=" + period + ", approvers=" + approvers + ", reviewers=" + reviewers
-				+ ", delegator=" + delegator + "]";
+		return "Preference [id=" + id + ", employeename=" + employeename + ", period=" + period + ", approvers="
+				+ approvers + ", reviewers=" + reviewers + ", delegator=" + delegator + "]";
 	}
     
+
+
+	
+
     
     
 }

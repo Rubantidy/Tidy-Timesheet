@@ -22,8 +22,8 @@
     <div class="header-section d-flex justify-content-between align-items-center p-3 bg-light border-bottom">
         <h2 class="m-0">myTimesheet</h2>
 		<div class="iconsmenu">
-							<button>Review Another</button>
-						    <i class="bi bi-bell"></i>
+			<!-- <button>Review Another</button> -->
+			    <i class="bi bi-bell"></i>
 
 						    <i class="bi bi-person-circle" id="userIcon" onclick="toggleDropdown()"></i>
 							<span id="userName" style="color: black; margin-left: 10px; display: none;"></span>
@@ -35,6 +35,8 @@
 								<a href="#" class="dropdown-item" id="logout">Logout</a>
 						    </div>
 						</div>
+						
+					
     </div>
 
 	<!-- Change Password Modal -->
@@ -152,7 +154,7 @@
     
         <div class="col-6 d-flex justify-content-end gap-3 ">
               
-            <button class="btn btn-success" >Send Approval</button>
+            <button class="btn btn-success" id="sendApprovalBtn">Send Approval</button>
             <button id="submitBtn" class="btn btn-info">Submit</button>
         </div>
     </div>
@@ -268,7 +270,7 @@
 	            </tr>
 	        </thead>
 	        <tbody>
-	            <tr>
+	            <tr> 
 	                <td>India</td>
 	                <td>Salem - 00 | Company code - 001  - Salem</td>
 	                <td id="locationTotalHours">0</td>

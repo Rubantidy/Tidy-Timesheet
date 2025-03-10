@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -18,8 +19,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import timesheet.employee.dao.Preference;
+import timesheet.employee.dao.SummaryEntry;
 import timesheet.employee.dao.TimesheetEntry;
 import timesheet.employee.repo.PreferenceRepository;
+import timesheet.employee.repo.SummaryRepository;
 import timesheet.employee.repo.TimesheetRepository;
 import timesheet.employee.service.TimesheetService;
 
@@ -34,6 +37,9 @@ public class TimesheetController {
     
     @Autowired
     private PreferenceRepository preferenceRepository;
+    
+    @Autowired
+    private SummaryRepository summaryRepository;
 
 
     @GetMapping("/getTimesheet")
@@ -87,6 +93,7 @@ public class TimesheetController {
         System.out.println("Fetching summary for: " + username + " | Period: " + period);
 
         List<TimesheetEntry> entries = timesheetService.getTimesheet(username, period);
+      
 
         int totalHours = 0;
         int totalAbsences = 0;
@@ -130,35 +137,118 @@ public class TimesheetController {
         summaryData.put("totalAbsences", totalAbsences);
         summaryData.put("entries", processedEntries); // Send merged list
 
+        System.out.println("data:" + summaryData);
         return ResponseEntity.ok(summaryData);
     }
     
     
-   
- // Save or update preferences
+    
+    
+    
+    @PostMapping("/sendForApproval")
+    public ResponseEntity<Map<String, Object>> sendForApproval(@RequestBody Map<String, String> request) {
+        String username = request.get("username");
+        String period = request.get("period");
+
+        // ✅ Fetch summary data
+        ResponseEntity<Map<String, Object>> responseEntity = getSummary(username, period);
+        Map<String, Object> summary = responseEntity.getBody();
+
+        if (summary == null) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "message", "Failed to generate summary"));
+        }
+
+        // ✅ Save summary to the database
+        saveSummary(username, period, summary);
+
+        return ResponseEntity.ok(Map.of("success", true));
+    }
+
+    // ✅ Save Summary to Database
+    public void saveSummary(String username, String period, Map<String, Object> summaryData) {
+        SummaryEntry summaryEntry = new SummaryEntry(username, period, summaryData);
+        summaryRepository.save(summaryEntry);
+    }
+    
+    
+    @GetMapping("/getAllSummaries")
+    public ResponseEntity<List<Map<String, Object>>> getAllSummaries() {
+        List<SummaryEntry> summaries = summaryRepository.findAll(); // Fetch all summaries
+        
+        List<Map<String, Object>> responseList = new ArrayList<>();
+        
+        for (SummaryEntry summary : summaries) {
+            Map<String, Object> summaryData = new HashMap<>();
+            summaryData.put("username", summary.getUsername());
+            summaryData.put("period", summary.getPeriod());
+            summaryData.put("totalHours", summary.getSummaryData().get("totalHours"));
+            summaryData.put("totalAbsences", summary.getSummaryData().get("totalAbsences"));
+            summaryData.put("entries", summary.getSummaryData().get("entries")); // Charge Code Data
+            
+            responseList.add(summaryData);
+        }
+
+        return ResponseEntity.ok(responseList);
+    }
+
+    @GetMapping("/getPendingApprovals")
+    public ResponseEntity<List<Map<String, String>>> getPendingApprovals() {
+        List<SummaryEntry> pendingSummaries = summaryRepository.findAll();
+
+        List<Map<String, String>> responseList = pendingSummaries.stream().map(summary -> {
+            Map<String, String> responseMap = new HashMap<>();
+            responseMap.put("username", summary.getUsername());
+            responseMap.put("period", summary.getPeriod());
+            System.out.println("user name and period" + responseMap);
+            return responseMap;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(responseList);
+    }
+
+
+
+    
     @PostMapping("/savePreferences")
     public ResponseEntity<String> savePreferences(@RequestBody Preference preference) {
-        Optional<Preference> existingPreference = preferenceRepository.findByPeriod(preference.getPeriod());
+
+        Optional<Preference> existingPreference = preferenceRepository.findByEmployeenameAndPeriod(
+            preference.getEmployeename(), preference.getPeriod()
+        );
 
         if (existingPreference.isPresent()) {
+            // ✅ Update existing preference for the user & period
             Preference updatedPreference = existingPreference.get();
             updatedPreference.setApprovers(preference.getApprovers());
             updatedPreference.setReviewers(preference.getReviewers());
             updatedPreference.setDelegator(preference.getDelegator());
+
             preferenceRepository.save(updatedPreference);
+            System.out.println("Updated Preferences for: " + preference.getEmployeename() + " - " + preference.getPeriod());
         } else {
+            // ✅ Save new preference
             preferenceRepository.save(preference);
+            System.out.println("Saved New Preferences for: " + preference.getEmployeename() + " - " + preference.getPeriod());
         }
 
         return ResponseEntity.ok("Preferences saved successfully!");
     }
 
+
+
     // Fetch preferences for a specific period
     @GetMapping("/getPreferences")
-    public ResponseEntity<Preference> getPreferences(@RequestParam String period) {
-        Optional<Preference> preference = preferenceRepository.findByPeriod(period);
-        return ResponseEntity.ok(preference.orElse(new Preference()));
+    public ResponseEntity<Preference> getPreferences(@RequestParam String period, @RequestParam String employeename) {
+        Optional<Preference> preference = preferenceRepository.findByEmployeenameAndPeriod(employeename, period);
+
+        if (preference.isPresent()) {
+            return ResponseEntity.ok(preference.get());
+        } else {
+            return ResponseEntity.notFound().build(); // ✅ Return 404 if no preference found
+        }
     }
+
     
     
 }
