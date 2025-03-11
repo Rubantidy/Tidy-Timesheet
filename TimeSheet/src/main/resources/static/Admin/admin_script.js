@@ -44,7 +44,7 @@ function showContent(section) {
 
     const sections = {
         "dashboard": `
-         
+					
         `,
 		"manage-user": `<button class="btn btn-primary mb-3" id="addEmployeeBtn">Add Users</button><div id="form-container"></div>
 		     <div id="form-container"></div>
@@ -149,46 +149,48 @@ function showContent(section) {
 	                   
 	                    ${createCard("bi-credit-card", "Charge Codes", totalChargeCodes)}
 	                    ${createCard("bi bi-receipt", "Expense Codes", totalExpenseCodes)}
-	                </div>
+	                </div> <br>
+					
+					<h3>Pending Approvals</h3>
+										            <select id="employeeDropdown" class="form-select mb-3">
+										                <option value="">Select Employee</option>
+										            </select>
+										            <div id="summaryContent" class="border p-3 bg-light">
+										                <table class="table table-bordered">
+										                    <thead>
+										                        <tr>
+										                            <th>Username</th>
+										                            <th>Period</th>
+										                            <th>Total Hours</th>
+										                            <th>Total Absences</th>
+										                            <th>Charge Code Details</th>
+										                        </tr>
+										                    </thead>
+										                    <tbody id="adminSummaryBody">
+										                        <!-- Data will be inserted here dynamically -->
+										                    </tbody>
+										                </table>
+										            </div>
+										            <div class="d-flex gap-3 mt-3">
+										                <button id="approveBtn" class="btn btn-success">✅ Approve</button>
+										                <button id="issueBtn" class="btn btn-danger">🛑 Issue</button>
+										            </div>
 	            `;
 
+				
 	            // Update the content-box with the dynamically generated content
 	            contentBox.innerHTML = dynamicDashboard;
 				
+				fetchPendingApprovals();
+				
+				// ✅ Ensure buttons exist before attaching listeners
+				      setTimeout(() => {
+				          document.getElementById("approveBtn").addEventListener("click", handleApproval);
+				          document.getElementById("issueBtn").addEventListener("click", handleIssue);
+				      }, 0);
 	        })
 	        .catch(error => console.error("Error fetching data for dashboard:", error));
 			
-			
-			        /* ---- ADMIN PANEL: Pending Approvals ---- */
-			        const adminPanelUI = `
-			            <h3>Pending Approvals</h3>
-			            <select id="employeeDropdown" class="form-select mb-3">
-			                <option value="">Select Employee</option>
-			            </select>
-			            <div id="summaryContent" class="border p-3 bg-light">
-			                <table class="table table-bordered">
-			                    <thead>
-			                        <tr>
-			                            <th>Username</th>
-			                            <th>Period</th>
-			                            <th>Total Hours</th>
-			                            <th>Total Absences</th>
-			                            <th>Charge Code Details</th>
-			                        </tr>
-			                    </thead>
-			                    <tbody id="adminSummaryBody">
-			                        <!-- Data will be inserted here dynamically -->
-			                    </tbody>
-			                </table>
-			            </div>
-			            <div class="d-flex gap-3 mt-3">
-			                <button id="approveBtn" class="btn btn-success">✅ Approve</button>
-			                <button id="issueBtn" class="btn btn-danger">🛑 Issue</button>
-			            </div>
-			        `;
-			        summery.innerHTML = adminPanelUI;
-
-			        fetchPendingApprovals();
 			    }
 			}
 
@@ -196,10 +198,9 @@ function showContent(section) {
 			    fetch("/getPendingApprovals")
 			        .then(response => response.json())
 			        .then(data => {
-			            console.log("Received Data:", data); // ✅ Debug Response
 			            let dropdown = document.getElementById("employeeDropdown");
 			            dropdown.innerHTML = '<option value="">Select Employee</option>'; // Reset dropdown
-			            
+
 			            if (!Array.isArray(data)) {
 			                console.error("Error: Data is not an array", data);
 			                return;
@@ -207,16 +208,36 @@ function showContent(section) {
 
 			            data.forEach(entry => {
 			                let option = document.createElement("option");
-			                option.value = entry.username;
+			                option.value = entry.username + "  " + entry.period;
 			                option.textContent = `${entry.username} - ${entry.period}`;
 			                dropdown.appendChild(option);
+			            });
+
+			            // ✅ Add event listener AFTER dropdown is populated
+			            dropdown.addEventListener("change", function () {
+			                console.log("Dropdown Changed!"); // Debugging
+
+			                let selectedOption = this.value;
+			                console.log("Selected Option:", selectedOption); // Debugging
+
+			                if (!selectedOption) {
+			                    console.log("No value selected!"); 
+			                    return;
+			                }
+
+			                let [username, period] = selectedOption.split("  ");
+			                console.log("Extracted Username:", username);
+			                console.log("Extracted Period:", period);
+
+			                fetchEmployeeSummary(username, period);
 			            });
 			        })
 			        .catch(error => console.error("Error fetching pending approvals:", error));
 			}
 
-			// Call function on page load
+			// ✅ Ensure dropdown is populated before adding event listeners
 			fetchPendingApprovals();
+
 
 
 			// ✅ Fetch summary for selected employee
@@ -229,34 +250,36 @@ function showContent(section) {
 			    });
 			});
 
-			// ✅ Fetch specific employee's timesheet summary
-			document.getElementById("employeeDropdown").addEventListener("change", function () {
-			    let selectedOption = this.value;
-			    if (!selectedOption) return;
+			
 
-			    // Extract username and period from the selected option
-			    let [username, period] = selectedOption.split(" - ");
-			    
-			    fetchEmployeeSummary(username, period);
-			});
 
 			function fetchEmployeeSummary(username, period) {
-			    fetch(`/getSummary?username=${username}&period=${period}`)
-			        .then(response => response.json())
+			    console.log("fetchEmployeeSummary() Called!");
+			    console.log("Username:", username, "Period:", period);
+
+			    let url = `/getSummary?username=${encodeURIComponent(username)}&period=${encodeURIComponent(period)}`;
+			    console.log("Fetching URL:", url); // Debugging
+
+			    fetch(url)
+			        .then(response => {
+			            console.log("Response Status:", response.status);
+			            return response.json();
+			        })
 			        .then(summary => {
-			            console.log("Fetched Summary:", summary); // ✅ Debugging Output
+			            console.log("Fetched Summary:", summary);
+
+			            if (!summary || Object.keys(summary).length === 0) {
+			                console.warn("No summary data found!");
+			                document.getElementById("adminSummaryBody").innerHTML = 
+			                   `<tr><td colspan="5">No data available</td></tr>`;
+			                return;
+			            }
 
 			            let adminSummaryBody = document.getElementById("adminSummaryBody");
 			            adminSummaryBody.innerHTML = ""; // Clear previous data
 
-			            if (!summary || Object.keys(summary).length === 0) {
-			                adminSummaryBody.innerHTML = `<tr><td colspan="5">No data available</td></tr>`;
-			                return;
-			            }
-
 			            let chargeCodeRows = summary.entries.map(entry =>
 			                `<tr>
-			                    <td></td> 
 			                    <td>${entry.chargeCode}</td>
 			                    <td>${entry.hours}</td>
 			                </tr>`
@@ -272,6 +295,77 @@ function showContent(section) {
 			            adminSummaryBody.innerHTML = row + chargeCodeRows;
 			        })
 			        .catch(error => console.error("Error fetching summary data:", error));
+			}
+
+			// ✅ Add event listeners AFTER inserting dynamic content
+			document.getElementById("approveBtn").addEventListener("click", function () {
+			    handleApproval();
+			});
+
+			document.getElementById("issueBtn").addEventListener("click", function () {
+			    handleIssue();
+			});
+
+			function handleApproval() {
+			    let dropdown = document.getElementById("employeeDropdown");
+			    let selectedValue = dropdown.value;
+
+			    if (!selectedValue) {
+			        alert("Please select an employee before approving.");
+			        return;
+			    }
+
+			    let [username, period] = selectedValue.split("  ");
+
+			    fetch("/approve", {
+			        method: "POST",
+			        headers: { "Content-Type": "application/json" },
+			        body: JSON.stringify({ username, period })
+			    })
+			    .then(response => response.json())
+			    .then(result => {
+			        alert(result.message);
+			        fetchPendingApprovals(); // Refresh list after approval
+
+			        // ✅ Directly update the Employee button instead of fetching from DB
+			        updateEmployeeButton(username, period, "Approved");
+			    })
+			    .catch(error => console.error("Error approving timesheet:", error));
+			}
+
+			function handleIssue() {
+			    let dropdown = document.getElementById("employeeDropdown");
+			    let selectedValue = dropdown.value;
+
+			    if (!selectedValue) {
+			        alert("Please select an employee before raising an issue.");
+			        return;
+			    }
+
+			    let issueMessage = prompt("Enter the issue details:");
+			    if (!issueMessage) return; // If user cancels the prompt, exit
+
+			    let [username, period] = selectedValue.split("  ");
+
+			    fetch("/raiseIssue", {
+			        method: "POST",
+			        headers: { "Content-Type": "application/json" },
+			        body: JSON.stringify({ username, period, issueMessage })
+			    })
+			    .then(response => response.json())
+			    .then(result => {
+			        alert(result.message);
+			        fetchPendingApprovals(); // Refresh pending approvals list
+
+			        // ✅ Directly update the Employee button instead of fetching from DB
+			        updateEmployeeButton(username, period, "Timesheet Issue");
+			    })
+			    .catch(error => console.error("Error raising issue:", error));
+			}
+
+			// ✅ Function to update the button state dynamically
+			function updateEmployeeButton(username, period, status) {
+			    localStorage.setItem(`approvalStatus_${username}_${period}`, status);
 			}
 
 

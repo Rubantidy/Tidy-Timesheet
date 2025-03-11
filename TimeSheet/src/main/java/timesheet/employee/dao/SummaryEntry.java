@@ -24,11 +24,13 @@ public class SummaryEntry {
     @Column(columnDefinition = "TEXT")
     private String summaryData;
 
+    private String status;
     public SummaryEntry() {}
 
-    public SummaryEntry(String username, String period, Map<String, Object> summaryData) {
+    public SummaryEntry(String username, String period, Map<String, Object> summaryData, String status) {
         this.username = username;
         this.period = period;
+        this.status = status;
         this.summaryData = new Gson().toJson(summaryData);
     }
 
@@ -64,11 +66,21 @@ public class SummaryEntry {
 		this.summaryData = summaryData;
 	}
 
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
+
 	@Override
 	public String toString() {
 		return "SummaryEntry [id=" + id + ", username=" + username + ", period=" + period + ", summaryData="
-				+ summaryData + "]";
+				+ summaryData + ", status=" + status + "]";
 	}
+
+	
     
     
     

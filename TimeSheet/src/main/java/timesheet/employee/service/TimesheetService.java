@@ -1,7 +1,6 @@
 package timesheet.employee.service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +8,7 @@ import org.springframework.stereotype.Service;
 
 import timesheet.employee.dao.SummaryEntry;
 import timesheet.employee.dao.TimesheetEntry;
+import timesheet.employee.repo.SummaryRepository;
 import timesheet.employee.repo.TimesheetRepository;
 
 @Service
@@ -17,7 +17,8 @@ public class TimesheetService {
 	 @Autowired
 	    private TimesheetRepository timesheetRepository;
 	 
-
+	 @Autowired
+	    private SummaryRepository summaryRepository;
 
 	    public List<TimesheetEntry> getTimesheet(String username, String period) {
 	        return timesheetRepository.findByUsernameAndPeriod(username, period);
@@ -51,7 +52,37 @@ public class TimesheetService {
 	        }
 	    }
 
-	 
-	  
+	    public boolean approveTimesheet(String username, String period) {
+	        // Fetch the timesheet entry for the user and period
+	        SummaryEntry timesheet = summaryRepository.findByUsernameAndPeriod(username, period);
+	        
+	        if (timesheet != null) { // Check if entry exists
+	            timesheet.setStatus("Approved"); // ✅ Update status to Approved
+	            summaryRepository.save(timesheet); // ✅ Save the updated status
+	            return true; // ✅ Successfully updated
+	        }
+
+	        return false; // ❌ No entry found
+	    }
+
+	    public boolean raiseIssue(String username, String period, String issueMessage) {
+	    	
+	    	System.out.println("issue service called");
+	        // Fetch the timesheet entry for the user and period
+	        SummaryEntry timesheet = summaryRepository.findByUsernameAndPeriod(username, period);
+
+	        if (timesheet != null) { // Entry exists
+	            // Log the issue in the database (but don't change status)
+	            System.out.println("Issue raised for " + username + " | Period: " + period + " | Issue: " + issueMessage);
+
+	         // ✅ Update status to "Issue"
+	            timesheet.setStatus("Issue");
+	            summaryRepository.save(timesheet); 
+	            // Here you can extend to notify the employee via email/notification if needed
+
+	            return true;
+	        }
+	        return false; // Entry not found
+	    }
 }
 

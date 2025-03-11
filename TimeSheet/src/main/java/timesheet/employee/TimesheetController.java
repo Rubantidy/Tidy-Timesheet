@@ -1,6 +1,7 @@
 package timesheet.employee;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.google.gson.Gson;
 
 import timesheet.employee.dao.Preference;
 import timesheet.employee.dao.SummaryEntry;
@@ -149,6 +152,7 @@ public class TimesheetController {
     public ResponseEntity<Map<String, Object>> sendForApproval(@RequestBody Map<String, String> request) {
         String username = request.get("username");
         String period = request.get("period");
+        String status = "Pending";
 
         // ✅ Fetch summary data
         ResponseEntity<Map<String, Object>> responseEntity = getSummary(username, period);
@@ -160,16 +164,27 @@ public class TimesheetController {
         }
 
         // ✅ Save summary to the database
-        saveSummary(username, period, summary);
+        saveSummary(username, period, summary, status);
 
         return ResponseEntity.ok(Map.of("success", true));
     }
 
-    // ✅ Save Summary to Database
-    public void saveSummary(String username, String period, Map<String, Object> summaryData) {
-        SummaryEntry summaryEntry = new SummaryEntry(username, period, summaryData);
-        summaryRepository.save(summaryEntry);
+    public void saveSummary(String username, String period, Map<String, Object> summaryData, String status) {
+        // ✅ Check if an existing entry is present
+        SummaryEntry existingEntry = summaryRepository.findByUsernameAndPeriod(username, period);
+
+        if (existingEntry != null) {
+            // ✅ Update existing record
+            existingEntry.setSummaryData(new Gson().toJson(summaryData));
+            existingEntry.setStatus(status);
+            summaryRepository.save(existingEntry); // ✅ Save updated record
+        } else {
+            // ✅ Create a new entry if no existing record
+            SummaryEntry newEntry = new SummaryEntry(username, period, summaryData, status);
+            summaryRepository.save(newEntry);
+        }
     }
+
     
     
     @GetMapping("/getAllSummaries")
@@ -194,13 +209,14 @@ public class TimesheetController {
 
     @GetMapping("/getPendingApprovals")
     public ResponseEntity<List<Map<String, String>>> getPendingApprovals() {
-        List<SummaryEntry> pendingSummaries = summaryRepository.findAll();
+        List<String> statuses = Arrays.asList("Pending", "Issue"); // ✅ Define required statuses
+        List<SummaryEntry> pendingSummaries = summaryRepository.findByStatusIn(statuses); // ✅ Fetch entries with "Pending" or "Issue"
 
         List<Map<String, String>> responseList = pendingSummaries.stream().map(summary -> {
             Map<String, String> responseMap = new HashMap<>();
             responseMap.put("username", summary.getUsername());
             responseMap.put("period", summary.getPeriod());
-            System.out.println("user name and period" + responseMap);
+            System.out.println("User: " + summary.getUsername() + ", Period: " + summary.getPeriod());
             return responseMap;
         }).collect(Collectors.toList());
 
@@ -209,6 +225,75 @@ public class TimesheetController {
 
 
 
+    @PostMapping("/approve")
+    public ResponseEntity<Map<String, String>> approveTimesheet(@RequestBody Map<String, String> request) {
+        String username = request.get("username");
+        String period = request.get("period");
+
+        boolean success = timesheetService.approveTimesheet(username, period);
+
+        if (success) {
+            return ResponseEntity.ok(Collections.singletonMap("message", "Timesheet approved successfully."));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Collections.singletonMap("message", "Timesheet entry not found."));
+        }
+    }
+    
+    
+    @GetMapping("/getApprovalStatus")
+    public ResponseEntity<Map<String, String>> getApprovalStatus(
+            @RequestParam String username, @RequestParam String period) {
+
+        SummaryEntry summaryEntry = summaryRepository.findByUsernameAndPeriod(username, period);
+
+        Map<String, String> response = new HashMap<>();
+        if (summaryEntry != null) {
+            response.put("status", summaryEntry.getStatus()); // Return actual status
+        } else {
+            response.put("status", "Not Found"); // No data exists
+        }
+
+        return ResponseEntity.ok(response);
+    }
+
+    
+    @PostMapping("/raiseIssue")
+    public ResponseEntity<Map<String, String>> raiseIssue(@RequestBody Map<String, String> request) {
+    	System.out.println("issue controller called");
+        String username = request.get("username");
+        String period = request.get("period");
+        String issueMessage = request.get("issueMessage");
+
+        boolean success = timesheetService.raiseIssue(username, period, issueMessage);
+
+        if (success) {
+            return ResponseEntity.ok(Collections.singletonMap("message", "Issue raised successfully."));
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Collections.singletonMap("message", "Timesheet entry not found."));
+        }
+    }
+    
+
+//    @PostMapping("/raiseIssue")
+//    public ResponseEntity<Map<String, String>> raiseIssue(@RequestBody Map<String, String> request) {
+//        String username = request.get("username");
+//        String period = request.get("period");
+//        String issueMessage = request.get("issueMessage");
+//
+//        // ✅ Store issue in the database
+//        timesheetService.raiseIssue(username, period, issueMessage);
+//
+//        Map<String, String> response = new HashMap<>();
+//        response.put("message", "Issue raised successfully!");
+//        return ResponseEntity.ok(response);
+//    }
+
+    
+    
+    
+    
     
     @PostMapping("/savePreferences")
     public ResponseEntity<String> savePreferences(@RequestBody Preference preference) {
