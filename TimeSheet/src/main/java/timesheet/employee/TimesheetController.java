@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,6 +29,7 @@ import timesheet.employee.repo.PreferenceRepository;
 import timesheet.employee.repo.SummaryRepository;
 import timesheet.employee.repo.TimesheetRepository;
 import timesheet.employee.service.TimesheetService;
+import timesheet.notification.NotificationController;
 
 @RestController
 public class TimesheetController {
@@ -44,6 +46,16 @@ public class TimesheetController {
     @Autowired
     private SummaryRepository summaryRepository;
 
+    private final SimpMessagingTemplate messagingTemplate;
+    
+    private final NotificationController notificationController;
+
+    public TimesheetController(TimesheetService timesheetService, NotificationController notificationController, SimpMessagingTemplate messagingTemplate) {
+        this.timesheetService = timesheetService;
+        this.notificationController = notificationController;
+        this.messagingTemplate = messagingTemplate;
+    }
+    
 
     @GetMapping("/getTimesheet")
     public ResponseEntity<List<TimesheetEntry>> getTimesheet(
@@ -166,6 +178,9 @@ public class TimesheetController {
         // ✅ Save summary to the database
         saveSummary(username, period, summary, status);
 
+        
+        notificationController.sendAdminNotification(username + " is waiting for approval.");
+        
         return ResponseEntity.ok(Map.of("success", true));
     }
 
@@ -233,11 +248,12 @@ public class TimesheetController {
         boolean success = timesheetService.approveTimesheet(username, period);
 
         if (success) {
+        	 notificationController.sendNotification(username, "Your timesheet has been approved.");
             return ResponseEntity.ok(Collections.singletonMap("message", "Timesheet approved successfully."));
-        } else {
+        } 
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Collections.singletonMap("message", "Timesheet entry not found."));
-        }
+                    .body(Collections.singletonMap("message", "Timesheet entry not found."));     
+		
     }
     
     
@@ -268,11 +284,12 @@ public class TimesheetController {
         boolean success = timesheetService.raiseIssue(username, period, issueMessage);
 
         if (success) {
+        	notificationController.sendNotification(username, "Timesheet has an issue: " + issueMessage);
             return ResponseEntity.ok(Collections.singletonMap("message", "Issue raised successfully."));
-        } else {
+        } 
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Collections.singletonMap("message", "Timesheet entry not found."));
-        }
+        
     }
     
 
