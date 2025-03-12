@@ -179,7 +179,7 @@ public class TimesheetController {
         saveSummary(username, period, summary, status);
 
         
-        notificationController.sendAdminNotification(username + " is waiting for approval.");
+        notificationController.sendAdminNotification(username + " is waiting for Timesheet approval on this Period: " + period );
         
         return ResponseEntity.ok(Map.of("success", true));
     }

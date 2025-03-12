@@ -18,9 +18,12 @@ public class NotificationController {
     // ✅ Send user-specific notifications in JSON format
     public void sendNotification(String username, String message) {
         Map<String, String> notification = new HashMap<>();
-        notification.put("message", message); // Wrap message in JSON format
-        messagingTemplate.convertAndSendToUser(username, "/topic/notifications", notification);
+        notification.put("message", message); 
+
+        System.out.println("Sending notification to user: " + username); // Debug log
+        messagingTemplate.convertAndSendToUser(username, "/user/topic/notifications", notification);
     }
+
 
     // ✅ Send admin notifications in JSON format
     public void sendAdminNotification(String message) {

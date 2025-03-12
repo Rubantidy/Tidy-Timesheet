@@ -227,6 +227,7 @@ function showContent(section) {
 
 			                let [username, period] = selectedOption.split("  ");
 			                console.log("Extracted Username:", username);
+							localStorage.setItem("SummaryEmployee" , username);
 			                console.log("Extracted Period:", period);
 
 			                fetchEmployeeSummary(username, period);
