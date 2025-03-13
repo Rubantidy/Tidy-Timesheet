@@ -93,7 +93,7 @@ public class DashboardController {
 	    @PostMapping("/check-admin-role")
 	    public ResponseEntity<Map<String, Object>> checkAdminRole(@RequestBody Map<String, String> request) {
 	        String email = request.get("email");
-	        System.out.println("Switch email: " + email);
+
 
 	        // Fetch the employee details from the Employee table based on the email
 	        Employeedao employee = EmpRepo.findByeMail(email); // Assuming you have a method to find employee by email

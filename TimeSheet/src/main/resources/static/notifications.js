@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function () {
         stompClient.connect({}, function () {
             console.log("✅ Connected to WebSocket!");
 
-            // ✅ Admin Panel: Listen for notifications 
+            // ✅ Admin Panel: Listen for notifications
             stompClient.subscribe('/topic/adminNotifications', function (notification) {
                 const data = JSON.parse(notification.body);
                 console.log("🔔 Admin Notification Received:", data.message);
