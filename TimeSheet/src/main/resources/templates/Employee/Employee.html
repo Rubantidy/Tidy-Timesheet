@@ -370,9 +370,35 @@
 	</div>
 
 
-
+	
+	<div id="customAlert" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1050;">
+	    <div id="alertToast" class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">
+	        <div class="d-flex">
+	            <div class="toast-body" id="alertMessage">
+	                <!-- Alert Message Will Appear Here -->
+	            </div>
+	            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+	        </div>
+	    </div>
+	</div>
 
 <script>
+	
+	// Add this in script.js
+	function showAlert(message, type = 'success') {
+	    const alertToast = document.getElementById('alertToast');
+	    const alertMessage = document.getElementById('alertMessage');
+	    
+	    // Set message and type (success/error)
+	    alertMessage.textContent = message;
+	    alertToast.className = `toast align-items-center text-white bg-${type} border-0`;
+	    
+	    // Show the toast
+	    const toast = new bootstrap.Toast(alertToast);
+	    toast.show();
+	}
+	
+	
 	document.addEventListener("DOMContentLoaded", function () {
 		const submitbtn = document.getElementById('submitBtn');
 		const addname = localStorage.getItem('userAddRole');
@@ -538,12 +564,12 @@
 		  		            }, 1000);
 
 		  		        } else {
-		  		            alert("Failed to send OTP. Please try again.");
+		  		            showAlert("Failed to send OTP. Please try again.", "danger");
 		  		        }
 		  		    })
 		  		    .catch(error => {
 		  		        console.error("Error:", error);
-		  		        alert("An error occurred. Please try again later.");
+		  		        showAlert("An error occurred. Please try again later.", "danger");
 		  		    });
 		  		});
 
@@ -586,7 +612,7 @@
 		  		    .then(response => response.json())
 		  		    .then(result => {
 		  		        if (result.success) {
-		  		            alert("Your password was changed successfully.");
+		  		            showAlert("Your password was changed successfully.", "success");
 
 		  		            // Close the OTP modal (password change form)
 		  		            var otpModal = bootstrap.Modal.getInstance(document.getElementById('otpModal'));
@@ -606,12 +632,12 @@
 		  		            document.getElementById('sendOtpBtn').style.display = 'inline-block';
 		  		        } else {
 		  		            console.log("Error response:", result); // Debug log to check the response from backend
-		  		            alert("Failed to change the password. Please try again.");
+		  		            showAlert("Failed to change the password. Please try again.", "danger");
 		  		        }
 		  		    })
 		  		    .catch(error => {
 		  		        console.error("Error:", error);
-		  		        alert("An error occurred. Please try again later.");
+		  		        showAlert("An error occurred. Please try again later.", "danger");
 		  		    });
 		  		});
 
@@ -640,7 +666,7 @@
 				           const userEmail = localStorage.getItem('userEmail');  // Fetch the email from localStorage
 
 				           if (!userEmail) {
-				               alert("User is not logged in. Please log in first.");
+				               showAlert("User is not logged in. Please log in first.", "danger");
 				               return;
 				           }
 
@@ -663,12 +689,12 @@
 				                   // Redirect to Admin Dashboard
 				                   window.location.href = "/Admin_Dashboard";
 				               } else {
-				                   alert("You do not have permission to switch to the Admin panel.");
+				                   showAlert("You do not have permission to switch to the Admin panel.", "danger");
 				               }
 				           })
 				           .catch(error => {
 				               console.error("Error:", error);
-				               alert("An error occurred. Please try again.");
+				               showAlert("An error occurred. Please try again.", "danger");
 				           });
 				       }
 				   });

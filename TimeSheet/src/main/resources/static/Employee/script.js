@@ -3,6 +3,9 @@ document.addEventListener("DOMContentLoaded", function () {
         // Get all nav links
         const navLinks = document.querySelectorAll(".nav-link");
 
+
+		
+		
 function switchSection(sectionId) {
     document.querySelectorAll(".content-section").forEach(section => {
         section.style.display = "none";
@@ -305,7 +308,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	    }
 
 	    if (!hasValidDynamicRow) {
-	        alert("⚠ No valid data entered in dynamic rows!");
+	        showAlert("⚠ No valid data entered in dynamic rows!", "danger");
 	        return;
 	    }
 
@@ -320,8 +323,8 @@ document.addEventListener("DOMContentLoaded", function () {
 	        .then(response => response.text())
 	        .then(result => {
 	            console.log("✅ Save Successful:", result);
-	            alert(result);
-	            location.reload();
+	            showAlert(result, "success");
+	            
 	        })
 	        .catch(error => console.error("❌ Error saving timesheet:", error));
 	    } catch (e) {
@@ -366,7 +369,7 @@ document.addEventListener("DOMContentLoaded", function () {
     // 🔥 Delete Row Function
     document.getElementById("deleteIcon").addEventListener("click", function () {
         if (!selectedRow) {
-            alert("⚠ Please select a row before deleting.");
+            showAlert("⚠ Please select a row before deleting.", "danger");
             return;
         }
 
@@ -374,7 +377,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
         // 🛑 Prevent deleting static rows
         if (isProtectedRow(selectedRow)) {
-            alert("⚠ You cannot delete Work Location or Company Code rows!");
+            showAlert("⚠ You cannot delete Work Location or Company Code rows!", "danger");
             return;
 			
         }
@@ -392,15 +395,15 @@ document.addEventListener("DOMContentLoaded", function () {
             if (data.success) {
                 selectedRow.remove(); // Remove row from UI
                 selectedRow = null; // Reset selection
-                alert("✅ Row deleted successfully!");
-				location.reload();
+                showAlert("✅ Row deleted successfully!", "success");
+				
             } else {
-                alert("❌ Failed to delete row from database.");
+                showAlert("❌ Failed to delete row from database.", "danger");
             }
         })
         .catch(error => {
             console.error("❌ Error deleting row:", error);
-            alert("❌ Error deleting row. Check console.");
+            showAlert("❌ Error deleting row. Check console.", "danger");
         });
     });
 
@@ -625,7 +628,7 @@ function selectEmployee(name, email, dropdownButtonId) {
 
 
     if (!email || email === "undefined") {
-        alert(`Email not found for ${name}`);
+        showAlert(`Email not found for ${name}`, "danger");
         return;
     }
 
@@ -647,7 +650,7 @@ function selectEmployee(name, email, dropdownButtonId) {
         textArea.value += (textArea.value ? "\n" : "") + email;
         document.getElementById(dropdownButtonId).innerText = name; // Update dropdown button text
     } else {
-        alert("This employee is already added!");
+        showAlert("This employee is already added!", "danger");
     }
 }
 
@@ -664,7 +667,7 @@ function removeLastEntry(textAreaId) {
         lines.pop();
         textArea.value = lines.join("\n"); // Update textarea
     } else {
-        alert("No employees to remove!");
+        showAlert("No employees to remove!", "danger");
     }
 }
 
@@ -752,7 +755,7 @@ function savePreferences() {
         if (confirmed) {
             const periodDropdown = document.getElementById("periodDropdown");
             if (!periodDropdown) {
-                alert("Period dropdown not found!");
+                showAlert("Period dropdown not found!", "danger");
                 return;
             }
 
@@ -764,7 +767,7 @@ function savePreferences() {
             const loggedInUser = localStorage.getItem("userName"); // ✅ Get username from local storage
 
             if (!selectedPeriod || !loggedInUser) {
-                alert("Please select a period and ensure you're logged in!");
+                showAlert("Please select a period and ensure you're logged in!", "danger");
                 return;
             }
 
@@ -785,7 +788,7 @@ function savePreferences() {
             })
             .then(response => response.text())
             .then(data => {
-                alert("Preferences Saved!");
+                showAlert("Preferences Saved!", "success");
             })
             .catch(error => console.error("Error saving preferences:", error));
         } else {
@@ -938,7 +941,7 @@ document.addEventListener("DOMContentLoaded", function () {
         console.log("save period:", selectedPeriod);
 
         if (!selectedPeriod) {
-            alert("⚠ Please select a period before sending approval.");
+            showAlert("⚠ Please select a period before sending approval.", "danger");
             return;
         }
 
@@ -954,7 +957,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     sendApprovalBtn.classList.add("btn-info");
                     sendApprovalBtn.disabled = true;
                     localStorage.setItem(`approvalStatus_${username}_${selectedPeriod}`, "Reviewing"); // Store state
-                    alert("Sent for approval!");
+                    showAlert("Timesheet Successfully Sent for approval!", "success");
                 }
             })
             .catch(error => console.error("Error sending for approval:", error));

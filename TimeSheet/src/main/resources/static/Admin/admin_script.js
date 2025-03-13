@@ -11,6 +11,19 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("sidebarToggle").addEventListener("click", toggleSidebar);
 });
 
+function showAlert(message, type = 'success') {
+    const alertToast = document.getElementById('alertToast');
+    const alertMessage = document.getElementById('alertMessage');
+    
+    // Set message and type (success/error)
+    alertMessage.textContent = message;
+    alertToast.className = `toast align-items-center text-white bg-${type} border-0`;
+    
+    // Show the toast
+    const toast = new bootstrap.Toast(alertToast);
+    toast.show();
+}
+
 function toggleSidebar() {
     const sidebar = document.getElementById("sidebar");
     sidebar.classList.toggle("show");
@@ -32,7 +45,7 @@ document.getElementById('logout').addEventListener('click', function(event) {
 
        // Redirect to the login page
        window.location.href = '/login'; // Redirect to the login page or wherever needed
-	   alert("Logout Successfully..! ");
+	   showAlert("Logout Successfully..! ", "success");
    });
    
    
@@ -172,8 +185,8 @@ function showContent(section) {
 										                </table>
 										            </div>
 										            <div class="d-flex gap-3 mt-3">
-										                <button id="approveBtn" class="btn btn-success">✅ Approve</button>
-										                <button id="issueBtn" class="btn btn-danger">🛑 Issue</button>
+										                <button id="approveBtn" class="btn btn-success" onclick="handleApproval()">✅ Approve</button>
+										                <button id="issueBtn" class="btn btn-danger" onclick="handleIssue()" >🛑 Reject</button>
 										            </div>
 	            `;
 
@@ -298,23 +311,20 @@ function showContent(section) {
 			        .catch(error => console.error("Error fetching summary data:", error));
 			}
 
-			// ✅ Add event listeners AFTER inserting dynamic content
-			document.getElementById("approveBtn").addEventListener("click", function () {
-			    handleApproval();
-			});
-
-			document.getElementById("issueBtn").addEventListener("click", function () {
-			    handleIssue();
-			});
+	
 
 			function handleApproval() {
+				let approveBtn = document.getElementById("approveBtn");
+				   approveBtn.disabled = true;
+				   
 				let adminSummaryBody = document.getElementById("adminSummaryBody");
 						           
 			    let dropdown = document.getElementById("employeeDropdown");
 			    let selectedValue = dropdown.value;
 
 			    if (!selectedValue) {
-			        alert("Please select an employee before approving.");
+			        showAlert("Please select an employee before approving.", "danger");
+					approveBtn.disabled = false;
 			        return;
 			    }
 
@@ -327,7 +337,7 @@ function showContent(section) {
 			    })
 			    .then(response => response.json())
 			    .then(result => {
-			        alert(result.message);
+			        showAlert(result.message, "success");
 			        fetchPendingApprovals(); // Refresh list after approval
 
 					
@@ -337,21 +347,30 @@ function showContent(section) {
 					adminSummaryBody.innerHTML = ""; // Clear previous data
 				
 			    })
-			    .catch(error => console.error("Error approving timesheet:", error));
+			    .catch(error => console.error("Error approving timesheet:", error))
+				.finally(() => approveBtn.disabled = false);
 			}
 
 			function handleIssue() {
 				let adminSummaryBody = document.getElementById("adminSummaryBody");
 			    let dropdown = document.getElementById("employeeDropdown");
 			    let selectedValue = dropdown.value;
+				
+				let issueBtn = document.getElementById("issueBtn");
+				    issueBtn.disabled = true;
 
 			    if (!selectedValue) {
-			        alert("Please select an employee before raising an issue.");
+			        showAlert("Please select an employee before raising an issue.", "danger");
+					issueBtn.disabled = false;
 			        return;
 			    }
 
 			    let issueMessage = prompt("Enter the issue details:");
-			    if (!issueMessage) return; // If user cancels the prompt, exit
+			    if (!issueMessage){ 
+					issueBtn.disabled = false;
+					return;
+				} // If user cancels the prompt, exit
+				
 
 			    let [username, period] = selectedValue.split("  ");
 
@@ -362,7 +381,7 @@ function showContent(section) {
 			    })
 			    .then(response => response.json())
 			    .then(result => {
-			        alert(result.message);
+			        showAlert(result.message, "success");
 			        fetchPendingApprovals(); // Refresh pending approvals list
 
 			        // ✅ Directly update the Employee button instead of fetching from DB
@@ -370,7 +389,8 @@ function showContent(section) {
 					adminSummaryBody.innerHTML = ""; // Clear previous data
 				
 			    })
-			    .catch(error => console.error("Error raising issue:", error));
+			    .catch(error => console.error("Error raising issue:", error))
+				.finally(() => issueBtn.disabled = false); // Re-enable button
 			}
 
 			// ✅ Function to update the button state dynamically
@@ -451,7 +471,7 @@ function handleFormSubmit(event) {
     })
     .then(response => response.text())
     .then(data => {
-        alert(data); // Show success message
+        showAlert(data, "success"); // Show success message
         hideForm(); // Hide the form after successful submission
     })
     .catch(error => {
@@ -535,11 +555,11 @@ function employeeAction(employeeId, currentStatus) {
         })
         .then(response => {
             if (response.ok) {
-                alert("Employee status updated successfully!");
+                showAlert("Employee status updated successfully!", "success");
                 fetchEmployeeData();  // Refresh the table after update
                 confirmationModal.hide();  // Close the modal
             } else {
-                alert("Failed to update employee status.");
+                showAlert("Failed to update employee status.", "danger");
                 confirmationModal.hide();  // Close the modal
             }
         })
@@ -652,11 +672,11 @@ function removeEmployee(employeeName) {
 
 function assignEmployees() {
     if (selectedEmployees.length === 0) {
-        alert("Please select at least one employee.");
+        showAlert("Please select at least one employee.", "danger");
         return;
     }
 
-    // Get the charge code and description from the modal
+    
     const chargeCode = document.getElementById("chargeCodeDisplay").innerText;
     const description = document.getElementById("chargeCodeDescription").innerText;
 
@@ -664,11 +684,11 @@ function assignEmployees() {
     document.getElementById("confirmationChargeCode").innerText = chargeCode;
     document.getElementById("confirmationDescription").innerText = description;
 
-    // Show the confirmation modal
+
     const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal2'));
     confirmationModal.show();
 
-    // Handle the confirmation when the user clicks "Yes, Assign"
+  
     document.getElementById("confirmAssignment").onclick = function() {
         // Proceed with the assignment logic if the user clicks "Yes, Assign"
         
@@ -689,14 +709,14 @@ function assignEmployees() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                alert("Employees Assigned and Email Sent!");
+                showAlert("Employees Assigned and Email Sent!", "success");
             } else {
-                alert("Error in assignment: " + data.message);
+                showAlert("Error in assignment: " + data.message, "danger");
             }
         })
         .catch(error => {
             console.error("Error sending data to backend:", error);
-            alert("An error occurred.");
+            showAlert("An error occurred.", "danger");
         });
 
         // Hide modal
@@ -891,7 +911,7 @@ function codeGenerate() {
 	    const onboardDate = onboardDateInput.value.replace(/-/g, "");
 	    
 	    if (!clientName || !onboardDate) {
-	        alert("Please enter both Client Name and Onboard Date to generate the Charge Code.");
+	        showAlert("Please enter both Client Name and Onboard Date to generate the Charge Code.", "danger");
 	        return;
 	    }
 	    
