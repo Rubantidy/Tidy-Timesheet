@@ -248,7 +248,7 @@ public class TimesheetController {
         boolean success = timesheetService.approveTimesheet(username, period);
 
         if (success) {
-        	 notificationController.sendNotification(username, "Your timesheet has been approved.");
+        	 notificationController.sendNotification(username, "Your timesheet has been approved on this Period:" + period);
             return ResponseEntity.ok(Collections.singletonMap("message", "Timesheet approved successfully."));
         } 
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -284,7 +284,7 @@ public class TimesheetController {
         boolean success = timesheetService.raiseIssue(username, period, issueMessage);
 
         if (success) {
-        	notificationController.sendNotification(username, "Timesheet has an issue: " + issueMessage);
+        	notificationController.sendNotification(username, "Timesheet has an issue on this period: " +period +  " The Issue is: " + issueMessage);
             return ResponseEntity.ok(Collections.singletonMap("message", "Issue raised successfully."));
         } 
             return ResponseEntity.status(HttpStatus.NOT_FOUND)

@@ -1,92 +1,117 @@
 document.addEventListener("DOMContentLoaded", function () {
-    console.log("Notification JS loaded");
+    let stompClient = null;
+    let notificationCount = 0;
+    let currentEmployee = "employeeUsername"; // ✅ Update dynamically from session/backend
+    let unseenNotifications = []; // ✅ Store notifications until viewed
 
-    const bellIcon = document.getElementById("notificationBell");
-    const notificationCount = document.getElementById("notificationCount");
-    const notificationDropdown = document.getElementById("notificationDropdown");
-    const notificationList = document.getElementById("notificationList");
+    function connectWebSocket() {
+        console.log("🔄 Connecting to WebSocket...");
+        const socket = new SockJS('/ws');
+        stompClient = Stomp.over(socket);
 
-    // ✅ Establish WebSocket connection
-    var socket = new SockJS('/ws');
-    var stompClient = Stomp.over(socket); 
+        stompClient.connect({}, function () {
+            console.log("✅ Connected to WebSocket!");
 
-    stompClient.connect({}, function (frame) {
-        console.log("Connected to WebSocket");
+            // ✅ Admin Panel: Listen for notifications 
+            stompClient.subscribe('/topic/adminNotifications', function (notification) {
+                const data = JSON.parse(notification.body);
+                console.log("🔔 Admin Notification Received:", data.message);
+                showNotification(data.message, "admin");
+            });
 
-        // ✅ Subscribe to user-specific notifications
-        stompClient.subscribe('/user/topic/notifications', function (message) {
-            handleWebSocketMessage("User Notification Received", message);
+            // ✅ Employee Panel: Listen for user-specific notifications
+            stompClient.subscribe('/user/topic/notifications', function (notification) {
+                const data = JSON.parse(notification.body);
+                console.log("🔔 Employee Notification Received:", data.message);
+
+                // ✅ Ensure only the logged-in employee gets their notifications
+                if (data.username === currentEmployee) {
+                    showNotification(data.message, "employee");
+                }
+            });
+        }, function (error) {
+            console.error("❌ WebSocket Error:", error);
+            retryConnection();
         });
+    }
 
-        // ✅ Subscribe to admin notifications
-        stompClient.subscribe('/topic/adminNotifications', function (message) {
-            handleWebSocketMessage("Admin Notification Received", message);
-        });
+    function showNotification(message, panelType) {
+        const badge = document.getElementById("notificationCount");
+        const notificationList = document.getElementById("notificationList");
 
-    }, function (error) {
-        console.error("WebSocket Error:", error);
-    });
+        if (!badge || !notificationList) return; // ✅ Ensure elements exist
 
-    function handleWebSocketMessage(type, message) {
-        console.log(`${type}:`, message.body);
+        notificationCount++;
+        badge.style.display = "inline";
+        badge.textContent = notificationCount;
 
-        let notificationText;
+        // ✅ Create notification entry
+        const notificationItem = document.createElement("div");
+        notificationItem.className = "dropdown-item";
+       
 
-        try {
-            console.log("Attempting to parse JSON...");
-            const parsedMessage = JSON.parse(message.body);
-            console.log("Parsed JSON:", parsedMessage);
+        // ✅ Store unseen notifications
+        unseenNotifications.push(notificationItem);
 
-            if (typeof parsedMessage === "object" && parsedMessage !== null) {
-                notificationText = parsedMessage.message || "New Notification";
-            } else {
-                console.error("Invalid JSON structure:", parsedMessage);
-                notificationText = message.body; // Fallback to plain text
+        notificationList.prepend(notificationItem);
+    }
+
+    // ✅ Show notifications and start deletion timer for viewed ones
+    window.toggleNotifications = function () {
+        const dropdown = document.getElementById("notificationDropdown");
+
+        if (dropdown) {
+            dropdown.classList.toggle("show");
+
+            if (dropdown.classList.contains("show")) {
+                // ✅ Remove notifications after 5 minutes once viewed
+                unseenNotifications.forEach((item, index) => {
+                    setTimeout(() => {
+                        item.remove();
+                        unseenNotifications.splice(index, 1);
+                        if (unseenNotifications.length === 0) {
+                            document.getElementById("notificationCount").style.display = "none";
+                        }
+                    }, 5 * 60 * 1000); // ✅ Remove after 5 minutes
+                });
+
+                unseenNotifications = []; // ✅ Clear array after setting removal timers
             }
-        } catch (error) {
-            console.error("JSON Parsing Error:", error);
-            console.warn("Received message is not JSON, treating as plain text.");
-            notificationText = message.body;
         }
 
-        showNotification(notificationText);
-    }
-
-    function showNotification(notificationText) {
-        if (!notificationText) return;
-
-        const notificationItem = document.createElement("div");
-        notificationItem.classList.add("dropdown-item");
-        notificationItem.textContent = notificationText;
-
-        notificationList.prepend(notificationItem); // Add new notifications at the top
-
-        // ✅ Update notification count
-        let currentCount = parseInt(notificationCount.textContent) || 0;
-        currentCount++;
-        notificationCount.textContent = currentCount;
-        notificationCount.style.display = "inline"; // Show badge
-    }
-
-    // ✅ Function to toggle the notification dropdown
-    window.toggleNotifications = function () {
-        if (notificationDropdown) {
-            notificationDropdown.classList.toggle("show");
-
-            // ✅ Reset notification count when opened
-            if (notificationDropdown.classList.contains("show")) {
-                notificationCount.textContent = "0";
-                notificationCount.style.display = "none";
-            }
-        } else {
-            console.error("Notification dropdown element not found!");
+        // ✅ Reset badge when viewed
+        notificationCount = 0;
+        const badge = document.getElementById("notificationCount");
+        if (badge) {
+            badge.style.display = "none";
         }
     };
 
-    // ✅ Close dropdown when clicking outside
+    // ✅ Close notifications when clicking outside
     document.addEventListener("click", function (event) {
-        if (!bellIcon.contains(event.target) && !notificationDropdown.contains(event.target)) {
-            notificationDropdown.classList.remove("show");
+        const dropdown = document.getElementById("notificationDropdown");
+        const bellIcon = document.getElementById("notificationBell");
+
+        if (dropdown && bellIcon) {
+            if (!dropdown.contains(event.target) && !bellIcon.contains(event.target)) {
+                dropdown.classList.remove("show"); // ✅ Close dropdown if clicked outside
+            }
         }
     });
+
+    function retryConnection() {
+        console.log("🔄 Retrying WebSocket Connection in 3s...");
+        setTimeout(connectWebSocket, 3000);
+    }
+
+    // ✅ Ensure the bell icon exists before adding event listener
+    const bellIcon = document.getElementById("notificationBell");
+    if (bellIcon) {
+        bellIcon.addEventListener("click", window.toggleNotifications);
+    } else {
+        console.error("❌ Notification bell icon not found.");
+    }
+
+    // ✅ Connect WebSocket
+    connectWebSocket();
 });

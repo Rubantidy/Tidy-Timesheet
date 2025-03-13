@@ -15,15 +15,15 @@ public class NotificationController {
         this.messagingTemplate = messagingTemplate;
     }
 
-    // ✅ Send user-specific notifications in JSON format
+    // ✅ Send notification to a specific employee
     public void sendNotification(String username, String message) {
         Map<String, String> notification = new HashMap<>();
-        notification.put("message", message); 
+        notification.put("message", message);
+        notification.put("username", username); // ✅ Include username for client-side filtering
 
-        System.out.println("Sending notification to user: " + username); // Debug log
-        messagingTemplate.convertAndSendToUser(username, "/user/topic/notifications", notification);
+        System.out.println("✅ Sending WebSocket Notification to user: " + username + " -> " + message);
+        messagingTemplate.convertAndSendToUser(username, "/topic/notifications", notification);
     }
-
 
     // ✅ Send admin notifications in JSON format
     public void sendAdminNotification(String message) {
@@ -32,4 +32,5 @@ public class NotificationController {
         messagingTemplate.convertAndSend("/topic/adminNotifications", notification);
     }
 }
+
 

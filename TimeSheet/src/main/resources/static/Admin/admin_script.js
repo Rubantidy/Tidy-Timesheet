@@ -308,6 +308,8 @@ function showContent(section) {
 			});
 
 			function handleApproval() {
+				let adminSummaryBody = document.getElementById("adminSummaryBody");
+						           
 			    let dropdown = document.getElementById("employeeDropdown");
 			    let selectedValue = dropdown.value;
 
@@ -328,13 +330,18 @@ function showContent(section) {
 			        alert(result.message);
 			        fetchPendingApprovals(); // Refresh list after approval
 
+					
 			        // ✅ Directly update the Employee button instead of fetching from DB
 			        updateEmployeeButton(username, period, "Approved");
+					
+					adminSummaryBody.innerHTML = ""; // Clear previous data
+				
 			    })
 			    .catch(error => console.error("Error approving timesheet:", error));
 			}
 
 			function handleIssue() {
+				let adminSummaryBody = document.getElementById("adminSummaryBody");
 			    let dropdown = document.getElementById("employeeDropdown");
 			    let selectedValue = dropdown.value;
 
@@ -360,6 +367,8 @@ function showContent(section) {
 
 			        // ✅ Directly update the Employee button instead of fetching from DB
 			        updateEmployeeButton(username, period, "Timesheet Issue");
+					adminSummaryBody.innerHTML = ""; // Clear previous data
+				
 			    })
 			    .catch(error => console.error("Error raising issue:", error));
 			}

@@ -19,10 +19,10 @@ public class Preference {
     
     @JsonProperty("Employeename")
     @Column(nullable = false)
-    private String employeename;  // ✅ Employee name should NOT be unique
+    private String employeename;
 
-    @Column(nullable = false)  // ❌ Removed `unique = true`
-    private String period;  // ✅ Multiple users can have the same period
+    @Column(nullable = false)  
+    private String period;
 
     @Column(columnDefinition = "TEXT")
     private String approvers;
