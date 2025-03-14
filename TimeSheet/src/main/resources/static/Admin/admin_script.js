@@ -59,6 +59,32 @@ function showContent(section) {
         "dashboard": `
 					
         `,
+		"approval": `
+		<h3>Pending Approvals</h3>
+											            <select id="employeeDropdown" class="form-select mb-3">
+											                <option value="">Select Employee</option>
+											            </select>
+											            <div id="summaryContent" class="border p-3 bg-light">
+											                <table class="table table-bordered">
+											                    <thead>
+											                        <tr>
+											                            <th>Username</th>
+											                            <th>Period</th>
+											                            <th>Total Hours</th>
+											                            <th>Total Absences</th>
+											                            <th>Charge Code Details</th>
+											                        </tr>
+											                    </thead>
+											                    <tbody id="adminSummaryBody">
+											                        <!-- Data will be inserted here dynamically -->
+											                    </tbody>
+											                </table>
+											            </div>
+											            <div class="d-flex gap-3 mt-3">
+											                <button id="approveBtn" class="btn btn-success" onclick="handleApproval()">✅ Approve</button>
+											                <button id="issueBtn" class="btn btn-danger" onclick="handleIssue()" >🛑 Reject</button>
+											            </div>		
+		       `,
 		"manage-user": `<button class="btn btn-primary mb-3" id="addEmployeeBtn">Add Users</button><div id="form-container"></div>
 		     <div id="form-container"></div>
 		           <h4>Employee List</h4>
@@ -164,47 +190,23 @@ function showContent(section) {
 	                    ${createCard("bi bi-receipt", "Expense Codes", totalExpenseCodes)}
 	                </div> <br>
 					
-					<h3>Pending Approvals</h3>
-										            <select id="employeeDropdown" class="form-select mb-3">
-										                <option value="">Select Employee</option>
-										            </select>
-										            <div id="summaryContent" class="border p-3 bg-light">
-										                <table class="table table-bordered">
-										                    <thead>
-										                        <tr>
-										                            <th>Username</th>
-										                            <th>Period</th>
-										                            <th>Total Hours</th>
-										                            <th>Total Absences</th>
-										                            <th>Charge Code Details</th>
-										                        </tr>
-										                    </thead>
-										                    <tbody id="adminSummaryBody">
-										                        <!-- Data will be inserted here dynamically -->
-										                    </tbody>
-										                </table>
-										            </div>
-										            <div class="d-flex gap-3 mt-3">
-										                <button id="approveBtn" class="btn btn-success" onclick="handleApproval()">✅ Approve</button>
-										                <button id="issueBtn" class="btn btn-danger" onclick="handleIssue()" >🛑 Reject</button>
-										            </div>
 	            `;
 
 				
 	            // Update the content-box with the dynamically generated content
 	            contentBox.innerHTML = dynamicDashboard;
 				
-				fetchPendingApprovals();
 				
-				// ✅ Ensure buttons exist before attaching listeners
-				      setTimeout(() => {
-				          document.getElementById("approveBtn").addEventListener("click", handleApproval);
-				          document.getElementById("issueBtn").addEventListener("click", handleIssue);
-				      }, 0);
+				
+				// 
 	        })
 	        .catch(error => console.error("Error fetching data for dashboard:", error));
 			
 			    }
+				
+	else if(section === "approval") {
+		fetchPendingApprovals();
+	}
 			}
 
 			function fetchPendingApprovals() {

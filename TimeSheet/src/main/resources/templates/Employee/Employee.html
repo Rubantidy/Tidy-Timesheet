@@ -1356,7 +1356,7 @@
 		          document.getElementById('addRow').addEventListener('click', addRow);
 				  
 				  
-				  /*Notification*/
+				  /*Notification script*/
 				  document.addEventListener("DOMContentLoaded", function () {
 				      let stompClient = null;
 				      let notificationCount = 0;
@@ -1382,6 +1382,7 @@
 				                      showNotification(message, "employee");
 				                  });
 				              }
+							
 				          });
 				      }
 
@@ -1412,9 +1413,11 @@
 				          document.getElementById("notificationCount").style.display = "none";
 				      }
 
+					  
 				      // Attach click event to bell icon
 				      document.getElementById("notificationBell").addEventListener("click", toggleNotifications);
 
+					
 				      // Connect WebSocket
 				      connectWebSocket();
 				  });

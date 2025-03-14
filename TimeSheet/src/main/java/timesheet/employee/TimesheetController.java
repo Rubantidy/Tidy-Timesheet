@@ -106,16 +106,16 @@ public class TimesheetController {
             @RequestParam String username, @RequestParam String period) {
         
         System.out.println("Fetching summary for: " + username + " | Period: " + period);
-
+ 
         List<TimesheetEntry> entries = timesheetService.getTimesheet(username, period);
       
-
+ 
         int totalHours = 0;
         int totalAbsences = 0;
-
+ 
         // Store charge code totals in a Map to merge duplicates
         Map<String, Integer> chargeCodeTotals = new HashMap<>();
-
+ 
         for (TimesheetEntry entry : entries) {
             String code = entry.getChargeCode();
             
@@ -123,40 +123,39 @@ public class TimesheetController {
             if ("Company Code".equals(code) || "Work Location".equals(code)) {
                 continue;
             }
-
+ 
             int hours = entry.getHours() == null || entry.getHours().isEmpty() ? 0 : Integer.parseInt(entry.getHours());
-
+ 
             // Merge same charge codes by summing hours
             chargeCodeTotals.put(code, chargeCodeTotals.getOrDefault(code, 0) + hours);
-
+ 
             totalHours += hours;
-
+ 
             // Check for leave codes and count absences
-            if ("TdL1 - Sick Leave".equals(code) || "TdL2 - Casual Leave".equals(code)) {
+            if (code.endsWith("Leave")) {
                 totalAbsences += hours; //leaves
-            } 
+            }
         }
-
+ 
         // Convert the merged data into a list for frontend
         List<Map<String, String>> processedEntries = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : chargeCodeTotals.entrySet()) {
             Map<String, String> row = new HashMap<>();
             row.put("chargeCode", entry.getKey());
             row.put("hours", String.valueOf(entry.getValue()));
-
+ 
             processedEntries.add(row);
         }
-
+ 
         Map<String, Object> summaryData = new HashMap<>();
         summaryData.put("totalHours", totalHours);
         summaryData.put("totalAbsences", totalAbsences);
         summaryData.put("entries", processedEntries); // Send merged list
-
+ 
         System.out.println("data:" + summaryData);
         return ResponseEntity.ok(summaryData);
     }
-    
-    
+ 
     
     
     
@@ -224,7 +223,7 @@ public class TimesheetController {
 
     @GetMapping("/getPendingApprovals")
     public ResponseEntity<List<Map<String, String>>> getPendingApprovals() {
-        List<String> statuses = Arrays.asList("Pending", "Issue"); // ✅ Define required statuses
+        List<String> statuses = Arrays.asList("Pending"); // ✅ Define required statuses
         List<SummaryEntry> pendingSummaries = summaryRepository.findByStatusIn(statuses); // ✅ Fetch entries with "Pending" or "Issue"
 
         List<Map<String, String>> responseList = pendingSummaries.stream().map(summary -> {
@@ -248,7 +247,7 @@ public class TimesheetController {
         boolean success = timesheetService.approveTimesheet(username, period);
 
         if (success) {
-        	 notificationController.sendNotification(username, "Your timesheet has been approved on this Period:" + period);
+        	 notificationController.sendNotification(username, "Your timesheet has been approved on this Period: " + period);
             return ResponseEntity.ok(Collections.singletonMap("message", "Timesheet approved successfully."));
         } 
             return ResponseEntity.status(HttpStatus.NOT_FOUND)

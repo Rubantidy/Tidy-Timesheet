@@ -1,60 +1,8 @@
 document.addEventListener("DOMContentLoaded", function () {
-    let stompClient = null;
-    let notificationCount = 0;
-    let currentEmployee = "employeeUsername"; // ✅ Update dynamically from session/backend
+
     let unseenNotifications = []; // ✅ Store notifications until viewed
 
-    function connectWebSocket() {
-        console.log("🔄 Connecting to WebSocket...");
-        const socket = new SockJS('/ws');
-        stompClient = Stomp.over(socket);
 
-        stompClient.connect({}, function () {
-            console.log("✅ Connected to WebSocket!");
-
-            // ✅ Admin Panel: Listen for notifications
-            stompClient.subscribe('/topic/adminNotifications', function (notification) {
-                const data = JSON.parse(notification.body);
-                console.log("🔔 Admin Notification Received:", data.message);
-                showNotification(data.message, "admin");
-            });
-
-            // ✅ Employee Panel: Listen for user-specific notifications
-            stompClient.subscribe('/user/topic/notifications', function (notification) {
-                const data = JSON.parse(notification.body);
-                console.log("🔔 Employee Notification Received:", data.message);
-
-                // ✅ Ensure only the logged-in employee gets their notifications
-                if (data.username === currentEmployee) {
-                    showNotification(data.message, "employee");
-                }
-            });
-        }, function (error) {
-            console.error("❌ WebSocket Error:", error);
-            retryConnection();
-        });
-    }
-
-    function showNotification(message, panelType) {
-        const badge = document.getElementById("notificationCount");
-        const notificationList = document.getElementById("notificationList");
-
-        if (!badge || !notificationList) return; // ✅ Ensure elements exist
-
-        notificationCount++;
-        badge.style.display = "inline";
-        badge.textContent = notificationCount;
-
-        // ✅ Create notification entry
-        const notificationItem = document.createElement("div");
-        notificationItem.className = "dropdown-item";
-       
-
-        // ✅ Store unseen notifications
-        unseenNotifications.push(notificationItem);
-
-        notificationList.prepend(notificationItem);
-    }
 
     // ✅ Show notifications and start deletion timer for viewed ones
     window.toggleNotifications = function () {
