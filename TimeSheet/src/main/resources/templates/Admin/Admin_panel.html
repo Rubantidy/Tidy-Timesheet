@@ -36,12 +36,11 @@
                 <img src="img/logo.png" alt="Logo" height="40">
 				<div class="iconsmenu">
 					<i class="bi bi-bell" id="notificationBell" onclick="toggleNotifications()"></i>
-					    <span id="notificationCount" class="badge badge-danger">0</span>
-						
-						<div id="notificationDropdown" class="dropdown-menu notification-dropdown">
-						        <h6 class="dropdown-header">Notifications</h6>
-						        <div id="notificationList"></div>
-						    </div>
+										    <span id="notificationCount" class="badge badge-danger">0</span>
+											
+					
+					 
+
 
 				    <i class="bi bi-person-circle" id="userIcon" onclick="toggleDropdown()"></i>
 					<span id="userName" style="color: black; margin-left: 10px; display: none;"></span>
@@ -466,72 +465,72 @@
 		}
 
 
-	
-
 		/*Notification*/
-		document.addEventListener("DOMContentLoaded", function () {
-		    let stompClient = null;
-		    let notificationCount = 0;
+				document.addEventListener("DOMContentLoaded", function () {
+				    let stompClient = null;
+				    let notificationCount = 0;
+		 
+				    function connectWebSocket() {
+				        const socket = new SockJS('/ws');
+				        stompClient = Stomp.over(socket);
+		 
+				        stompClient.connect({}, function () {
+				            console.log("Connected to WebSocket");
+		 
+				            // ✅ Admin Panel: Listen for notifications
+				            stompClient.subscribe('/topic/adminNotifications', function (notification) {
+				                const message = JSON.parse(notification.body).message;
+				                showNotification(message, "admin");
+				            });
+		 
+				            // ✅ Employee Panel: Listen for user-specific notifications
+				            const userName = localStorage.getItem("userName");  // Get logged-in user
+				            if (userName) {
+				                stompClient.subscribe(`/user/${userName}/topic/notifications`, function (notification) {
+				                    const message = JSON.parse(notification.body).message;
+				                    showNotification(message, "employee");
+				                });
+				            }
+							
+				        });
+				    }
+		 
+				    function showNotification(message, panelType) {
+				        const bellIcon = document.getElementById("notificationBell");
+				        const badge = document.getElementById("notificationCount");
+				        const notificationList = document.getElementById("notificationList");
+		 
+				        if (!badge || !notificationList) return; // Ensure elements exist
+		 
+				        notificationCount++; // Increment badge count
+				        badge.style.display = "inline";  // Show badge
+				        badge.textContent = notificationCount; // Update count
+		 
+				        // Create notification entry
+				        const notificationItem = document.createElement("div");
+				        notificationItem.className = "dropdown-item";
+				        notificationItem.textContent = message;
+		 
+				        // Add to list
+				        notificationList.prepend(notificationItem);
+				    }
+		 
+				    function toggleNotifications() {
+				        const dropdown = document.getElementById("notificationDropdown");
+				        dropdown.classList.toggle("show");
+				        notificationCount = 0;  // Reset count when viewed
+				        document.getElementById("notificationCount").style.display = "none";
+				    }
+		 
+				    // Attach click event to bell icon
+				    document.getElementById("notificationBell").addEventListener("click", toggleNotifications);
+		 
+					  
+				    // Connect WebSocket
+				    connectWebSocket();
+				});
 
-		    function connectWebSocket() {
-		        const socket = new SockJS('/ws');
-		        stompClient = Stomp.over(socket);
 
-		        stompClient.connect({}, function () {
-		            console.log("Connected to WebSocket");
-
-		            // ✅ Admin Panel: Listen for notifications
-		            stompClient.subscribe('/topic/adminNotifications', function (notification) {
-		                const message = JSON.parse(notification.body).message;
-		                showNotification(message, "admin");
-		            });
-
-		            // ✅ Employee Panel: Listen for user-specific notifications
-		            const userName = localStorage.getItem("userName");  // Get logged-in user
-		            if (userName) {
-		                stompClient.subscribe(`/user/${userName}/topic/notifications`, function (notification) {
-		                    const message = JSON.parse(notification.body).message;
-		                    showNotification(message, "employee");
-		                });
-		            }
-					
-		        });
-		    }
-
-		    function showNotification(message, panelType) {
-		        const bellIcon = document.getElementById("notificationBell");
-		        const badge = document.getElementById("notificationCount");
-		        const notificationList = document.getElementById("notificationList");
-
-		        if (!badge || !notificationList) return; // Ensure elements exist
-
-		        notificationCount++; // Increment badge count
-		        badge.style.display = "inline";  // Show badge
-		        badge.textContent = notificationCount; // Update count
-
-		        // Create notification entry
-		        const notificationItem = document.createElement("div");
-		        notificationItem.className = "dropdown-item";
-		        notificationItem.textContent = message;
-
-		        // Add to list
-		        notificationList.prepend(notificationItem);
-		    }
-
-		    function toggleNotifications() {
-		        const dropdown = document.getElementById("notificationDropdown");
-		        dropdown.classList.toggle("show");
-		        notificationCount = 0;  // Reset count when viewed
-		        document.getElementById("notificationCount").style.display = "none";
-		    }
-
-		    // Attach click event to bell icon
-		    document.getElementById("notificationBell").addEventListener("click", toggleNotifications);
-
-			  
-		    // Connect WebSocket
-		    connectWebSocket();
-		});
 
 
     </script>
