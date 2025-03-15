@@ -322,9 +322,9 @@ document.addEventListener("DOMContentLoaded", function () {
 	        })
 	        .then(response => response.text())
 	        .then(result => {
-	            console.log("✅ Save Successful:", result);
-	            showAlert(result, "success");
 	            
+	            showAlert(result, "success");
+	            location.reload();
 	        })
 	        .catch(error => console.error("❌ Error saving timesheet:", error));
 	    } catch (e) {
@@ -396,7 +396,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 selectedRow.remove(); // Remove row from UI
                 selectedRow = null; // Reset selection
                 showAlert("✅ Row deleted successfully!", "success");
-				
+				location.reload();
             } else {
                 showAlert("❌ Failed to delete row from database.", "danger");
             }
@@ -418,13 +418,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 function generateSummary() {
-	
     const username = localStorage.getItem("userName");
-    
+
     function getSelectedPeriod() {
         return periodDropdown.options[periodDropdown.selectedIndex].text;
     }
-	
+
     const selectedPeriod = getSelectedPeriod();
 
     fetch(`/getSummary?username=${username}&period=${selectedPeriod}`)
@@ -433,31 +432,53 @@ function generateSummary() {
             let summaryBody = document.getElementById("summaryBody");
             summaryBody.innerHTML = ""; // Clear previous data
 
+            let casualLeaveDays = 0;
+            let sickLeaveDays = 0;
+            let paidLeaveDays = 0;
+
             if (data.entries.length === 0) {
                 summaryBody.innerHTML = `<tr><td colspan="3">No data available</td></tr>`;
             } else {
                 data.entries.forEach(entry => {
+                    // Convert leave hours to days (assuming 8 hours = 1 day)
+                    let leaveDays = entry.hours / 9;
+
+                    // Check if the charge code is a leave type and update counts
+                    if (entry.chargeCode === "TdL1 - Casual Leave") { 
+                        casualLeaveDays += leaveDays;
+                    } else if (entry.chargeCode === "TdL2 - Sick Leave") { 
+                        sickLeaveDays += leaveDays;
+                    } 
+
+                    // Keep the existing table structure
                     let row = `<tr>
                         <td>${entry.chargeCode}</td>
                         <td>${entry.hours}</td>
                         <td>${entry.chargeCode === "TDL1" || entry.chargeCode === "TDL2" ? entry.hours : 0}</td>
                     </tr>`;
                     summaryBody.innerHTML += row;
-                }); 
-            }
+                });
+            } 
 
-			let standardHours = calculateStandardAllocatedHours(selectedPeriod);
-			
+            let standardHours = calculateStandardAllocatedHours(selectedPeriod);
+            let totalWorkingHours = data.totalHours - data.totalAbsences;
+            let contributionPercent = totalWorkingHours > 0 
+                ? ((data.totalHours / totalWorkingHours) * 100).toFixed(2) 
+                : 0;
 
             // Update total values
             document.getElementById("totalHours").textContent = data.totalHours;
             document.getElementById("totalAbsences").textContent = data.totalAbsences;
-            document.getElementById("locationTotalHours").textContent = (data.totalHours - data.totalAbsences); // Location total
-			document.getElementById("totalworking").textContent = (data.totalHours - data.totalAbsences);
-			document.getElementById("standardHours").textContent = standardHours; // ✅ Update dynamically
+            document.getElementById("locationTotalHours").textContent = totalWorkingHours;
+            document.getElementById("totalworking").textContent = totalWorkingHours;
+            document.getElementById("standardHours").textContent = standardHours;
 
-			
-		
+            // Update leave details
+            document.getElementById("contributionPercent").textContent = `Contribution on this Period : ${((totalWorkingHours / standardHours) * 100).toFixed(2)}%`;
+            document.getElementById("casualLeave").textContent = `Casual Leave Taken: ${casualLeaveDays.toFixed(1)} (Max: 1 per month)`;
+            document.getElementById("sickLeave").textContent = `Sick Leave Taken: ${sickLeaveDays.toFixed(1)} (Max: 6 per year)`;
+            document.getElementById("paidLeave").textContent = `Paid Leave: ${paidLeaveDays.toFixed(1)}`;
+
         })
         .catch(error => {
             console.error("Error fetching summary data:", error);
