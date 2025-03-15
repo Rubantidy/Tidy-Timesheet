@@ -104,57 +104,73 @@ public class TimesheetController {
     @GetMapping("/getSummary")
     public ResponseEntity<Map<String, Object>> getSummary(
             @RequestParam String username, @RequestParam String period) {
-        
+
         System.out.println("Fetching summary for: " + username + " | Period: " + period);
- 
+
         List<TimesheetEntry> entries = timesheetService.getTimesheet(username, period);
-      
- 
+
         int totalHours = 0;
         int totalAbsences = 0;
- 
+
         // Store charge code totals in a Map to merge duplicates
         Map<String, Integer> chargeCodeTotals = new HashMap<>();
- 
+
+        int casualLeaveThisMonth = 0;
+        int sickLeaveThisYear = 0;
+        int paidLeave = 0;
+
         for (TimesheetEntry entry : entries) {
             String code = entry.getChargeCode();
             
-            // Exclude "Company Code" & "Work Location"
             if ("Company Code".equals(code) || "Work Location".equals(code)) {
                 continue;
             }
- 
+
             int hours = entry.getHours() == null || entry.getHours().isEmpty() ? 0 : Integer.parseInt(entry.getHours());
- 
-            // Merge same charge codes by summing hours
+            int leaveDays = hours / 9; // Convert hours to days
+
             chargeCodeTotals.put(code, chargeCodeTotals.getOrDefault(code, 0) + hours);
- 
             totalHours += hours;
- 
-            // Check for leave codes and count absences
+
+            if (code.equals("TdL1 - Casual Leave")) { // ✅ Casual Leave Check
+                if (casualLeaveThisMonth < 1) {
+                    casualLeaveThisMonth += leaveDays;
+                } else {
+                    paidLeave += leaveDays; // ✅ Convert excess Casual Leave to Paid Leave
+                }
+            } else if (code.equals("TdL2 - Sick Leave")) { // ✅ Sick Leave Check
+                if (sickLeaveThisYear < 6) {
+                    sickLeaveThisYear += leaveDays;
+                } else {
+                    paidLeave += leaveDays; // ✅ Convert excess Sick Leave to Paid Leave
+                }
+            }
+
             if (code.endsWith("Leave")) {
-                totalAbsences += hours; //leaves
+                totalAbsences += hours;
             }
         }
- 
-        // Convert the merged data into a list for frontend
+
         List<Map<String, String>> processedEntries = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : chargeCodeTotals.entrySet()) {
             Map<String, String> row = new HashMap<>();
             row.put("chargeCode", entry.getKey());
             row.put("hours", String.valueOf(entry.getValue()));
- 
             processedEntries.add(row);
         }
- 
+
         Map<String, Object> summaryData = new HashMap<>();
         summaryData.put("totalHours", totalHours);
         summaryData.put("totalAbsences", totalAbsences);
-        summaryData.put("entries", processedEntries); // Send merged list
- 
-        System.out.println("data:" + summaryData);
+        summaryData.put("casualLeaveDays", casualLeaveThisMonth);
+        summaryData.put("sickLeaveDays", sickLeaveThisYear);
+        summaryData.put("paidLeaveDays", paidLeave);
+        summaryData.put("entries", processedEntries);
+
+        System.out.println("Summary Data: " + summaryData);
         return ResponseEntity.ok(summaryData);
     }
+
  
     
     

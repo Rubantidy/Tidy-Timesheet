@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
             closeSidebarOnMobile(); 
         });
     });
-
+ 
     document.getElementById("sidebarToggle").addEventListener("click", toggleSidebar);
 });
 

@@ -53,7 +53,7 @@
 
 
 
-/* Keep dropdown styling minimal */
+/* Keep header dropdown styling minimal */
 .dropdown-panel {
     position: absolute;
     width: 40%;
@@ -88,31 +88,85 @@
 }
 
 
+
 /*summary table*/
 
+/* General table styling */
 .summary-table {
-    width: 50%;
+    width: 80%;
     border-collapse: collapse;
-    margin-top: 10px;
+    margin: 20px auto;
+    font-family: 'Arial', sans-serif;
     font-size: 14px;
+    text-align: left;
 }
 
-.summary-table th,
-.summary-table td {
-    padding: 8px;
-    text-align: center;
-    border: 1px solid black;
-}
-
+/* Table header styling (matching charge code table) */
 .summary-table thead {
-    background-color: #f2f2f2;
+    background-color: #004080; /* Blue header */
+    color: white;
+    text-transform: uppercase;
+}
+
+.summary-table th, .summary-table td {
+    padding: 12px;
+    border: 1px solid #ddd;
+}
+
+/* Alternating row colors for better readability */
+.summary-table tbody tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+.summary-table tbody tr:nth-child(even) {
+    background-color: #ffffff;
+}
+
+/* Hover effect */
+.summary-table tbody tr:hover {
+    background-color: #f1f1f1;
+    transition: 0.3s;
+}
+
+/* Footer row styling */
+.summary-table tfoot {
+    background-color: #e9ecef; 
     font-weight: bold;
 }
 
-.summary-table tfoot {
+/* Center align summary text */
+#summarySection h2, #summarySection h3 {
+    text-align: center;
     font-weight: bold;
-    background-color: #e6e6e6;
+    color: #333;
 }
+
+/* Center align contribution & leave summary section */
+#contributionSummary {
+    width: 50%; /* Adjust width for better alignment */
+    margin: 20px auto; /* Centering */
+    padding: 15px;
+    background-color: #f9f9f9; /* Light gray background */
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    text-align: center; /* Center text */
+}
+
+/* Style the heading */
+#contributionSummary h3 {
+    font-size: 18px;
+    font-weight: bold;
+    color: #004080; /* Match the blue theme */
+    margin-bottom: 10px;
+}
+
+/* Style the leave details */
+#contributionSummary p {
+    font-size: 14px;
+    color: #333;
+    margin: 5px 0;
+}
+
 
 
 /*.selected-row{
@@ -122,10 +176,8 @@
 
    
    
-  /*Updated  table styling */
+  /*timesheet table */
    
-
-
   #timesheetTable {
       width: 100%;
       border-collapse: collapse;
@@ -265,8 +317,10 @@
 	  vertical-align: middle;
   }
 
-  /*icons*/
   
+  
+  
+  /*icons*/
  #templateIcon  {
 	cursor: pointer;
   }
