@@ -390,6 +390,75 @@
 	        </div>
 	    </div>
 	</div>
+	
+	
+	<!-- Models -->
+	<!-- Delete Confirmation Modal (Unique ID & Class) -->
+	<div id="deleteRowModal" class="modal delete-row-modal" tabindex="-1" aria-labelledby="deleteRowModalLabel" aria-hidden="true">
+	    <div class="modal-dialog">
+	        <div class="modal-content">
+	            <div class="modal-header">
+	                <h5 class="modal-title" id="deleteRowModalLabel">Confirm Delete</h5>
+	                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	            </div>
+	            <div class="modal-body">
+	                <p id="deleteRowMessage"></p>
+	            </div>
+	            <div class="modal-footer">
+	                <button type="button" class="btn btn-danger" id="confirmDeleteRow">Yes, Delete</button>
+	                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+
+
+
+	<!-- Save Confirmation Modal -->
+	<div id="saveTimesheetModal" class="modal save-timesheet-modal" tabindex="-1" aria-labelledby="saveTimesheetModalLabel" aria-hidden="true">
+	    <div class="modal-dialog">
+	        <div class="modal-content">
+	            <div class="modal-header">
+	                <h5 class="modal-title" id="saveTimesheetModalLabel">Confirm Save</h5>
+	                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	            </div>
+	            <div class="modal-body">
+	                <p id="saveTimesheetMessage"></p>
+	            </div>
+	            <div class="modal-footer">
+	                <button type="button" class="btn btn-primary" id="confirmSaveTimesheet">Save</button>
+	                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+
+	<!-- Approval Confirmation Modal -->
+	<div id="approvalModal" class="modal fade" tabindex="-1" aria-labelledby="approvalModalLabel" aria-hidden="true">
+	    <div class="modal-dialog">
+	        <div class="modal-content">
+	            <div class="modal-header">
+	                <h5 class="modal-title" id="approvalModalLabel">Confirm Timesheet Submission</h5>
+	                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	            </div>
+	            <div class="modal-body">
+	                <p><strong>Are you sure you want to send the timesheet for <span id="selectedPeriodText"></span>?</strong></p>
+	                <p class="text-danger"><strong>Note:</strong></p>
+	                <p class="text-danger">
+	                    Please make sure all entered details are correct. If incorrect, it may affect your salary, and we are not responsible for that!
+	                </p>
+	            </div>
+	            <div class="modal-footer">
+	                <button type="button" class="btn btn-primary" id="confirmApproval">Send for Approval</button>
+	                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+
+
+
+
 
 <script>
 	

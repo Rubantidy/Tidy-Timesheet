@@ -191,147 +191,160 @@ document.addEventListener("DOMContentLoaded", function () {
 	    calculateTotals();
 	}
 
+	
 
 	function saveTimesheetData() {
 	    const selectedPeriod = getSelectedPeriod();
-	    const rows = document.querySelectorAll("#tableBody tr");
-	    let timesheetEntries = [];
-	    let columnFilled = {};
-	    let hasValidDynamicRow = false;
+	    
+	    // 🔥 Show Confirmation Modal Before Saving
+	    document.getElementById("saveTimesheetMessage").innerText = 
+	        `⚠ Are you sure you want to save the timesheet for "${selectedPeriod}"?`;
+	    
+	    let saveModal = new bootstrap.Modal(document.getElementById("saveTimesheetModal"));
+	    saveModal.show();
 
-	    function parseDate(dateStr) {
-	        let parts = dateStr.split("/");
-	        return new Date(parts[2], parts[1] - 1, parts[0]); // YYYY, MM (0-based), DD
-	    }
+	    // ✅ Handle Save Confirmation - Only Save When "Save" is Clicked
+	    document.getElementById("confirmSaveTimesheet").onclick = function () {
+	        saveModal.hide();  // Close the modal before saving
 
-	    let [startDateStr, endDateStr] = selectedPeriod.split(" - ");
-	    let startDate = parseDate(startDateStr);
-	    let endDate = parseDate(endDateStr);
+	        // 🔥 Proceed with Original Save Functionality
+	        const rows = document.querySelectorAll("#tableBody tr");
+	        let timesheetEntries = [];
+	        let columnFilled = {};
+	        let hasValidDynamicRow = false;
 
-	    let sundayColumns = [];
-	    let currentDate = new Date(startDate);
-	    let columnIndex = 1;
-
-	    while (currentDate <= endDate) {
-	        if (currentDate.getDay() === 0) {
-	            sundayColumns.push(columnIndex);
+	        function parseDate(dateStr) {
+	            let parts = dateStr.split("/");
+	            return new Date(parts[2], parts[1] - 1, parts[0]); // YYYY, MM (0-based), DD
 	        }
-	        currentDate.setDate(currentDate.getDate() + 1);
-	        columnIndex++;
-	    }
 
-	    console.log("📌 Excluding Sunday Columns:", sundayColumns);
+	        let [startDateStr, endDateStr] = selectedPeriod.split(" - ");
+	        let startDate = parseDate(startDateStr);
+	        let endDate = parseDate(endDateStr);
 
-	    document.querySelectorAll("#tableBody tr td input").forEach(input => {
-	        input.style.backgroundColor = "";
-	        input.removeAttribute("title"); // Clear previous tooltip
-	    });
+	        let sundayColumns = [];
+	        let currentDate = new Date(startDate);
+	        let columnIndex = 1;
 
-	    rows.forEach((row, rowIndex) => {
-	        let chargeCodeCell = row.cells[0];
-	        if (!chargeCodeCell) return;
-
-	        let chargeCode = chargeCodeCell.textContent.trim();
-	        if (chargeCode.includes("Select Charge Code")) return;
-	        chargeCode = chargeCode.replace(/✖.*/, "").trim();
-	        if (!chargeCode) return;
-
-	        console.log("✅ Valid Charge Code Found:", chargeCode);
-
-	        let isStaticRow = chargeCode.toLowerCase().includes("work location") || chargeCode.toLowerCase().includes("company code");
-	        let rowHasValue = false;
-	        const inputs = row.querySelectorAll("td input:not(.dropdown-search)");
-
-	        inputs.forEach((input, colIndex) => {
-	            let actualColIndex = colIndex + 1;
-	            let cellIndex = `${rowIndex}_${actualColIndex}`;
-
-	            if (sundayColumns.includes(actualColIndex)) return;
-
-	            // ✅ Ensure "data-prev" is set during population
-	            if (!input.hasAttribute("data-prev")) {
-	                input.setAttribute("data-prev", input.value.trim());
+	        while (currentDate <= endDate) {
+	            if (currentDate.getDay() === 0) {
+	                sundayColumns.push(columnIndex);
 	            }
+	            currentDate.setDate(currentDate.getDate() + 1);
+	            columnIndex++;
+	        }
 
-	            let previousValue = input.getAttribute("data-prev");
-	            let currentValue = input.value.trim();
+	        console.log("📌 Excluding Sunday Columns:", sundayColumns);
 
-	            if (currentValue !== "") {
-	                rowHasValue = true;
-	                if (!isStaticRow) columnFilled[actualColIndex] = true;
-
-	                timesheetEntries.push({
-	                    username: localStorage.getItem("userName"),
-	                    period: selectedPeriod,
-	                    chargeCode: chargeCode,
-	                    cellIndex: cellIndex,
-	                    hours: currentValue
-	                });
-
-	                input.setAttribute("data-prev", currentValue); // Update stored value
-	            } 
-	            // ✅ Handle cleared cells: If the cell had a value before but is now empty, mark for deletion
-	            else if (previousValue !== "" && currentValue === "") {
-	                console.log(`🛑 Cell CLEARED at ${cellIndex} (Previous: "${previousValue}", Now: "EMPTY")`);
-
-	                timesheetEntries.push({
-	                    username: localStorage.getItem("userName"),
-	                    period: selectedPeriod,
-	                    chargeCode: chargeCode,
-	                    cellIndex: cellIndex,
-	                    hours: null // Indicating deletion
-	                });
-
-	                input.setAttribute("data-prev", ""); // Update stored value
-	            }
+	        document.querySelectorAll("#tableBody tr td input").forEach(input => {
+	            input.style.backgroundColor = "";
+	            input.removeAttribute("title"); // Clear previous tooltip
 	        });
 
-	        if (rowHasValue) hasValidDynamicRow = true;
-	    });
+	        rows.forEach((row, rowIndex) => {
+	            let chargeCodeCell = row.cells[0];
+	            if (!chargeCodeCell) return;
 
-	    const totalColumns = document.querySelectorAll("#tableBody tr:first-child td input").length;
-	    let emptyColumns = [];
+	            let chargeCode = chargeCodeCell.textContent.trim();
+	            if (chargeCode.includes("Select Charge Code")) return;
+	            chargeCode = chargeCode.replace(/✖.*/, "").trim();
+	            if (!chargeCode) return;
 
-	    for (let col = 1; col <= totalColumns; col++) {
-	        if (sundayColumns.includes(col)) continue;
-	        if (!columnFilled[col]) emptyColumns.push(col);
-	    }
+	            console.log("✅ Valid Charge Code Found:", chargeCode);
 
-	    if (emptyColumns.length > 0) {
-	        emptyColumns.forEach(colIndex => {
-	            document.querySelectorAll(`#tableBody tr:not(.static-row) td:nth-child(${colIndex + 1}) input`).forEach(input => {
-	                input.style.border = "1px solid red";
-	                input.setAttribute("title", "⚠ Field is required!"); // Tooltip on hover
+	            let isStaticRow = chargeCode.toLowerCase().includes("work location") || chargeCode.toLowerCase().includes("company code");
+	            let rowHasValue = false;
+	            const inputs = row.querySelectorAll("td input:not(.dropdown-search)");
+
+	            inputs.forEach((input, colIndex) => {
+	                let actualColIndex = colIndex + 1;
+	                let cellIndex = `${rowIndex}_${actualColIndex}`;
+
+	                if (sundayColumns.includes(actualColIndex)) return;
+
+	                // ✅ Ensure "data-prev" is set during population
+	                if (!input.hasAttribute("data-prev")) {
+	                    input.setAttribute("data-prev", input.value.trim());
+	                }
+
+	                let previousValue = input.getAttribute("data-prev");
+	                let currentValue = input.value.trim();
+
+	                if (currentValue !== "") {
+	                    rowHasValue = true;
+	                    if (!isStaticRow) columnFilled[actualColIndex] = true;
+
+	                    timesheetEntries.push({
+	                        username: localStorage.getItem("userName"),
+	                        period: selectedPeriod,
+	                        chargeCode: chargeCode,
+	                        cellIndex: cellIndex,
+	                        hours: currentValue
+	                    });
+
+	                    input.setAttribute("data-prev", currentValue); // Update stored value
+	                } 
+	                // ✅ Handle cleared cells: If the cell had a value before but is now empty, mark for deletion
+	                else if (previousValue !== "" && currentValue === "") {
+	                    console.log(`🛑 Cell CLEARED at ${cellIndex} (Previous: "${previousValue}", Now: "EMPTY")`);
+
+	                    timesheetEntries.push({
+	                        username: localStorage.getItem("userName"),
+	                        period: selectedPeriod,
+	                        chargeCode: chargeCode,
+	                        cellIndex: cellIndex,
+	                        hours: null // Indicating deletion
+	                    });
+
+	                    input.setAttribute("data-prev", ""); // Update stored value
+	                }
 	            });
+
+	            if (rowHasValue) hasValidDynamicRow = true;
 	        });
-	        return;
-	    }
 
-	    if (!hasValidDynamicRow) {
-	        showAlert("⚠ No valid data entered in dynamic rows!", "danger");
-	        return;
-	    }
+	        const totalColumns = document.querySelectorAll("#tableBody tr:first-child td input").length;
+	        let emptyColumns = [];
 
-	    try {
-	        console.log("✅ JSON Payload Before Sending:", timesheetEntries); // Debugging Log
+	        for (let col = 1; col <= totalColumns; col++) {
+	            if (sundayColumns.includes(col)) continue;
+	            if (!columnFilled[col]) emptyColumns.push(col);
+	        }
 
-	        fetch("/saveTimesheet", {
-	            method: "POST",
-	            headers: { "Content-Type": "application/json" },
-	            body: JSON.stringify(timesheetEntries)
-	        })
-	        .then(response => response.text())
-	        .then(result => {
-	            
-	            showAlert(result, "success");
-	            location.reload();
-	        })
-	        .catch(error => console.error("❌ Error saving timesheet:", error));
-	    } catch (e) {
-	        console.error("❌ JSON Formatting Error:", e);
-	    }
+	        if (emptyColumns.length > 0) {
+	            emptyColumns.forEach(colIndex => {
+	                document.querySelectorAll(`#tableBody tr:not(.static-row) td:nth-child(${colIndex + 1}) input`).forEach(input => {
+	                    input.style.border = "1px solid red";
+	                    input.setAttribute("title", "⚠ Field is required!"); // Tooltip on hover
+	                });
+	            });
+	            return;
+	        }
+
+	        if (!hasValidDynamicRow) {
+	            showAlert("⚠ No valid data entered in dynamic rows!", "danger");
+	            return;
+	        }
+
+	        try {
+	            console.log("✅ JSON Payload Before Sending:", timesheetEntries); // Debugging Log
+
+	            fetch("/saveTimesheet", {
+	                method: "POST",
+	                headers: { "Content-Type": "application/json" },
+	                body: JSON.stringify(timesheetEntries)
+	            })
+	            .then(response => response.text())
+	            .then(result => {
+	                showAlert(result, "success");
+	                location.reload();
+	            })
+	            .catch(error => console.error("❌ Error saving timesheet:", error));
+	        } catch (e) {
+	            console.error("❌ JSON Formatting Error:", e);
+	        }
+	    };
 	}
-
 
 
 
@@ -362,11 +375,9 @@ document.addEventListener("DOMContentLoaded", function () {
         // Select new row
         selectedRow = clickedRow;
         selectedRow.classList.add("selected-row"); // Highlight row
-
-        console.log("✅ Row Selected:", selectedRow);
     });
 
-    // 🔥 Delete Row Function
+    // 🔥 Delete Row Function (With Custom Modal)
     document.getElementById("deleteIcon").addEventListener("click", function () {
         if (!selectedRow) {
             showAlert("⚠ Please select a row before deleting.", "danger");
@@ -379,14 +390,23 @@ document.addEventListener("DOMContentLoaded", function () {
         if (isProtectedRow(selectedRow)) {
             showAlert("⚠ You cannot delete Work Location or Company Code rows!", "danger");
             return;
-			
         }
 
-        // 🛑 Show Confirmation Message
-        let confirmDelete = confirm(`⚠ Are you sure you want to delete the row with Charge Code: ${chargeCode}?`);
-        if (!confirmDelete) return;
+        // 🔥 Show Custom Delete Modal
+        document.getElementById("deleteRowMessage").innerText = 
+            `⚠ Are you sure you want to delete the row with Charge Code: ${chargeCode}?`;
+        let deleteModal = new bootstrap.Modal(document.getElementById("deleteRowModal"));
+        deleteModal.show();
 
-        // 🔥 Send DELETE request to backend
+        // ✅ Handle Delete Confirmation
+        document.getElementById("confirmDeleteRow").onclick = function () {
+            deleteModal.hide();
+            sendDeleteRequest(chargeCode);
+        };
+    });
+
+    // 🔥 Send DELETE request (Unchanged Logic)
+    function sendDeleteRequest(chargeCode) {
         fetch(`/deleteRow?chargeCode=${encodeURIComponent(chargeCode)}`, {
             method: "DELETE",
         })
@@ -396,7 +416,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 selectedRow.remove(); // Remove row from UI
                 selectedRow = null; // Reset selection
                 showAlert("✅ Row deleted successfully!", "success");
-				location.reload();
+                location.reload();
             } else {
                 showAlert("❌ Failed to delete row from database.", "danger");
             }
@@ -405,7 +425,7 @@ document.addEventListener("DOMContentLoaded", function () {
             console.error("❌ Error deleting row:", error);
             showAlert("❌ Error deleting row. Check console.", "danger");
         });
-    });
+    }
 
     // 🔥 Function to Protect Certain Rows (Work Location & Company Code)
     function isProtectedRow(row) {
@@ -413,6 +433,7 @@ document.addEventListener("DOMContentLoaded", function () {
         return firstCellText.includes("work location") || firstCellText.includes("company code");
     }
 });
+
 
 
 
@@ -884,6 +905,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 document.addEventListener("DOMContentLoaded", function () {
     const sendApprovalBtn = document.getElementById("sendApprovalBtn");
+    const confirmApprovalBtn = document.getElementById("confirmApproval");
     const username = localStorage.getItem("userName");
 
     function getSelectedPeriod() {
@@ -892,7 +914,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     function updateButtonState() {
         const selectedPeriod = getSelectedPeriod();
-        const username = localStorage.getItem("userName");
 
         if (!selectedPeriod) {
             console.warn("No period selected, skipping button update.");
@@ -917,28 +938,24 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 if (approvalStatus === "Approved") {
                     sendApprovalBtn.textContent = "Approved";
-                    sendApprovalBtn.classList.add("btn-success"); // Add green styling
+                    sendApprovalBtn.classList.add("btn-success");
                     sendApprovalBtn.disabled = true;
                 } else if (approvalStatus === "Pending") {
                     sendApprovalBtn.textContent = "Reviewing";
-                    sendApprovalBtn.classList.add("btn-info"); // Add blue styling
+                    sendApprovalBtn.classList.add("btn-info");
                     sendApprovalBtn.disabled = true;
                 } else if (approvalStatus === "Issue") {
                     sendApprovalBtn.textContent = "Timesheet Issue";
-                    sendApprovalBtn.classList.add("btn-warning"); // Add yellow styling
-                    sendApprovalBtn.disabled = false;
-                } else if (approvalStatus === "No Data") {
-                    sendApprovalBtn.textContent = "Send Approval";
+                    sendApprovalBtn.classList.add("btn-warning");
                     sendApprovalBtn.disabled = false;
                 } else {
                     sendApprovalBtn.textContent = "Send Approval";
-					sendApprovalBtn.classList.add("btn-success");
+                    sendApprovalBtn.classList.add("btn-success");
                     sendApprovalBtn.disabled = false;
                 }
 
                 // Ensure the button updates correctly after text change
                 if (prevText !== sendApprovalBtn.textContent) {
-                    // If the text has changed, update immediately without refreshing the page
                     console.log("Button text updated to: " + sendApprovalBtn.textContent);
                 }
             })
@@ -950,36 +967,51 @@ document.addEventListener("DOMContentLoaded", function () {
 
     sendApprovalBtn.addEventListener("click", function () {
         const selectedPeriod = getSelectedPeriod();
-        console.log("save period:", selectedPeriod);
 
         if (!selectedPeriod) {
             showAlert("⚠ Please select a period before sending approval.", "danger");
             return;
         }
 
+        // 🔥 Update Modal with Selected Period
+        document.getElementById("selectedPeriodText").textContent = selectedPeriod;
+
+        // 🔥 Show the Confirmation Modal
+        let approvalModal = new bootstrap.Modal(document.getElementById("approvalModal"));
+        approvalModal.show();
+
+        // ✅ Handle Confirmation Click
+        confirmApprovalBtn.onclick = function () {
+            approvalModal.hide();
+            sendForApproval(selectedPeriod); // Call the function only after confirmation
+        };
+    });
+
+    function sendForApproval(selectedPeriod) {
         fetch("/sendForApproval", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username, period: selectedPeriod })
         })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    sendApprovalBtn.textContent = "Reviewing";
-                    sendApprovalBtn.classList.add("btn-info");
-                    sendApprovalBtn.disabled = true;
-                    localStorage.setItem(`approvalStatus_${username}_${selectedPeriod}`, "Reviewing"); // Store state
-                    showAlert("Timesheet Successfully Sent for approval!", "success");
-                }
-            })
-            .catch(error => console.error("Error sending for approval:", error));
-    });
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                sendApprovalBtn.textContent = "Reviewing";
+                sendApprovalBtn.classList.add("btn-info");
+                sendApprovalBtn.disabled = true;
+                showAlert("Timesheet Successfully Sent for approval!", "success");
+                localStorage.setItem(`approvalStatus_${username}_${selectedPeriod}`, "Reviewing"); // Store state
+            }
+        })
+        .catch(error => console.error("Error sending for approval:", error));
+    }
 
     // Listen for period change and update button state
     periodDropdown.addEventListener("change", updateButtonState);
     calendarPicker.addEventListener("change", updateButtonState);
     nextPeriod.addEventListener("click", updateButtonState);
     prevPeriod.addEventListener("click", updateButtonState);
-	
-	setInterval(updateButtonState, 5000);
+
+    setInterval(updateButtonState, 5000);
 });
+

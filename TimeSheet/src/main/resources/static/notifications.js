@@ -60,6 +60,5 @@ document.addEventListener("DOMContentLoaded", function () {
         console.error("❌ Notification bell icon not found.");
     }
 
-    // ✅ Connect WebSocket
-    connectWebSocket();
+  
 });
