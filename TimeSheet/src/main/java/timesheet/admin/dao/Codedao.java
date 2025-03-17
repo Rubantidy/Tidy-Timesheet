@@ -22,6 +22,7 @@ public class Codedao {
     private String startDate;  
     private String country;    
     private String description;
+    private String status;
     
 
     public Codedao() {}
@@ -35,6 +36,7 @@ public class Codedao {
         this.startDate = startDate;
         this.country = country;
         this.description = description;
+        this.status = "Progress";
    
     }
 
@@ -47,6 +49,7 @@ public class Codedao {
         this.projectType = "-";
         this.startDate = "-";
         this.country = "-";
+        this.status = "-";
         
        
     }
@@ -54,6 +57,14 @@ public class Codedao {
     
 
 
+
+	public String getStatus() {
+		return status;
+	}
+
+	public void setStatus(String status) {
+		this.status = status;
+	}
 
 	public int getId() {
 		return id;

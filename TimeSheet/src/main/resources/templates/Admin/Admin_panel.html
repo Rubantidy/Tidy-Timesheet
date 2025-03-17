@@ -256,6 +256,26 @@
 					    </div>
 					</div>
 
+					<!-- Complete Confirmation Modal -->
+					<div class="modal fade" id="completeModal" tabindex="-1" aria-labelledby="completeModalLabel" aria-hidden="true">
+					  <div class="modal-dialog">
+					    <div class="modal-content">
+					      <div class="modal-header">
+					        <h5 class="modal-title" id="completeModalLabel">Confirm Completion</h5>
+					        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					      </div>
+					      <div class="modal-body">
+					        Are you completely finishing this project?<br><br>
+					        <strong>Note:</strong> Once clicked "Complete", you can't assign employees to this charge code!
+					      </div>
+					      <div class="modal-footer">
+					        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+					        <button type="button" class="btn btn-danger" id="confirmCompleteBtn">Complete</button>
+					      </div>
+					    </div>
+					  </div>
+					</div>
+
 					
 					<!-- Alerts -->
 					<div id="customAlert" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1050;">
@@ -281,7 +301,7 @@
     <script>
 		
 		document.addEventListener("DOMContentLoaded", function() {
-		          const userName = localStorage.getItem('userName');
+		          const userName = sessionStorage.getItem('userName');
 		          console.log(userName); // Debugging: Check if the value is correct
 
 		          if (userName) {
@@ -355,7 +375,7 @@
 		    }
 
 		    // Send the request to the backend to send OTP to the user's email
-		    const email = localStorage.getItem('userName');  // Get the email of the logged-in user
+		    const email = sessionStorage.getItem('userName');  // Get the email of the logged-in user
 
 		    fetch("/send-otp", {
 		        method: "POST",
@@ -425,7 +445,7 @@
 		            "Content-Type": "application/json"
 		        },
 		        body: JSON.stringify({
-		            email: localStorage.getItem('userName'),
+		            email: sessionStorage.getItem('userName'),
 		            newPassword: newPassword,
 		            otp: enteredOtp
 		        })
@@ -468,9 +488,9 @@
 		    // Prevent the default behavior of anchor tag click
 		    event.preventDefault();
 
-		    // Check if the clicked item is 'Switch Employee'
+		    // Check if the clicked item is 'Switch Employee' 
 		    if (event.target.innerText === 'Switch Employee') {
-		        const userEmail = localStorage.getItem('userEmail');  // Fetch the email from localStorage
+		        const userEmail = sessionStorage.getItem('userEmail');  // Fetch the email from sessionStorage
 
 		        if (!userEmail) {
 		            alert("User is not logged in. Please log in first.");
@@ -488,8 +508,8 @@
 		        .then(response => response.json())
 		        .then(data => {
 		            if (data.success && data.additionalRole === "Employee") {
-		                // Store the employee name in localStorage
-		                localStorage.setItem('userName', data.eName);
+		                // Store the employee name in sessionStorage
+		                sessionStorage.setItem('userName', data.eName);
 
 		                // Switch to Employee Dashboard
 		                switchToEmployeePanel();
@@ -530,7 +550,7 @@
 				            });
 		 
 				            // ✅ Employee Panel: Listen for user-specific notifications
-				            const userName = localStorage.getItem("userName");  // Get logged-in user
+				            const userName = sessionStorage.getItem("userName");  // Get logged-in user
 				            if (userName) {
 				                stompClient.subscribe(`/user/${userName}/topic/notifications`, function (notification) {
 				                    const message = JSON.parse(notification.body).message;

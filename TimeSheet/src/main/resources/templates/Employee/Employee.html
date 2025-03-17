@@ -462,7 +462,6 @@
 
 <script>
 	
-	// Add this in script.js
 	function showAlert(message, type = 'success') {
 	    const alertToast = document.getElementById('alertToast');
 	    const alertMessage = document.getElementById('alertMessage');
@@ -470,16 +469,17 @@
 	    // Set message and type (success/error)
 	    alertMessage.textContent = message;
 	    alertToast.className = `toast align-items-center text-white bg-${type} border-0`;
-	    
-	    // Show the toast
-	    const toast = new bootstrap.Toast(alertToast);
+
+	    // Set a fixed dismiss duration for all toasts
+	    const toast = new bootstrap.Toast(alertToast, { delay: 3000 }); // 4 seconds for all
 	    toast.show();
 	}
+
 	
 	
 	document.addEventListener("DOMContentLoaded", function () {
 		const submitbtn = document.getElementById('submitBtn');
-		const addname = localStorage.getItem('userAddRole');
+		const addname = sessionStorage.getItem('userAddRole');
 		if (addname === "-") {
 			submitbtn.disabled = true;
 			submitbtn.style.display="none";
@@ -538,7 +538,7 @@
 
 	          document.addEventListener("DOMContentLoaded", function() {
 		
-	          const userName = localStorage.getItem('userName');
+	          const userName = sessionStorage.getItem('userName');
 	          console.log(userName); // Debugging: Check if the value is correct
 
 	          if (userName) {
@@ -612,7 +612,7 @@
 		  		    }
 
 		  		    // Send the request to the backend to send OTP to the user's email
-		  		    const email = localStorage.getItem('userName');  // Get the email of the logged-in user
+		  		    const email = sessionStorage.getItem('userName');  // Get the email of the logged-in user
 
 		  		    fetch("/send-otp", {
 		  		        method: "POST",
@@ -682,7 +682,7 @@
 		  		            "Content-Type": "application/json"
 		  		        },
 		  		        body: JSON.stringify({
-		  		            email: localStorage.getItem('userName'),
+		  		            email: sessionStorage.getItem('userName'),
 		  		            newPassword: newPassword,
 		  		            otp: enteredOtp
 		  		        })
@@ -724,8 +724,8 @@
 				document.getElementById('logout').addEventListener('click', function(event) {
 				       event.preventDefault();
 
-				       // Clear any session or localStorage data if needed
-				       localStorage.removeItem('userName'); // Example of clearing the user name stored in localStorage
+				       // Clear any session or sessionStorage data if needed
+				       sessionStorage.removeItem('userName'); // Example of clearing the user name stored in sessionStorage
 
 				       // Redirect to the login page
 				       window.location.href = '/login'; // Redirect to the login page or wherever needed
@@ -741,7 +741,7 @@
 
 				       // Check if the clicked item is 'Switch Admin'
 				       if (event.target.innerText === 'Switch Admin') {
-				           const userEmail = localStorage.getItem('userEmail');  // Fetch the email from localStorage
+				           const userEmail = sessionStorage.getItem('userEmail');  // Fetch the email from sessionStorage
 
 				           if (!userEmail) {
 				               showAlert("User is not logged in. Please log in first.", "danger");
@@ -760,8 +760,8 @@
 				           .then(data => {
 				               if (data.success) {
 				                   // The user is authorized to switch to Admin panel
-				                   localStorage.setItem('userName', data.eName);  // Store the new name (from Admin)
-				                   localStorage.setItem('userRole', "Admin");  // Update role to Admin
+				                   sessionStorage.setItem('userName', data.eName);  // Store the new name (from Admin)
+				                   sessionStorage.setItem('userRole', "Admin");  // Update role to Admin
 				                   
 								   
 				                   // Redirect to Admin Dashboard
@@ -1453,7 +1453,7 @@
 				              });
 
 				              // ✅ Employee Panel: Listen for user-specific notifications
-				              const userName = localStorage.getItem("userName");  // Get logged-in user
+				              const userName = sessionStorage.getItem("userName");  // Get logged-in user
 				              if (userName) {
 				                  stompClient.subscribe(`/user/${userName}/topic/notifications`, function (notification) {
 				                      const message = JSON.parse(notification.body).message;

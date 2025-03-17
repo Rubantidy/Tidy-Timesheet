@@ -1,3 +1,13 @@
+// PREVENT DIRECT ACCESS TO DASHBOARDS
+	document.addEventListener("DOMContentLoaded", function() {
+	    const userName = sessionStorage.getItem("userName");
+
+	    // Redirect to login page if user session is null
+	    if (userName === null) {
+	        window.location.href = "/login";
+	    }
+	});
+
 document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".nav-link").forEach(link => {
         link.addEventListener("click", function (event) {
@@ -18,11 +28,12 @@ function showAlert(message, type = 'success') {
     // Set message and type (success/error)
     alertMessage.textContent = message;
     alertToast.className = `toast align-items-center text-white bg-${type} border-0`;
-    
-    // Show the toast
-    const toast = new bootstrap.Toast(alertToast);
+
+    // Set a fixed dismiss duration for all toasts
+    const toast = new bootstrap.Toast(alertToast, { delay: 3000 }); // 4 seconds for all
     toast.show();
 }
+
 
 function toggleSidebar() {
     const sidebar = document.getElementById("sidebar");
@@ -40,8 +51,8 @@ function closeSidebarOnMobile() {
 document.getElementById('logout').addEventListener('click', function(event) {
        event.preventDefault();
 
-       // Clear any session or localStorage data if needed
-       localStorage.removeItem('userName'); // Example of clearing the user name stored in localStorage
+       // Clear any session or sessionStorage data if needed
+       sessionStorage.removeItem('userName'); // Example of clearing the user name stored in sessionStorage
 
        // Redirect to the login page
        window.location.href = '/login'; // Redirect to the login page or wherever needed
@@ -61,29 +72,29 @@ function showContent(section) {
         `,
 		"approval": `
 		<h3>Pending Approvals</h3>
-											            <select id="employeeDropdown" class="form-select mb-3">
-											                <option value="">Select Employee</option>
-											            </select>
-											            <div id="summaryContent" class="border p-3 bg-light">
-											                <table class="table table-bordered">
-											                    <thead>
-											                        <tr>
-											                            <th>Username</th>
-											                            <th>Period</th>
-											                            <th>Total Hours</th>
-											                            <th>Total Absences</th>
-											                            <th>Charge Code Details</th>
-											                        </tr>
-											                    </thead>
-											                    <tbody id="adminSummaryBody">
-											                        <!-- Data will be inserted here dynamically -->
-											                    </tbody>
-											                </table>
-											            </div>
-											            <div class="d-flex gap-3 mt-3">
-											                <button id="approveBtn" class="btn btn-success" onclick="handleApproval()">✅ Approve</button>
-											                <button id="issueBtn" class="btn btn-danger" onclick="handleIssue()" >🛑 Reject</button>
-											            </div>		
+				<select id="employeeDropdown" class="form-select mb-3">
+						<option value="">Select Employee</option>
+				</select>
+					<div id="summaryContent" class="border p-3 bg-light">
+						<table class="table table-bordered">
+							<thead>
+								<tr>
+								<th>Username</th>
+								<th>Period</th>
+								<th>Total Hours</th>
+								<th>Total Absences</th>
+								<th>Charge Code Details</th>
+								</tr>
+							</thead>
+						<tbody id="adminSummaryBody">
+				<!-- Data will be inserted here dynamically -->
+					 </tbody>
+				</table>
+			</div>
+			<div class="d-flex gap-3 mt-3">
+				<button id="approveBtn" class="btn btn-success" onclick="handleApproval()">✅ Approve</button>
+				<button id="issueBtn" class="btn btn-danger" onclick="handleIssue()" >🛑 Reject</button>
+			</div>	
 		       `,
 		"manage-user": `<button class="btn btn-primary mb-3" id="addEmployeeBtn">Add Users</button><div id="form-container"></div>
 		     <div id="form-container"></div>
@@ -204,115 +215,114 @@ function showContent(section) {
 			
 			    }
 				
-	else if(section === "approval") {
-		fetchPendingApprovals();
-	}
-			
-}
-
-			function fetchPendingApprovals() {
-			    fetch("/getPendingApprovals")
-			        .then(response => response.json())
-			        .then(data => {
-			            let dropdown = document.getElementById("employeeDropdown");
-			            dropdown.innerHTML = '<option value="">Select Employee</option>'; // Reset dropdown
-
-			            if (!Array.isArray(data)) {
-			                console.error("Error: Data is not an array", data);
-			                return;
-			            }
-
-			            data.forEach(entry => {
-			                let option = document.createElement("option");
-			                option.value = entry.username + "  " + entry.period;
-			                option.textContent = `${entry.username} - ${entry.period}`;
-			                dropdown.appendChild(option);
-			            });
-
-			            // ✅ Add event listener AFTER dropdown is populated
-			            dropdown.addEventListener("change", function () {
-			                console.log("Dropdown Changed!"); // Debugging
-
-			                let selectedOption = this.value;
-			                console.log("Selected Option:", selectedOption); // Debugging
-
-			                if (!selectedOption) {
-			                    console.log("No value selected!"); 
-			                    return;
-			                }
-
-			                let [username, period] = selectedOption.split("  ");
-			                console.log("Extracted Username:", username);
-							localStorage.setItem("SummaryEmployee" , username);
-			                console.log("Extracted Period:", period);
-
-			                fetchEmployeeSummary(username, period);
-			            });
-			        })
-			        .catch(error => console.error("Error fetching pending approvals:", error));
-			}
-
-			// ✅ Ensure dropdown is populated before adding event listeners
-			fetchPendingApprovals();
-
-
-
-			// ✅ Fetch summary for selected employee
-			document.addEventListener("DOMContentLoaded", () => {
-			    document.getElementById("employeeDropdown").addEventListener("change", function () {
-			        let selectedUser = this.value;
-			        if (selectedUser) {
-			            fetchEmployeeSummary(selectedUser);
-			        }
-			    });
-			});
-
-			
-
-
-			function fetchEmployeeSummary(username, period) {
-			    console.log("fetchEmployeeSummary() Called!");
-			    console.log("Username:", username, "Period:", period);
-
-			    let url = `/getSummary?username=${encodeURIComponent(username)}&period=${encodeURIComponent(period)}`;
-			    console.log("Fetching URL:", url); // Debugging
-
-			    fetch(url)
-			        .then(response => {
-			            console.log("Response Status:", response.status);
-			            return response.json();
-			        })
-			        .then(summary => {
-			            console.log("Fetched Summary:", summary);
-
-			            if (!summary || Object.keys(summary).length === 0) {
-			                console.warn("No summary data found!");
-			                document.getElementById("adminSummaryBody").innerHTML = 
-			                   `<tr><td colspan="5">No data available</td></tr>`;
-			                return;
-			            }
-
-			            let adminSummaryBody = document.getElementById("adminSummaryBody");
-			            adminSummaryBody.innerHTML = ""; // Clear previous data
-
-			            let chargeCodeRows = summary.entries.map(entry =>
-			                `<tr>
-			                    <td>${entry.chargeCode}</td>
-			                    <td>${entry.hours}</td>
-			                </tr>`
-			            ).join("");
-
-			            let row = `<tr>
-			                <td rowspan="${summary.entries.length + 1}">${username}</td>
-			                <td rowspan="${summary.entries.length + 1}">${period}</td>
-			                <td rowspan="${summary.entries.length + 1}">${summary.totalHours}</td>
-			                <td rowspan="${summary.entries.length + 1}">${summary.totalAbsences}</td>
-			            </tr>`;
-
-			            adminSummaryBody.innerHTML = row + chargeCodeRows;
-			        })
-			        .catch(error => console.error("Error fetching summary data:", error));
-			}
+				else if(section === "approval") {
+						fetchPendingApprovals();
+					}
+							}
+				 
+							function fetchPendingApprovals() {
+							    fetch("/getPendingApprovals")
+							        .then(response => response.json())
+							        .then(data => {
+							            let dropdown = document.getElementById("employeeDropdown");
+							            dropdown.innerHTML = '<option value="">Select Employee</option>'; // Reset dropdown
+				 
+							            if (!Array.isArray(data)) {
+							                console.error("Error: Data is not an array", data);
+							                return;
+							            }
+				 
+							            data.forEach(entry => {
+							                let option = document.createElement("option");
+							                option.value = entry.username + "  " + entry.period;
+							                option.textContent = `${entry.username} - ${entry.period}`;
+							                dropdown.appendChild(option);
+							            });
+				 
+							            // ✅ Add event listener AFTER dropdown is populated
+							            dropdown.addEventListener("change", function () {
+							                console.log("Dropdown Changed!"); // Debugging
+				 
+							                let selectedOption = this.value;
+							                console.log("Selected Option:", selectedOption); // Debugging
+				 
+							                if (!selectedOption) {
+							                    console.log("No value selected!");
+							                    return;
+							                }
+				 
+							                let [username, period] = selectedOption.split("  ");
+							                console.log("Extracted Username:", username);
+											sessionStorage.setItem("SummaryEmployee" , username);
+							                console.log("Extracted Period:", period);
+				 
+							                fetchEmployeeSummary(username, period);
+							            });
+							        })
+							        .catch(error => console.error("Error fetching pending approvals:", error));
+							}
+				 
+							// ✅ Ensure dropdown is populated before adding event listeners
+							fetchPendingApprovals();
+				 
+				 
+				 
+							// ✅ Fetch summary for selected employee
+							document.addEventListener("DOMContentLoaded", () => {
+							    document.getElementById("employeeDropdown").addEventListener("change", function () {
+							        let selectedUser = this.value;
+							        if (selectedUser) {
+							            fetchEmployeeSummary(selectedUser);
+							        }
+							    });
+							});
+				 
+							
+				 
+				 
+							function fetchEmployeeSummary(username, period) {
+							    console.log("fetchEmployeeSummary() Called!");
+							    console.log("Username:", username, "Period:", period);
+				 
+							    let url = `/getSummary?username=${encodeURIComponent(username)}&period=${encodeURIComponent(period)}`;
+							    console.log("Fetching URL:", url); // Debugging
+				 
+							    fetch(url)
+							        .then(response => {
+							            console.log("Response Status:", response.status);
+							            return response.json();
+							        })
+							        .then(summary => {
+							            console.log("Fetched Summary:", summary);
+				 
+							            if (!summary || Object.keys(summary).length === 0) {
+							                console.warn("No summary data found!");
+							                document.getElementById("adminSummaryBody").innerHTML =
+							                   `<tr><td colspan="5">No data available</td></tr>`;
+							                return;
+							            }
+				 
+							            let adminSummaryBody = document.getElementById("adminSummaryBody");
+							            adminSummaryBody.innerHTML = ""; // Clear previous data
+				 
+							            let chargeCodeRows = summary.entries.map(entry =>
+							                `<tr>
+							                    <td>${entry.chargeCode}</td>
+							                    <td>${entry.hours}</td>
+							                </tr>`
+							            ).join("");
+				 
+							            let row = `<tr>
+							                <td rowspan="${summary.entries.length + 1}">${username}</td>
+							                <td rowspan="${summary.entries.length + 1}">${period}</td>
+							                <td rowspan="${summary.entries.length + 1}">${summary.totalHours}</td>
+							                <td rowspan="${summary.entries.length + 1}">${summary.totalAbsences}</td>
+							            </tr>`;
+				 
+							            adminSummaryBody.innerHTML = row + chargeCodeRows;
+							        })
+							        .catch(error => console.error("Error fetching summary data:", error));
+							}
 
 	
 
@@ -427,7 +437,7 @@ function showContent(section) {
 
 			// ✅ Function to update the button state dynamically
 			function updateEmployeeButton(username, period, status) {
-			    localStorage.setItem(`approvalStatus_${username}_${period}`, status);
+			    sessionStorage.setItem(`approvalStatus_${username}_${period}`, status);
 			}
 
 
@@ -503,8 +513,8 @@ function handleFormSubmit(event) {
     })
     .then(response => response.text())
     .then(data => {
-        showAlert(data, "success"); // Show success message
-        hideForm(); // Hide the form after successful submission
+        showAlert(data, "success");
+        hideForm(); 
     })
     .catch(error => {
         console.error("Error:", error);
@@ -604,16 +614,33 @@ function employeeAction(employeeId, currentStatus) {
 
 
 
-/* Fetch Charge codes */
+
+/* Fetch Charge Codes */
 function fetchCodeDatas() {
     fetch("/getChargecodes") 
         .then(response => response.json())
         .then(data => {
             const tableBody = document.getElementById("code-table-body");
             tableBody.innerHTML = ""; 
+            
             data.forEach(code => {
+                // Set row color for "Complete" status
+                let rowClass = code.status.toLowerCase() === "complete" ? 'class="table-success"' : '';
+
+                // Show dropdown only if it's a Charge Code & Status is "Progress"
+                let dropdownMenu = (code.codeType.toLowerCase() === "charge code" && code.status.toLowerCase() === "progress") ? `
+                    <div class="dropdown">
+                        <button class="btn btn-success" type="button" id="dropdownMenu${code.id}" data-bs-toggle="dropdown" aria-expanded="false">
+                            &#8942; <!-- Vertical 3 dots -->
+                        </button>
+                        <ul class="dropdown-menu" aria-labelledby="dropdownMenu${code.id}">
+                            <li><a class="dropdown-item" href="#" onclick="completeChargeCode('${code.id}')">Complete</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="openAssignModal('${code.id}', '${code.code}', '${code.description}')">Assign to</a></li>
+                        </ul>
+                    </div>` : '';
+
                 tableBody.innerHTML += `
-                    <tr>
+                    <tr ${rowClass}>
                         <td>${code.id}</td>
                         <td>${code.codeType}</td>
                         <td>${code.code}</td>
@@ -622,29 +649,52 @@ function fetchCodeDatas() {
                         <td>${code.projectType}</td>
                         <td>${code.startDate}</td>
                         <td>${code.country}</td>
-                        <td>
-                            <div class="dropdown">
-                                <button class="btn btn-success " type="button" id="dropdownMenu${code.id}" data-bs-toggle="dropdown" aria-expanded="false">
-                                    &#8942; <!-- Vertical 3 dots -->
-                                </button>
-                                <ul class="dropdown-menu" aria-labelledby="dropdownMenu${code.id}">
-                                    <li><a class="dropdown-item" href="#" onclick="completeChargeCode('${code.id}')">Complete</a></li>
-                                  <li><a class="dropdown-item" href="#" onclick="openAssignModal('${code.id}', '${code.code}', '${code.description}')">Assign to</a></li>
-                                </ul>
-                            </div>
-                        </td>
+                        <td>${dropdownMenu}</td>
                     </tr>
                 `;
             });
         })
-        .catch(error => console.error("Error fetching Charge code:", error));
+        .catch(error => console.error("Error fetching Charge codes:", error));
 }
 
-/* Function to handle Complete action */
+
+
+let selectedChargeCodeId = null; // Store selected charge code ID
+
+/* Function to show modal instead of confirm */
 function completeChargeCode(id) {
-    console.log("Charge Code " + id + " marked as Complete");
-    // Add backend API call here if needed
+    selectedChargeCodeId = id; // Store the ID for confirmation
+    var completeModal = new bootstrap.Modal(document.getElementById("completeModal"));
+    completeModal.show(); // Show the modal
 }
+
+/* Handle modal confirmation button click */
+document.getElementById("confirmCompleteBtn").addEventListener("click", function() {
+    if (selectedChargeCodeId) {
+        fetch(`/completeChargeCode/${selectedChargeCodeId}`, {
+            method: "PUT"
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showAlert("Charge Code marked as Complete!", "success");
+                fetchCodeDatas(); // Refresh table
+            } else {
+                showAlert("Error: " + data.message, "danger");
+            }
+        })
+        .catch(error => {
+            console.error("Error updating charge code status:", error);
+            showAlert("An error occurred while completing the charge code.", "danger");
+        })
+        .finally(() => {
+            var completeModal = bootstrap.Modal.getInstance(document.getElementById("completeModal"));
+            completeModal.hide(); // Close modal after action
+        });
+    }
+});
+
+
 
 let selectedEmployees = [];
 

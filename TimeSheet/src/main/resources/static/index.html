@@ -148,69 +148,63 @@
     </div>
 
 	<script>
+		// LOGIN LOGIC
 		document.querySelector(".login-btn").addEventListener("click", function(event) {
-				    event.preventDefault(); // Prevent the form from submitting traditionally
-				   
-				    const email = document.getElementById("email").value;
-				    const password = document.getElementById("password").value;
-				    const errorMessage = document.getElementById("error-message");
-		 
-				
-				    errorMessage.style.display = 'none';
-				    
-				   
-				    if (!email || !password) {
-				        errorMessage.style.display = 'block';
-				        errorMessage.innerHTML = "Both email and password are required.";
-				        return;
-				    }
-		 
-				
-				    const data = {
-				        email: email,  
-				        password: password
-				    };  
-		 
-					fetch("/login", {
-					    method: "POST",
-					    headers: {
-					        "Content-Type": "application/json"
-					    },
-					    body: JSON.stringify(data)
-					})
-					.then(response => response.json())
-					.then(result => {
-					    if (result.success) {
-					        if(result.status === "active") {
-					            // Store the user details (name, role) in localStorage or sessionStorage
-								localStorage.setItem('userAddRole', result.additionalrole);
-					            localStorage.setItem('userName', result.name);
-								localStorage.setItem('userEmail', email);
-								localStorage.setItem('userRoles', result.role);
-							
-			
-		 
-					            // Redirect to the appropriate dashboard based on the role
-					            if (result.role === "Admin") {
-					                window.location.href = "/Admin_Dashboard"; // Redirect to Admin Dashboard
-					            } else if (result.role === "Employee") {
-					                window.location.href = "/Employee_Dashboard"; // Redirect to Employee Dashboard
-					            }
-					        } else {
-					            alert("You are no longer an Employee of Tidy Digital Solutions");
-					        }
-					    } else {
-					        errorMessage.style.display = 'block';
-					        errorMessage.innerHTML = "Invalid email or password. Please try again.";
-					    }
-					})
-					.catch(error => {
-					    console.error("Error:", error);
-					    errorMessage.style.display = 'block';
-					    errorMessage.innerHTML = "An error occurred. Please try again later.";
-					});
-		 
-				});
+		    event.preventDefault(); // Prevent form submission
+
+		    const email = document.getElementById("email").value;
+		    const password = document.getElementById("password").value;
+		    const errorMessage = document.getElementById("error-message");
+
+		    errorMessage.style.display = 'none';
+
+		    // Validate fields
+		    if (!email || !password) {
+		        errorMessage.style.display = 'block';
+		        errorMessage.innerHTML = "Both email and password are required.";
+		        return;
+		    }
+
+		    const data = { email: email, password: password };
+
+		    fetch("/login", {
+		        method: "POST",
+		        headers: { "Content-Type": "application/json" },
+		        body: JSON.stringify(data)
+		    })
+		    .then(response => response.json())
+		    .then(result => {
+		        if (result.success) {
+		            if (result.status === "active") {
+		                // Store user details in sessionStorage
+		                sessionStorage.setItem('userAddRole', result.additionalrole);
+		                sessionStorage.setItem('userName', result.name);
+		                sessionStorage.setItem('userEmail', email);
+		                sessionStorage.setItem('userRoles', result.role);
+
+		                // Redirect based on role
+		                if (result.role === "Admin") {
+		                    window.location.href = "/Admin_Dashboard";
+		                } else if (result.role === "Employee") {
+		                    window.location.href = "/Employee_Dashboard";
+		                }
+		            } else {
+		                alert("You are no longer an Employee of Tidy Digital Solutions");
+		            }
+		        } else {
+		            errorMessage.style.display = 'block';
+		            errorMessage.innerHTML = "Invalid email or password. Please try again.";
+		        }
+		    })
+		    .catch(error => {
+		        console.error("Error:", error);
+		        errorMessage.style.display = 'block';
+		        errorMessage.innerHTML = "An error occurred. Please try again later.";
+		    });
+		});
+
+	
+
 
 
 	</script>

@@ -1,3 +1,13 @@
+// PREVENT DIRECT ACCESS TO DASHBOARDS
+	document.addEventListener("DOMContentLoaded", function() {
+	    const userName = sessionStorage.getItem("userName");
+
+	    // Redirect to login page if user session is null
+	    if (userName === null) {
+	        window.location.href = "/login";
+	    }
+	});
+
 
 document.addEventListener("DOMContentLoaded", function () {
         // Get all nav links
@@ -30,13 +40,11 @@ navLinks.forEach(link => {
     });
 
    
-
 	/* Modified Fetch Charge codes Function with Filtering */
 	function fetchCodeDatas() {
 	    fetch("/getChargecodes") 
 	        .then(response => response.json())
 	        .then(data => {
-	          
 	            renderTable(data);
 	        })
 	        .catch(error => console.error("Error fetching Charge codes:", error));
@@ -54,8 +62,10 @@ navLinks.forEach(link => {
 	    
 	    employeeTableBody.innerHTML = "";
 	    filteredData.forEach(code => {
+	        let rowColor = code.status === "Complete" ? "style='background-color: #d9e2f3; font-weight: bold;'" : ""; // Light red for Complete
+	        
 	        employeeTableBody.innerHTML += `
-	            <tr>
+	            <tr ${rowColor}>
 	                <td>${code.id}</td>
 	                <td>${code.codeType}</td>
 	                <td>${code.code}</td>
@@ -79,8 +89,7 @@ navLinks.forEach(link => {
 	            .catch(error => console.error("Error fetching Charge codes:", error));
 	    });
 	});
-	
-	
+
 /*Save functionality*/
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -90,7 +99,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	const preview = document.getElementById('prevPeriod');
 	const nextpre = document.getElementById('nextPeriod');
     const tableBody = document.getElementById("tableBody");
-    const username = localStorage.getItem("userName"); // Logged-in employee
+    const username = sessionStorage.getItem("userName"); // Logged-in employee
 
     function getSelectedPeriod() {
         return periodDropdown.options[periodDropdown.selectedIndex].text; // Example: "01/03/2024 - 15/03/2024"
@@ -275,7 +284,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	                    if (!isStaticRow) columnFilled[actualColIndex] = true;
 
 	                    timesheetEntries.push({
-	                        username: localStorage.getItem("userName"),
+	                        username: sessionStorage.getItem("userName"),
 	                        period: selectedPeriod,
 	                        chargeCode: chargeCode,
 	                        cellIndex: cellIndex,
@@ -289,7 +298,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	                    console.log(`🛑 Cell CLEARED at ${cellIndex} (Previous: "${previousValue}", Now: "EMPTY")`);
 
 	                    timesheetEntries.push({
-	                        username: localStorage.getItem("userName"),
+	                        username: sessionStorage.getItem("userName"),
 	                        period: selectedPeriod,
 	                        chargeCode: chargeCode,
 	                        cellIndex: cellIndex,
@@ -439,7 +448,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 function generateSummary() {
-    const username = localStorage.getItem("userName");
+    const username = sessionStorage.getItem("userName");
 
     function getSelectedPeriod() {
         return periodDropdown.options[periodDropdown.selectedIndex].text;
@@ -797,7 +806,7 @@ function savePreferences() {
             }
 
             const selectedPeriod = getSelectedPeriod();
-            const loggedInUser = localStorage.getItem("userName"); // ✅ Get username from local storage
+            const loggedInUser = sessionStorage.getItem("userName"); // ✅ Get username from local storage
 
             if (!selectedPeriod || !loggedInUser) {
                 showAlert("Please select a period and ensure you're logged in!", "danger");
@@ -844,7 +853,7 @@ function fetchPreferences() {
     }
 
     const selectedPeriod = getSelectedPeriod();
-    const loggedInUser = localStorage.getItem("userName"); // ✅ Get logged-in username
+    const loggedInUser = sessionStorage.getItem("userName"); // ✅ Get logged-in username
 
     if (!selectedPeriod || !loggedInUser) {
         console.warn("Period or username missing!"); 
@@ -906,7 +915,7 @@ document.addEventListener("DOMContentLoaded", function () {
 document.addEventListener("DOMContentLoaded", function () {
     const sendApprovalBtn = document.getElementById("sendApprovalBtn");
     const confirmApprovalBtn = document.getElementById("confirmApproval");
-    const username = localStorage.getItem("userName");
+    const username = sessionStorage.getItem("userName");
 
     function getSelectedPeriod() {
         return periodDropdown.options[periodDropdown.selectedIndex].text; // Example: "01/03/2024 - 15/03/2024"
@@ -1000,7 +1009,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 sendApprovalBtn.classList.add("btn-info");
                 sendApprovalBtn.disabled = true;
                 showAlert("Timesheet Successfully Sent for approval!", "success");
-                localStorage.setItem(`approvalStatus_${username}_${selectedPeriod}`, "Reviewing"); // Store state
+                sessionStorage.setItem(`approvalStatus_${username}_${selectedPeriod}`, "Reviewing"); // Store state
             }
         })
         .catch(error => console.error("Error sending for approval:", error));

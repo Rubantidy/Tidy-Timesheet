@@ -32,16 +32,16 @@ public class EmployeeAssignmentController {
         try {
 
 
-            // Save the assignments in the database
+          
             for (String employeeName : assignmentRequest.getEmployees()) {
                 Assignment assignment = new Assignment();
                 assignment.setEmployeeName(employeeName);
                 assignment.setChargeCode(assignmentRequest.getChargeCode());
                 assignment.setDescription(assignmentRequest.getDescription());
-                assignmentRepository.save(assignment);  // Assuming you have a JPA repository for Assignment
+                assignmentRepository.save(assignment);  
             }
 
-            // Send email to each selected employee
+ 
             for (String employeeName : assignmentRequest.getEmployees()) {
 
                 emailService.sendAssignmentEmail(employeeName, assignmentRequest.getChargeCode(), assignmentRequest.getDescription());
