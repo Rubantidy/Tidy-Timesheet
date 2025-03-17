@@ -207,7 +207,8 @@ function showContent(section) {
 	else if(section === "approval") {
 		fetchPendingApprovals();
 	}
-			}
+			
+}
 
 			function fetchPendingApprovals() {
 			    fetch("/getPendingApprovals")
@@ -315,85 +316,114 @@ function showContent(section) {
 
 	
 
+			let selectedUsername, selectedPeriod; // Store selected values
+
 			function handleApproval() {
-				let approveBtn = document.getElementById("approveBtn");
-				   approveBtn.disabled = true;
-				   
-				let adminSummaryBody = document.getElementById("adminSummaryBody");
-						           
 			    let dropdown = document.getElementById("employeeDropdown");
 			    let selectedValue = dropdown.value;
 
 			    if (!selectedValue) {
 			        showAlert("Please select an employee before approving.", "danger");
-					approveBtn.disabled = false;
 			        return;
 			    }
 
-			    let [username, period] = selectedValue.split("  ");
+			    // ✅ Store selected values globally
+			    [selectedUsername, selectedPeriod] = selectedValue.split("  ");
+
+			    // ✅ Update modal message dynamically
+			    document.getElementById("approvalMessage").innerText = 
+			        `Are you sure you want to approve ${selectedUsername}'s timesheet for ${selectedPeriod}?`;
+
+			    // ✅ Show the modal
+			    let approvalModal = new bootstrap.Modal(document.getElementById("approvalConfirmModal"));
+			    approvalModal.show();
+			}
+
+			// ✅ Handle Approval after Confirming in the Modal
+			document.getElementById("confirmApprovalBtn").addEventListener("click", function () {
+			    let approveBtn = document.getElementById("approveBtn");
+			    approveBtn.disabled = true;
+
+			    let adminSummaryBody = document.getElementById("adminSummaryBody");
 
 			    fetch("/approve", {
 			        method: "POST",
 			        headers: { "Content-Type": "application/json" },
-			        body: JSON.stringify({ username, period })
+			        body: JSON.stringify({ username: selectedUsername, period: selectedPeriod })
 			    })
 			    .then(response => response.json())
 			    .then(result => {
 			        showAlert(result.message, "success");
 			        fetchPendingApprovals(); // Refresh list after approval
 
-					
-			        // ✅ Directly update the Employee button instead of fetching from DB
-			        updateEmployeeButton(username, period, "Approved");
-					
-					adminSummaryBody.innerHTML = ""; // Clear previous data
-				
+			        // ✅ Update Employee button dynamically
+			        updateEmployeeButton(selectedUsername, selectedPeriod, "Approved");
+
+			        adminSummaryBody.innerHTML = ""; // Clear previous data
 			    })
 			    .catch(error => console.error("Error approving timesheet:", error))
-				.finally(() => approveBtn.disabled = false);
-			}
+			    .finally(() => approveBtn.disabled = false);
+
+			    // ✅ Close the modal after confirmation
+			    let approvalModal = bootstrap.Modal.getInstance(document.getElementById("approvalConfirmModal"));
+			    approvalModal.hide();
+			});
+
+			
 
 			function handleIssue() {
-				let adminSummaryBody = document.getElementById("adminSummaryBody");
+			    let issueBtn = document.getElementById("issueBtn");
 			    let dropdown = document.getElementById("employeeDropdown");
 			    let selectedValue = dropdown.value;
-				
-				let issueBtn = document.getElementById("issueBtn");
-				    issueBtn.disabled = true;
+
+			    issueBtn.disabled = true;
 
 			    if (!selectedValue) {
 			        showAlert("Please select an employee before raising an issue.", "danger");
-					issueBtn.disabled = false;
+			        issueBtn.disabled = false;
 			        return;
 			    }
 
-			    let issueMessage = prompt("Enter the issue details:");
-			    if (!issueMessage){ 
-					issueBtn.disabled = false;
-					return;
-				} // If user cancels the prompt, exit
-				
+			    // Store selected username & period in a global variable for later use
+			    [selectedUsername, selectedPeriod] = selectedValue.split("  ");
 
-			    let [username, period] = selectedValue.split("  ");
+			    // Show the issue message modal
+			    let issueModal = new bootstrap.Modal(document.getElementById("issueMessageModal"));
+			    issueModal.show();
+			}
 
+			// Handle Issue Submission from Modal
+			document.getElementById("confirmIssueBtn").addEventListener("click", function () {
+			    let issueMessage = document.getElementById("issueMessageInput").value.trim();
+			    let issueError = document.getElementById("issueError");
+
+			    if (!issueMessage) {
+			        issueError.style.display = "block";
+			        return;
+			    }
+			    issueError.style.display = "none";
+
+			    // Close modal
+			    let issueModal = bootstrap.Modal.getInstance(document.getElementById("issueMessageModal"));
+			    issueModal.hide();
+
+			    // Call the API to raise an issue
 			    fetch("/raiseIssue", {
 			        method: "POST",
 			        headers: { "Content-Type": "application/json" },
-			        body: JSON.stringify({ username, period, issueMessage })
+			        body: JSON.stringify({ username: selectedUsername, period: selectedPeriod, issueMessage })
 			    })
 			    .then(response => response.json())
 			    .then(result => {
 			        showAlert(result.message, "success");
 			        fetchPendingApprovals(); // Refresh pending approvals list
-
-			        // ✅ Directly update the Employee button instead of fetching from DB
-			        updateEmployeeButton(username, period, "Timesheet Issue");
-					adminSummaryBody.innerHTML = ""; // Clear previous data
-				
+			        updateEmployeeButton(selectedUsername, selectedPeriod, "Timesheet Issue");
+			        document.getElementById("adminSummaryBody").innerHTML = ""; // Clear previous data
 			    })
 			    .catch(error => console.error("Error raising issue:", error))
-				.finally(() => issueBtn.disabled = false); // Re-enable button
-			}
+			    .finally(() => document.getElementById("issueBtn").disabled = false);
+			});
+
 
 			// ✅ Function to update the button state dynamically
 			function updateEmployeeButton(username, period, status) {
@@ -692,7 +722,7 @@ function assignEmployees() {
 
   
     document.getElementById("confirmAssignment").onclick = function() {
-        // Proceed with the assignment logic if the user clicks "Yes, Assign"
+       
         
         const assignmentData = {
             chargeCode: chargeCode,

@@ -24,7 +24,7 @@
                <!--  <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('delegates')"><i class="bi bi-person-check me-2"></i> Delegates</a></li> -->
                 <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('charge-code')"><i class="bi bi-credit-card me-2"></i> Code Manage</a></li>
 				<li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('expense-code')"><i class="bi bi-credit-card-2-front-fill"></i> Expense Code</a></li>
-				<li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('approval')"><i class="bi bi-credit-card-2-front-fill"></i> Approvals</a></li>
+				<li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('approval')"><i class="bi bi-app-indicator"></i> Approvals</a></li>
 			</ul>
         </nav>
         
@@ -34,6 +34,7 @@
             <div class="top-bar d-flex justify-content-between align-items-center">
                 <button class="btn btn-outline-dark d-md-none" onclick="toggleSidebar()">☰</button>
                 <img src="img/logo.png" alt="Logo" height="40">
+				
 				<div class="iconsmenu">
 					<i class="bi bi-bell" id="notificationBell" onclick="toggleNotifications()"></i>
 					<span id="notificationCount" class="badge badge-danger">0</span>
@@ -212,6 +213,47 @@
 					      </div>
 					    </div>
 					  </div>
+					</div>
+
+					
+					<!-- Issue Message Modal -->
+					<div class="modal fade" id="issueMessageModal" tabindex="-1" aria-labelledby="issueMessageLabel" aria-hidden="true">
+					    <div class="modal-dialog">
+					        <div class="modal-content">
+					            <div class="modal-header">
+					                <h5 class="modal-title" id="issueMessageLabel">Raise an Issue</h5>
+					                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					            </div>
+					            <div class="modal-body">
+					                <textarea id="issueMessageInput" class="form-control" placeholder="Enter issue details..." rows="4"></textarea>
+					                <div id="issueError" style="color: red; display: none; margin-top: 10px;">Issue message is required!</div>
+					            </div>
+					            <div class="modal-footer">
+					                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+					                <button type="button" class="btn btn-danger" id="confirmIssueBtn">Raise Issue</button>
+					            </div>
+					        </div>
+					    </div>
+					</div>
+
+					
+					<!-- Approval Confirmation Modal -->
+					<div class="modal fade" id="approvalConfirmModal" tabindex="-1" aria-labelledby="approvalConfirmLabel" aria-hidden="true">
+					    <div class="modal-dialog">
+					        <div class="modal-content">
+					            <div class="modal-header">
+					                <h5 class="modal-title" id="approvalConfirmLabel">Confirm Approval</h5>
+					                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					            </div>
+					            <div class="modal-body">
+					                <p id="approvalMessage"></p> <!-- Dynamic message -->
+					            </div>
+					            <div class="modal-footer">
+					                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+					                <button type="button" class="btn btn-success" id="confirmApprovalBtn">Yes, Approve</button>
+					            </div>
+					        </div>
+					    </div>
 					</div>
 
 					
@@ -422,7 +464,7 @@
 
 /*switch employee*/
 
-		document.querySelector('.dropdown-menu').addEventListener('click', function(event) {
+		document.getElementById('userDropdown').addEventListener('click', function (e) {
 		    // Prevent the default behavior of anchor tag click
 		    event.preventDefault();
 

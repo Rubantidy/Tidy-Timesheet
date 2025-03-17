@@ -34,7 +34,7 @@ public class CodeController {
 	  
 
 
-	    
+	     
 	  @PostMapping("/addChargeCode")
 	    public String addChargeCode(@RequestBody Map<String, String> requestData) {
 
@@ -45,6 +45,7 @@ public class CodeController {
 	        String startDate = requestData.getOrDefault("startDate", "-");
 	        String country = requestData.getOrDefault("country", "-");
 	        String description = requestData.getOrDefault("description", "-");
+	    
 
 	        Codedao newChargeCode = new Codedao(codeType, code, clientName, projectType, startDate, country, description);
 	        codeRepository.save(newChargeCode);
@@ -52,19 +53,7 @@ public class CodeController {
 	        return "Charge Code added successfully!";
 	    }
 
-	    
-	    @PostMapping("/addLeaveCode")
-	    public String addLeaveCode(@RequestBody Map<String, String> requestData) {
-	        String codeType = requestData.getOrDefault("codeType", "-");
-	        String code = requestData.getOrDefault("code", "-");
-	        String description = requestData.getOrDefault("description", "-");
 
-	        Codedao newLeaveCode = new Codedao(codeType, code, description);
-
-	        codeRepository.save(newLeaveCode);
-
-	        return "Leave Code added successfully!";
-	    }
 	    
 	    @GetMapping("/getChargecodes")
 	    public ResponseEntity<List<Codedao>> getCodes() {

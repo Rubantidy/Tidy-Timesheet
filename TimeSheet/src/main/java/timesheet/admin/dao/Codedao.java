@@ -22,6 +22,7 @@ public class Codedao {
     private String startDate;  
     private String country;    
     private String description;
+    
 
     public Codedao() {}
 
@@ -34,6 +35,7 @@ public class Codedao {
         this.startDate = startDate;
         this.country = country;
         this.description = description;
+   
     }
 
     // Constructor for Leave Code
@@ -45,7 +47,13 @@ public class Codedao {
         this.projectType = "-";
         this.startDate = "-";
         this.country = "-";
+        
+       
     }
+    
+    
+
+
 
 	public int getId() {
 		return id;
