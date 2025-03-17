@@ -405,12 +405,12 @@
 		            }, 1000);
 
 		        } else {
-		            alert("Failed to send OTP. Please try again.");
+		            showAlert("Failed to send OTP. Please try again.", "danger");
 		        }
 		    })
 		    .catch(error => {
 		        console.error("Error:", error);
-		        alert("An error occurred. Please try again later.");
+		        showAlert("An error occurred. Please try again later.", "danger");
 		    });
 		});
 
@@ -453,7 +453,7 @@
 		    .then(response => response.json())
 		    .then(result => {
 		        if (result.success) {
-		            alert("Your password was changed successfully.");
+		            showAlert("Your password was changed successfully.", "success");
 
 		            // Close the OTP modal (password change form)
 		            var otpModal = bootstrap.Modal.getInstance(document.getElementById('otpModal'));
@@ -473,12 +473,12 @@
 		            document.getElementById('sendOtpBtn').style.display = 'inline-block';
 		        } else {
 		            console.log("Error response:", result); // Debug log to check the response from backend
-		            alert("Failed to change the password. Please try again.");
+		            showAlert("Failed to change the password. Please try again.", "danger");
 		        }
 		    })
 		    .catch(error => {
 		        console.error("Error:", error);
-		        alert("An error occurred. Please try again later.");
+		        showAlert("An error occurred. Please try again later.", "danger");
 		    });
 		});
 
@@ -493,7 +493,7 @@
 		        const userEmail = sessionStorage.getItem('userEmail');  // Fetch the email from sessionStorage
 
 		        if (!userEmail) {
-		            alert("User is not logged in. Please log in first.");
+		            showAlert("User is not logged in. Please log in first.", "danger");
 		            return;
 		        }
 
@@ -514,12 +514,12 @@
 		                // Switch to Employee Dashboard
 		                switchToEmployeePanel();
 		            } else {
-		                alert("You are not authorized to switch to the Employee panel.");
+		                showAlert("You are not authorized to switch to the Employee panel.", "danger");
 		            }
 		        })
 		        .catch(error => {
 		            console.error("Error:", error);
-		            alert("An error occurred. Please try again.");
+		            showAlert("An error occurred. Please try again.", "danger");
 		        });
 		    }
 		});
@@ -531,7 +531,7 @@
 		}
 
 
-		/*Notification*/
+		       /*Notification*/
 				document.addEventListener("DOMContentLoaded", function () {
 				    let stompClient = null;
 				    let notificationCount = 0;
