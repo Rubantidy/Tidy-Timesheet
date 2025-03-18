@@ -21,7 +21,7 @@ public class NotificationController {
         notification.put("message", message);
         notification.put("username", username); // ✅ Include username for client-side filtering
 
-        System.out.println("✅ Sending WebSocket Notification to user: " + username + " -> " + message);
+       
         messagingTemplate.convertAndSendToUser(username, "/topic/notifications", notification);
     }
 

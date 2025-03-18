@@ -442,10 +442,10 @@
 	                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 	            </div>
 	            <div class="modal-body">
-	                <p><strong>Are you sure you want to send the timesheet for <span id="selectedPeriodText"></span>?</strong></p>
+	                <p><strong>Are you sure you want to send the timesheet for review for the period  <span id="selectedPeriodText"></span>?</strong> </p>
 	                <p class="text-danger"><strong>Note:</strong></p>
 	                <p class="text-danger">
-	                    Please make sure all entered details are correct. If incorrect, it may affect your salary, and we are not responsible for that!
+	                    Please make sure your save the timesheet before sending and all entered details are correct. If incorrect, it may affect your salary, and we are not responsible for that!
 	                </p>
 	            </div>
 	            <div class="modal-footer">
@@ -458,6 +458,11 @@
 
 
 
+	<div id="loader" class="loader-container">
+	    <div class="spinner-border text-primary" role="status">
+	        <span class="visually-hidden">Loading...</span>
+	    </div>
+	</div>
 
 
 <script>
@@ -611,6 +616,8 @@
 		  		        return;
 		  		    }
 
+					showLoader();
+					
 		  		    // Send the request to the backend to send OTP to the user's email
 		  		    const email = sessionStorage.getItem('userName');  // Get the email of the logged-in user
 
@@ -648,7 +655,8 @@
 		  		    .catch(error => {
 		  		        console.error("Error:", error);
 		  		        showAlert("An error occurred. Please try again later.", "danger");
-		  		    });
+		  		    })
+					.finally(() => hideLoader());
 		  		});
 
 		  		// Resend OTP functionality
@@ -673,6 +681,7 @@
 		  		        return;
 		  		    }
 
+					showLoader();
 		  		    // Send the OTP and password to the backend for validation
 		  		    const newPassword = document.getElementById('newPassword').value;
 
@@ -716,7 +725,8 @@
 		  		    .catch(error => {
 		  		        console.error("Error:", error);
 		  		        showAlert("An error occurred. Please try again later.", "danger");
-		  		    });
+		  		    })
+					.finally(() => hideLoader());
 		  		});
 
 				

@@ -70,7 +70,8 @@ public class EmailService {
             otpTimestampMap.put(email, System.currentTimeMillis());  // Store the timestamp
         } catch (MessagingException e) {
             e.printStackTrace();
-            System.out.println("Error while sending OTP email.");
+
+
         }
     }
  
@@ -138,7 +139,7 @@ public class EmailService {
             // Send the email
             javaMailSender.send(mimeMessage);
             
-            System.out.println("Password change confirmation email sent to: " + email);
+
         } catch (MessagingException e) {
             e.printStackTrace();
             System.out.println("Error while sending password change confirmation email.");

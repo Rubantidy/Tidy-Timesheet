@@ -288,6 +288,12 @@
 					        </div>
 					    </div>
 					</div>
+					
+					<div id="loader" class="loader-container">
+					    <div class="spinner-border text-primary" role="status">
+					        <span class="visually-hidden">Loading...</span>
+					    </div>
+					</div>
 
     
     <!-- Bootstrap JS -->
@@ -354,6 +360,7 @@
 
 		// Send OTP when the "Send OTP" button is clicked
 		document.getElementById('sendOtpBtn').addEventListener('click', function () {
+			showLoader();
 		    const newPassword = document.getElementById('newPassword').value;
 		    const confirmPassword = document.getElementById('confirmPassword').value;
 		    const passwordError = document.getElementById('passwordError');
@@ -374,6 +381,7 @@
 		        return;
 		    }
 
+			showLoader(); 
 		    // Send the request to the backend to send OTP to the user's email
 		    const email = sessionStorage.getItem('userName');  // Get the email of the logged-in user
 
@@ -411,7 +419,8 @@
 		    .catch(error => {
 		        console.error("Error:", error);
 		        showAlert("An error occurred. Please try again later.", "danger");
-		    });
+		    })
+			.finally(() => hideLoader());
 		});
 
 		// Resend OTP functionality
@@ -435,6 +444,8 @@
 		        otpError.innerHTML = "OTP is required.";
 		        return;
 		    }
+			
+			showLoader();
 
 		    // Send the OTP and password to the backend for validation
 		    const newPassword = document.getElementById('newPassword').value;
@@ -479,7 +490,8 @@
 		    .catch(error => {
 		        console.error("Error:", error);
 		        showAlert("An error occurred. Please try again later.", "danger");
-		    });
+		    })
+			.finally(() => hideLoader());
 		});
 
 /*switch employee*/

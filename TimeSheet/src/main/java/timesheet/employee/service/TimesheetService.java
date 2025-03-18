@@ -69,13 +69,15 @@ public class TimesheetService {
 
 	    public boolean raiseIssue(String username, String period, String issueMessage) {
 	    	
-	    	System.out.println("issue service called");
+	    	
 	        // Fetch the timesheet entry for the user and period
 	        SummaryEntry timesheet = summaryRepository.findByUsernameAndPeriod(username, period);
 
 	        if (timesheet != null) { // Entry exists
 	            // Log the issue in the database (but don't change status)
-	            System.out.println("Issue raised for " + username + " | Period: " + period + " | Issue: " + issueMessage);
+
+
+
 
 	         // ✅ Update status to "Issue"
 	            timesheet.setStatus("Issue");

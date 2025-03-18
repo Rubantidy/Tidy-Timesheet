@@ -43,7 +43,8 @@ public class PasswordController {
     @PostMapping("/change-password")
     public ResponseEntity<OtpResponse> changePassword(@RequestBody PasswordChangeRequest passwordChangeRequest) throws UnsupportedEncodingException {
         String email = passwordChangeRequest.getEmail();
-        System.out.println("password mail :" + email);
+
+
        
         Employeedao employee = emrepo.findByeName(email);
         String mail = employee.geteMail();
@@ -52,7 +53,7 @@ public class PasswordController {
 
         // Validate OTP
         boolean otpValid = emailService.validateOtp(mail, enteredOtp);
-        System.out.println("oTp validation: "+otpValid);
+  
        
         if (!otpValid) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -64,7 +65,7 @@ public class PasswordController {
         boolean passwordUpdated = updatePasswordInDatabase(email, newPassword);
 
         if (!passwordUpdated) {
-            System.out.println("Password update failed for email: " + mail); // Debug log for failure
+          
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(new OtpResponse(false, "Failed to update password"));
         }
@@ -81,13 +82,15 @@ public class PasswordController {
         Employeedao employee = emrepo.findByeName(email);
 
         if (employee != null) {
-            System.out.println("Employee found: " + employee.geteName()); // Debug log to confirm employee is found
+           
             employee.setePassword(newPassword); // Update the password
             emrepo.save(employee); // Save the updated password
-            System.out.println("Password updated for: " + employee.geteName()); // Confirm that password update happened
+
+
             return true;
         }
-        System.out.println("Employee not found for email: " + email); // Debug log if employee isn't found
+
+
         return false;
     }
 

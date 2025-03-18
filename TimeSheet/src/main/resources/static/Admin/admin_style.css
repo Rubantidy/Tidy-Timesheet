@@ -405,6 +405,7 @@ body {
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     cursor: pointer;
+	
 }
 
 .card:hover {
@@ -604,6 +605,24 @@ body {
     }
 }
 
+    .loader-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7); /* Dark overlay */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1100; /* 🔥 Higher than Bootstrap modals (1050) */
+        display: none; /* Hidden by default */
+    }
+
+    .loader-container .spinner-border {
+        width: 4rem;
+        height: 4rem;
+    }
 
 
 

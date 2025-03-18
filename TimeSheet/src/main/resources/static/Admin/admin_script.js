@@ -1,5 +1,7 @@
 
-	document.addEventListener("DOMContentLoaded", function() {
+
+
+document.addEventListener("DOMContentLoaded", function() {
 	    const userName = sessionStorage.getItem("userName");
 
 	    // Redirect to login page if user session is null
@@ -62,6 +64,8 @@ document.getElementById('logout').addEventListener('click', function(event) {
    
    
 function showContent(section) {
+	
+	
     const title = document.getElementById("content-title");
     const contentBox = document.getElementById("content-box");
 	const summery = document.getElementById("summery");
@@ -293,7 +297,8 @@ function showContent(section) {
 						fetchIssuelist();
 						fetchCounts();
 					}
-							}
+						
+				}
 							
 							function showSection(section) {
 							    document.getElementById("pendingSection").style.display = "none";
@@ -595,10 +600,12 @@ function createCard(icon, title, value) {
 }
 
 function attachFormListeners() {
+	
     document.getElementById("addEmployeeBtn")?.addEventListener("click", () => showForm("employee"));
     document.getElementById("addDelegateBtn")?.addEventListener("click", () => showForm("delegates"));
     document.getElementById("addChargeCodeBtn")?.addEventListener("click", showDropdown);
 	document.getElementById("addExpenseCodeBtn")?.addEventListener("click", () => showForm("Expense-code"));
+	
 }
 
 function showDropdown() {
@@ -634,7 +641,7 @@ function showForm(type) {
 /*Function for sending data into backend (Java) */
 function handleFormSubmit(event) {
     event.preventDefault(); 
-
+	showLoader();
     const form = event.target;
     const formData = new FormData(form);
     const jsonData = Object.fromEntries(formData.entries());
@@ -649,11 +656,13 @@ function handleFormSubmit(event) {
     .then(response => response.text())
     .then(data => {
         showAlert(data, "success");
+		
         hideForm(); 
     })
     .catch(error => {
         console.error("Error:", error);
-    });
+    })
+	.finally(() => hideLoader());
 }
 
 
@@ -888,11 +897,13 @@ function removeEmployee(employeeName) {
 }
 
 function assignEmployees() {
+	
     if (selectedEmployees.length === 0) {
         showAlert("Please select at least one employee.", "danger");
         return;
     }
 
+	
     
     const chargeCode = document.getElementById("chargeCodeDisplay").innerText;
     const description = document.getElementById("chargeCodeDescription").innerText;
@@ -907,14 +918,16 @@ function assignEmployees() {
 
   
     document.getElementById("confirmAssignment").onclick = function() {
-       
-        
+		
+		showLoader();
         const assignmentData = {
             chargeCode: chargeCode,
             description: description,
             employees: selectedEmployees  // Send only names
+			
         };
 
+		
         // Send data to Spring Boot backend
         fetch("/assignEmployees", {
             method: "POST",
@@ -934,13 +947,13 @@ function assignEmployees() {
         .catch(error => {
             console.error("Error sending data to backend:", error);
             showAlert("An error occurred.", "danger");
-        });
+        })
 
-        // Hide modal
-        confirmationModal.hide();
-        
-        // Close the current modal (if open)
-        bootstrap.Modal.getInstance(document.getElementById("assignModal")).hide();
+		.finally(() => {
+		           hideLoader(); // ✅ Hide loader when action completes
+		           confirmationModal.hide(); // Hide confirmation modal
+		           bootstrap.Modal.getInstance(document.getElementById("assignModal")).hide(); // Hide assign modal
+		       });
     };
 
     // If the user clicks "Cancel", just close the confirmation modal

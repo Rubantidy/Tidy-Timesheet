@@ -44,10 +44,7 @@ public class EmpController {
         return "Admin/Admin_panel";
     }
     
-//    @PostConstruct
-//    public void defaultadmin() {
-//    	EmpRepo.insertDefaultAdmin();
-//    }
+
 
     @PostMapping("/addEmployee")
     public ResponseEntity<String> addEmployee(@RequestBody Employeedao EmpData) throws IOException {
