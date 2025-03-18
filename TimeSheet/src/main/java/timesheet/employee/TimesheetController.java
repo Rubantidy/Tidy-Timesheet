@@ -254,7 +254,37 @@ public class TimesheetController {
     }
 
     
+    @GetMapping("/getApprovalslist")
+    public ResponseEntity<List<Map<String, String>>> getApprovalslist() {
+        List<String> statuses = Arrays.asList("Approved"); // ✅ Define required statuses
+        List<SummaryEntry> pendingSummaries = summaryRepository.findByStatusIn(statuses); // ✅ Fetch entries with "Pending" or "Issue"
+
+        List<Map<String, String>> responseList = pendingSummaries.stream().map(summary -> {
+            Map<String, String> responseMap = new HashMap<>();
+            responseMap.put("username", summary.getUsername());
+            responseMap.put("period", summary.getPeriod());
+            System.out.println("User: " + summary.getUsername() + ", Period: " + summary.getPeriod());
+            return responseMap;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(responseList);
+    }
     
+    @GetMapping("/getIssuelist")
+    public ResponseEntity<List<Map<String, String>>> getIssuelist() {
+        List<String> statuses = Arrays.asList("Issue"); // ✅ Define required statuses
+        List<SummaryEntry> pendingSummaries = summaryRepository.findByStatusIn(statuses); // ✅ Fetch entries with "Pending" or "Issue"
+
+        List<Map<String, String>> responseList = pendingSummaries.stream().map(summary -> {
+            Map<String, String> responseMap = new HashMap<>();
+            responseMap.put("username", summary.getUsername());
+            responseMap.put("period", summary.getPeriod());
+            System.out.println("User: " + summary.getUsername() + ", Period: " + summary.getPeriod());
+            return responseMap;
+        }).collect(Collectors.toList());
+
+        return ResponseEntity.ok(responseList);
+    }
 
 
     @PostMapping("/approve")
