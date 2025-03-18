@@ -30,6 +30,7 @@ import timesheet.employee.repo.SummaryRepository;
 import timesheet.employee.repo.TimesheetRepository;
 import timesheet.employee.service.TimesheetService;
 import timesheet.notification.NotificationController;
+import timesheet.notification.NotificationService;
 
 @RestController
 public class TimesheetController {
@@ -46,13 +47,18 @@ public class TimesheetController {
     @Autowired
     private SummaryRepository summaryRepository;
 
+  
+    private final NotificationService notificationService;
     private final SimpMessagingTemplate messagingTemplate;
-    
-    private final NotificationController notificationController;
 
-    public TimesheetController(TimesheetService timesheetService, NotificationController notificationController, SimpMessagingTemplate messagingTemplate) {
+ // ✅ Correct Constructor Injection
+
+    public TimesheetController(
+            TimesheetService timesheetService,
+            NotificationService notificationService,
+            SimpMessagingTemplate messagingTemplate) {
         this.timesheetService = timesheetService;
-        this.notificationController = notificationController;
+        this.notificationService = notificationService;
         this.messagingTemplate = messagingTemplate;
     }
     
@@ -194,7 +200,7 @@ public class TimesheetController {
         saveSummary(username, period, summary, status);
 
         
-        notificationController.sendAdminNotification(username + " is waiting for Timesheet approval on this Period: " + period );
+        notificationService.sendAdminNotification(username + " is waiting for Timesheet approval on this Period: " + period);
         
         return ResponseEntity.ok(Map.of("success", true));
     }
@@ -309,7 +315,7 @@ public class TimesheetController {
         boolean success = timesheetService.approveTimesheet(username, period);
 
         if (success) {
-        	 notificationController.sendNotification(username, "Your timesheet has been approved on this Period: " + period);
+        	  notificationService.sendNotification(username, "Your timesheet has been approved on this Period: " + period);
             return ResponseEntity.ok(Collections.singletonMap("message", "Timesheet approved successfully."));
         } 
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -346,18 +352,14 @@ public class TimesheetController {
         boolean success = timesheetService.raiseIssue(username, period, issueMessage);
 
         if (success) {
-        	notificationController.sendNotification(username, "Timesheet has an issue on this period: " +period + " The Issue is: " + issueMessage);
+        	notificationService.sendNotification(username, "Timesheet has an issue on this period: " + period + ". The Issue is: " + issueMessage);
             return ResponseEntity.ok(Collections.singletonMap("message", "Issue raised successfully."));
         } 
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(Collections.singletonMap("message", "Timesheet entry not found."));
         
     }
-    
-
-     
-    
-    
+       
     
     @PostMapping("/savePreferences")
     public ResponseEntity<String> savePreferences(@RequestBody Preference preference) {
