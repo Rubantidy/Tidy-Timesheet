@@ -11,6 +11,8 @@ import timesheet.employee.dao.SummaryEntry;
 public interface SummaryRepository extends JpaRepository<SummaryEntry, Long> {
     SummaryEntry findByUsernameAndPeriod(String username, String period);
     
-    List<SummaryEntry> findByStatusIn(List<String> statuses); 
+    List<SummaryEntry> findByStatusIn(List<String> statuses);
+
+	Integer countByStatus(String string); 
 }
 

@@ -1,4 +1,4 @@
-// PREVENT DIRECT ACCESS TO DASHBOARDS
+
 	document.addEventListener("DOMContentLoaded", function() {
 	    const userName = sessionStorage.getItem("userName");
 
@@ -92,7 +92,7 @@ function showContent(section) {
 		            <h3 id="issueCount">0</h3>
 		        </div>
 		    </div>
-		</div>
+		</div> <br> <br>
 
 		<!-- Sections (Initially Hidden) -->
 		<div id="pendingSection" style="display: none;">
@@ -169,9 +169,9 @@ function showContent(section) {
 		</div>
 
 		       `,
-		"manage-user": `<button class="btn btn-primary mb-3" id="addEmployeeBtn">Add Users</button><div id="form-container"></div>
+		"manage-user": `<button class="btn btn-info mb-3" id="addEmployeeBtn">Add Users</button><div id="form-container"></div>
 		     <div id="form-container"></div>
-		           <h4>Employee List</h4>
+		         
 		           <table class="table table-striped">
 		               <thead>
 		                   <tr>
@@ -189,7 +189,7 @@ function showContent(section) {
 		               <tbody id="employee-table-body"></tbody>
 		           </table>
 		   `,
-		   "delegates": `<button class="btn btn-warning mb-3" id="addDelegateBtn">Add Delegates</button><div id="form-container"></div>
+		   "delegates": `<button class="btn btn-info mb-3" id="addDelegateBtn">Add Delegates</button><div id="form-container"></div>
 		   <table class="table table-striped">
 		   		   		   		<thead>
 		   		   		   		   <tr>
@@ -203,7 +203,7 @@ function showContent(section) {
 		   		   		  </table>
 		   `,
 		   "charge-code": `<button class="btn btn-info mb-3" id="addChargeCodeBtn">Add Code</button><div id="form-container"></div> 
-		   <h4>Charge Code List</h4>
+		
 		   		           <table class="table table-striped">
 		   		               <thead>
 		   		                   <tr>
@@ -222,7 +222,7 @@ function showContent(section) {
 		   		           </table>
 		   `,
 		   "expense-code": `<button class="btn btn-info mb-3" id="addExpenseCodeBtn">Add Expense Code</button><div id="form-container"></div>
-		   <h4>Expense Code List</h4>
+		  
 		   		  <table class="table table-striped">
 		   		   		<thead>
 		   		   		   <tr>
@@ -291,6 +291,7 @@ function showContent(section) {
 						fetchPendingApprovals();
 						fetchApprovalslist();
 						fetchIssuelist();
+						fetchCounts();
 					}
 							}
 							
@@ -308,12 +309,47 @@ function showContent(section) {
 							    }
 							}
 
-				 
 							document.addEventListener("DOMContentLoaded", function () {
-							    fetchPendingApprovals();
-							    fetchApprovalslist();
-							    fetchIssuelist();
+							
+							    
+							    // Ensure the dropdowns exist before calling the functions
+							    if (document.getElementById("employeeDropdown1") &&
+							        document.getElementById("employeeDropdown2") &&
+							        document.getElementById("employeeDropdown3") &&
+									document.getElementById("issueCount") &&
+									document.getElementById("approvedCount") &&
+									document.getElementById("pendingCount")
+								
+								
+								) {
+							        
+							        fetchPendingApprovals();
+							        fetchApprovalslist();
+							        fetchIssuelist();
+							        fetchCounts();
+							    } 
 							});
+
+
+							function fetchCounts() {
+							    fetch('/counts')
+							        .then(response => response.json())
+							        .then(data => {
+							         
+
+							            let pendingCountElem = document.getElementById("pendingCount");
+							            let approvedCountElem = document.getElementById("approvedCount");
+							            let issueCountElem = document.getElementById("issueCount");
+
+
+							            // Update values
+							            pendingCountElem.textContent = data.pending ?? 0;
+							            approvedCountElem.textContent = data.approved ?? 0;
+							            issueCountElem.textContent = data.issue ?? 0;
+							        })
+							        .catch(error => console.error("❌ Error fetching counts:", error));
+							}
+
 
 							// ✅ Fetch pending approvals and populate dropdown
 							function fetchPendingApprovals() {
@@ -339,9 +375,15 @@ function showContent(section) {
 							        .catch(error => console.error("Error fetching issue list:", error));
 							}
 
-							// ✅ Helper function to populate dropdowns
 							function populateDropdown(dropdownId, data, status) {
 							    let dropdown = document.getElementById(dropdownId);
+							    
+							    // 🔴 Fix: Check if dropdown exists before modifying it
+							    if (!dropdown) {
+							        console.error(`Error: Dropdown with ID '${dropdownId}' not found.`);
+							        return;
+							    }
+
 							    dropdown.innerHTML = '<option value="">Select Employee</option>'; // Reset dropdown
 
 							    if (!Array.isArray(data)) {

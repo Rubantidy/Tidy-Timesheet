@@ -32,7 +32,7 @@
         <div class="flex-grow-1 p-3 main-content">
             <!-- Top Bar -->
             <div class="top-bar d-flex justify-content-between align-items-center">
-                <button class="btn btn-outline-dark d-md-none" onclick="toggleSidebar()">☰</button>
+                <button class="btn btn-outline-dark d-md-none" id="sidebarToggle" onclick="toggleSidebar()">☰</button>
                 <img src="img/logo.png" alt="Logo" height="40">
 				
 				<div class="iconsmenu">
@@ -58,8 +58,8 @@
 						<a href="#" class="dropdown-item" id="logout">Logout</a>
 				    </div>
 				</div>
-            </div>
-            
+            </div> <br>
+             
             <!-- Dynamic Content -->
             <h2 id="content-title" class="mb-3">Dashboard</h2>
             <div id="content-box" class="p-4 border rounded shadow bg-white">

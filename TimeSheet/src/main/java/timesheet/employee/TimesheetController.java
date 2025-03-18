@@ -105,7 +105,7 @@ public class TimesheetController {
     public ResponseEntity<Map<String, Object>> getSummary(
             @RequestParam String username, @RequestParam String period) {
 
-        System.out.println("Fetching summary for: " + username + " | Period: " + period);
+        
 
         List<TimesheetEntry> entries = timesheetService.getTimesheet(username, period);
 
@@ -167,7 +167,7 @@ public class TimesheetController {
         summaryData.put("paidLeaveDays", paidLeave);
         summaryData.put("entries", processedEntries);
 
-        System.out.println("Summary Data: " + summaryData);
+        
         return ResponseEntity.ok(summaryData);
     }
 
@@ -246,7 +246,8 @@ public class TimesheetController {
             Map<String, String> responseMap = new HashMap<>();
             responseMap.put("username", summary.getUsername());
             responseMap.put("period", summary.getPeriod());
-            System.out.println("User: " + summary.getUsername() + ", Period: " + summary.getPeriod());
+
+
             return responseMap;
         }).collect(Collectors.toList());
 
@@ -263,7 +264,8 @@ public class TimesheetController {
             Map<String, String> responseMap = new HashMap<>();
             responseMap.put("username", summary.getUsername());
             responseMap.put("period", summary.getPeriod());
-            System.out.println("User: " + summary.getUsername() + ", Period: " + summary.getPeriod());
+
+
             return responseMap;
         }).collect(Collectors.toList());
 
@@ -279,14 +281,26 @@ public class TimesheetController {
             Map<String, String> responseMap = new HashMap<>();
             responseMap.put("username", summary.getUsername());
             responseMap.put("period", summary.getPeriod());
-            System.out.println("User: " + summary.getUsername() + ", Period: " + summary.getPeriod());
+
+
             return responseMap;
         }).collect(Collectors.toList());
 
         return ResponseEntity.ok(responseList);
     }
 
+    @GetMapping("/counts")
+    public ResponseEntity<Map<String, Integer>> getCounts() {
+    	 Map<String, Integer> counts = new HashMap<>();
+         counts.put("pending", summaryRepository.countByStatus("Pending"));
+         counts.put("approved", summaryRepository.countByStatus("Approved"));
+         counts.put("issue", summaryRepository.countByStatus("Issue"));
+     
 
+
+        return ResponseEntity.ok(counts);
+    }
+    
     @PostMapping("/approve")
     public ResponseEntity<Map<String, String>> approveTimesheet(@RequestBody Map<String, String> request) {
         String username = request.get("username");
@@ -323,7 +337,8 @@ public class TimesheetController {
     
     @PostMapping("/raiseIssue")
     public ResponseEntity<Map<String, String>> raiseIssue(@RequestBody Map<String, String> request) {
-    	System.out.println("issue controller called");
+
+
         String username = request.get("username");
         String period = request.get("period");
         String issueMessage = request.get("issueMessage");
@@ -374,11 +389,13 @@ public class TimesheetController {
             updatedPreference.setDelegator(preference.getDelegator());
 
             preferenceRepository.save(updatedPreference);
-            System.out.println("Updated Preferences for: " + preference.getEmployeename() + " - " + preference.getPeriod());
+
+
         } else {
             // ✅ Save new preference
             preferenceRepository.save(preference);
-            System.out.println("Saved New Preferences for: " + preference.getEmployeename() + " - " + preference.getPeriod());
+
+
         }
 
         return ResponseEntity.ok("Preferences saved successfully!");
