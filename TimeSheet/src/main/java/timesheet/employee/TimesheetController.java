@@ -1,7 +1,6 @@
 package timesheet.employee;
 
 import java.util.ArrayList;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -9,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -33,7 +31,6 @@ import timesheet.employee.repo.PreferenceRepository;
 import timesheet.employee.repo.SummaryRepository;
 import timesheet.employee.repo.TimesheetRepository;
 import timesheet.employee.service.TimesheetService;
-import timesheet.notification.NotificationController;
 import timesheet.notification.NotificationService;
 
 @RestController
