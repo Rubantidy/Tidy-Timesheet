@@ -914,11 +914,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
 document.addEventListener("DOMContentLoaded", function () {
     const sendApprovalBtn = document.getElementById("sendApprovalBtn");
+    const submitBtn = document.getElementById("submitBtn"); // ✅ Get Submit Button
     const confirmApprovalBtn = document.getElementById("confirmApproval");
+	const submitApprovalBtn = document.getElementById("confirmsubmit");
     const username = sessionStorage.getItem("userName");
 
     function getSelectedPeriod() {
-        return periodDropdown.options[periodDropdown.selectedIndex].text; // Example: "01/03/2024 - 15/03/2024"
+        return periodDropdown.options[periodDropdown.selectedIndex]?.text || ""; // Ensure it's not undefined
     }
 
     function updateButtonState() {
@@ -935,8 +937,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 const approvalStatus = data.status || "No Data"; // Default if no data is found
                 console.log("Fetched Status from DB:", approvalStatus); // ✅ Debugging Output
 
-                if (!sendApprovalBtn) {
-                    console.warn("Send Approval button not found!");
+                if (!sendApprovalBtn || !submitBtn) {
+                    console.warn("Buttons not found!");
                     return;
                 }
 
@@ -944,26 +946,34 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 // Clear previous button styles
                 sendApprovalBtn.classList.remove("btn-success", "btn-info", "btn-warning");
+                submitBtn.classList.remove("btn-success", "btn-info", "btn-warning");
 
                 if (approvalStatus === "Approved") {
                     sendApprovalBtn.textContent = "Approved";
                     sendApprovalBtn.classList.add("btn-success");
+					submitBtn.textContent = "Approved";
+					submitBtn.classList.add("btn-success");
                     sendApprovalBtn.disabled = true;
+                    submitBtn.disabled = false;
                 } else if (approvalStatus === "Pending") {
                     sendApprovalBtn.textContent = "Reviewing";
                     sendApprovalBtn.classList.add("btn-info");
                     sendApprovalBtn.disabled = true;
+                    submitBtn.disabled = false; // ✅ Allow submit if pending
                 } else if (approvalStatus === "Issue") {
                     sendApprovalBtn.textContent = "Timesheet Issue";
                     sendApprovalBtn.classList.add("btn-warning");
                     sendApprovalBtn.disabled = false;
+                    submitBtn.disabled = false;
                 } else {
                     sendApprovalBtn.textContent = "Send Approval";
                     sendApprovalBtn.classList.add("btn-success");
                     sendApprovalBtn.disabled = false;
+                    submitBtn.disabled = false;
+					submitBtn.textContent = "Submit";
+					submitBtn.classList.add("btn-info");
                 }
 
-                // Ensure the button updates correctly after text change
                 if (prevText !== sendApprovalBtn.textContent) {
                     console.log("Button text updated to: " + sendApprovalBtn.textContent);
                 }
@@ -971,9 +981,35 @@ document.addEventListener("DOMContentLoaded", function () {
             .catch(error => console.error("Error fetching approval status:", error));
     }
 
-    // Update button state on page load
-    updateButtonState();
+    // ✅ Function to Send for Approval OR Submit
+    function sendForApproval(selectedPeriod, status) {
+        fetch("/sendForApproval", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, period: selectedPeriod, status }) // ✅ Send "Pending" or "Approved"
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                if (status === "Pending") {
+                    sendApprovalBtn.textContent = "Reviewing";
+                    sendApprovalBtn.classList.add("btn-info");
+                    sendApprovalBtn.disabled = true;
+                    showAlert("Timesheet Successfully Sent for Approval!", "success");
+                } else if (status === "Approved") {
+                    submitBtn.textContent = "Approved";
+                    submitBtn.classList.add("btn-success");
+                    sendApprovalBtn.disabled = true;
+                    submitBtn.disabled = true;
+                    showAlert("Timesheet Successfully Submitted!", "success");
+                }
+                sessionStorage.setItem(`approvalStatus_${username}_${selectedPeriod}`, status); // Store state
+            }
+        })
+        .catch(error => console.error("Error sending for approval:", error));
+    }
 
+    // ✅ "Send for Approval" Button Click
     sendApprovalBtn.addEventListener("click", function () {
         const selectedPeriod = getSelectedPeriod();
 
@@ -992,28 +1028,32 @@ document.addEventListener("DOMContentLoaded", function () {
         // ✅ Handle Confirmation Click
         confirmApprovalBtn.onclick = function () {
             approvalModal.hide();
-            sendForApproval(selectedPeriod); // Call the function only after confirmation
+            sendForApproval(selectedPeriod, "Pending"); // ✅ Send "Pending" status
         };
     });
 
-    function sendForApproval(selectedPeriod) {
-        fetch("/sendForApproval", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, period: selectedPeriod })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                sendApprovalBtn.textContent = "Reviewing";
-                sendApprovalBtn.classList.add("btn-info");
-                sendApprovalBtn.disabled = true;
-                showAlert("Timesheet Successfully Sent for approval!", "success");
-                sessionStorage.setItem(`approvalStatus_${username}_${selectedPeriod}`, "Reviewing"); // Store state
-            }
-        })
-        .catch(error => console.error("Error sending for approval:", error));
-    }
+    // ✅ "Submit" Button Click (Sets Status to "Approved")
+    submitBtn.addEventListener("click", function () {
+        const selectedPeriod = getSelectedPeriod();
+
+        if (!selectedPeriod) {
+            showAlert("⚠ Please select a period before submitting.", "danger");
+            return;
+        }
+
+		// 🔥 Update Modal with Selected Period
+		        document.getElementById("selectedPeriodText2").textContent = selectedPeriod;
+
+		        // 🔥 Show the Confirmation Modal
+		        let saveModal = new bootstrap.Modal(document.getElementById("submitModal"));
+		        saveModal.show();
+
+				submitApprovalBtn.onclick = function () {
+				            saveModal.hide();
+				           sendForApproval(selectedPeriod, "Approved");
+				        };
+         // ✅ Send "Approved" status
+    });
 
     // Listen for period change and update button state
     periodDropdown.addEventListener("change", updateButtonState);

@@ -1,6 +1,7 @@
 package timesheet.employee;
 
 import java.util.ArrayList;
+
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -22,6 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.google.gson.Gson;
 
+import timesheet.admin.dao.Assignment;
+import timesheet.admin.repo.AssignmentRepository;
 import timesheet.employee.dao.Preference;
 import timesheet.employee.dao.SummaryEntry;
 import timesheet.employee.dao.TimesheetEntry;
@@ -46,6 +50,9 @@ public class TimesheetController {
     
     @Autowired
     private SummaryRepository summaryRepository;
+    
+    @Autowired
+    private AssignmentRepository assignrepo;
 
   
     private final NotificationService notificationService;
@@ -185,7 +192,7 @@ public class TimesheetController {
     public ResponseEntity<Map<String, Object>> sendForApproval(@RequestBody Map<String, String> request) {
         String username = request.get("username");
         String period = request.get("period");
-        String status = "Pending";
+        String status = request.getOrDefault("status", "Pending"); // ✅ Get status from request
 
         // ✅ Fetch summary data
         ResponseEntity<Map<String, Object>> responseEntity = getSummary(username, period);
@@ -196,14 +203,19 @@ public class TimesheetController {
                     .body(Map.of("success", false, "message", "Failed to generate summary"));
         }
 
-        // ✅ Save summary to the database
+        // ✅ Save summary to the database with given status
         saveSummary(username, period, summary, status);
 
-        
-        notificationService.sendAdminNotification(username + " is waiting for Timesheet approval on this Period: " + period);
-        
+        // ✅ Send notifications based on status
+        if (status.equals("Pending")) {
+            notificationService.sendAdminNotification(username + " is waiting for Timesheet approval on this Period: " + period);
+        } else if (status.equals("Approved")) {
+            notificationService.sendNotification(username, "Your timesheet for " + period + " has been Submited.");
+        }
+
         return ResponseEntity.ok(Map.of("success", true));
     }
+
 
     public void saveSummary(String username, String period, Map<String, Object> summaryData, String status) {
         // ✅ Check if an existing entry is present
@@ -352,7 +364,9 @@ public class TimesheetController {
         boolean success = timesheetService.raiseIssue(username, period, issueMessage);
 
         if (success) {
-        	notificationService.sendNotification(username, "Timesheet has an issue on this period: " + period + ". The Issue is: " + issueMessage);
+        	notificationService.sendNotification(username,  
+        		    "Timesheet has an issue on this period: " + period + "<br><strong>The Issue is: " + issueMessage + "</strong>");
+
             return ResponseEntity.ok(Collections.singletonMap("message", "Issue raised successfully."));
         } 
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -360,6 +374,12 @@ public class TimesheetController {
         
     }
        
+    
+    @GetMapping("/assigned-employees")
+    public List<Assignment> getAssignedEmployees() {
+    	
+        return assignrepo.findAll(); // Directly fetching from the database
+    }
     
     @PostMapping("/savePreferences")
     public ResponseEntity<String> savePreferences(@RequestBody Preference preference) {

@@ -545,107 +545,133 @@
 
 		       /*Notification*/
 			   document.addEventListener("DOMContentLoaded", function () {
-			       let stompClient = null;
-			       let notificationCount = 0;
-			       let unseenNotifications = [];
-			       let removeTimer = null; // Timer for removing notifications
+			   		      let stompClient = null;
+			   		      let notificationCount = 0;
+			   		      let unseenNotifications = [];
+			   		      let removeTimer = null;
 
-			       function connectWebSocket() {
-			           const socket = new SockJS('/ws');
-			           stompClient = Stomp.over(socket);
+			   		      function connectWebSocket() {
+			   		          const socket = new SockJS('/ws');
+			   		          stompClient = Stomp.over(socket);
 
-			           stompClient.connect({}, function () {
-			               console.log("Connected to WebSocket");
+			   		          stompClient.connect({}, function () {
+			   		              console.log("✅ Connected to WebSocket");
 
-			               // ✅ Listen for admin notifications
-			               stompClient.subscribe('/topic/adminNotifications', function (notification) {
-			                   const message = JSON.parse(notification.body).message;
-			                   showNotification(message, "admin");
-			               });
+			   		              // ✅ Admin notifications
+			   		              stompClient.subscribe('/topic/adminNotifications', function (notification) {
+			   		                  const message = JSON.parse(notification.body).message;
+			   		                  showNotification(message, "admin");
+			   		              });
 
-			               // ✅ Listen for employee-specific notifications
-			               const userName = sessionStorage.getItem("userName");
-			               if (userName) {
-			                   stompClient.subscribe(`/user/${userName}/topic/notifications`, function (notification) {
-			                       const message = JSON.parse(notification.body).message;
-			                       showNotification(message, "employee");
-			                   });
-			               }
-			           });
-			       }
+			   		              // ✅ Employee-specific notifications
+			   		              const userName = sessionStorage.getItem("userName");
+			   		              if (userName) {
+			   		                  stompClient.subscribe(`/user/${userName}/topic/notifications`, function (notification) {
+			   		                      const message = JSON.parse(notification.body).message;
+			   		                      showNotification(message, "employee");
+			   		                  });
+			   		              }
+			   		          }, function (error) {
+			   		              console.error("❌ WebSocket error:", error);
+			   		              retryConnection();
+			   		          });
+			   		      }
 
-			       function fetchUnreadNotifications() {
-			           const userName = sessionStorage.getItem("userRoles");
-			           if (userName) {
-			               fetch(`/notifications/unread/${userName}`)
-			                   .then(response => response.json())
-			                   .then(data => {
-			                       data.forEach(notification => {
-			                           showNotification(notification.message, "unread");
-			                       });
-			                   });
-			           }
-			       }
+			   		      function retryConnection() {
+			   		          console.log("🔄 Retrying WebSocket Connection in 3s...");
+			   		          setTimeout(connectWebSocket, 3000);
+			   		      }
 
-			       function showNotification(message, panelType) {
-			           const badge = document.getElementById("notificationCount");
-			           const notificationList = document.getElementById("notificationList");
-			           if (!badge || !notificationList) return;
+			   		      function fetchUnreadNotifications() {
+			   		           const userName = sessionStorage.getItem("userRoles");
+			   		          if (!userName) return;
 
-			           notificationCount++;
-			           badge.style.display = "inline";
-			           badge.textContent = notificationCount;
+			   		          fetch(`/notifications/unread/${userName}`)
+			   		              .then(response => response.json())
+			   		              .then(data => {
+			   		                  data.forEach(notification => {
+			   		                      showNotification(notification.message, "unread");
+			   		                  });
+			   		              })
+			   		              .catch(error => console.error("❌ Error fetching unread notifications:", error));
+			   		      }
 
-			           const notificationItem = document.createElement("div");
-			           notificationItem.className = "dropdown-item";
-			           notificationItem.textContent = message;
-			           notificationList.prepend(notificationItem);
-			           unseenNotifications.push(notificationItem);
-			       }
+			   		      function showNotification(message, panelType) {
+			   		          const badge = document.getElementById("notificationCount");
+			   		          const notificationList = document.getElementById("notificationList");
+			   		          if (!badge || !notificationList) return;
 
-			       function startNotificationTimer() {
-			           if (removeTimer) clearTimeout(removeTimer); // Reset timer if already running
+			   		          notificationCount++;
+			   		          badge.style.display = "inline";
+			   		          badge.textContent = notificationCount;
 
-			           removeTimer = setTimeout(() => {
-			               unseenNotifications.forEach((item) => item.remove());
-			               unseenNotifications = [];
-			               document.getElementById("notificationCount").style.display = "none";
-			           }, 5 * 60 * 1000); // 5 minutes
-			       }
+			   		          const notificationItem = document.createElement("div");
+			   		          notificationItem.className = "dropdown-item";
+			   		          notificationItem.textContent = message;
+			   		          notificationList.prepend(notificationItem);
+			   		          unseenNotifications.push(notificationItem);
 
-			       window.toggleNotifications = function () {
-			           const dropdown = document.getElementById("notificationDropdown");
-			           if (dropdown) {
-			               dropdown.classList.toggle("show");
+			   		          // Start the auto-remove timer
+			   		          startNotificationTimer();
+			   		      }
 
-			               if (dropdown.classList.contains("show")) {
-			                   startNotificationTimer(); // ✅ Start the 5-minute timer when opened
-			               }
-			           }
+			   		      function startNotificationTimer() {
+			   		          if (removeTimer) clearTimeout(removeTimer);
 
-			           notificationCount = 0;
-			           document.getElementById("notificationCount").style.display = "none";
-			       };
+			   		          removeTimer = setTimeout(() => {
+			   		              unseenNotifications.forEach((item) => item.remove());
+			   		              unseenNotifications = [];
+			   		              document.getElementById("notificationCount").style.display = "none";
+			   		          }, 5 * 60 * 1000);
+			   		      }
 
-			       document.addEventListener("click", function (event) {
-			           const dropdown = document.getElementById("notificationDropdown");
-			           const bellIcon = document.getElementById("notificationBell");
-			           if (dropdown && bellIcon) {
-			               if (!dropdown.contains(event.target) && !bellIcon.contains(event.target)) {
-			                   dropdown.classList.remove("show");
-			               }
-			           }
-			       });
+			   		      function toggleNotifications() {
+			   		          const dropdown = document.getElementById("notificationDropdown");
+			   		          if (!dropdown) return;
 
-			       const bellIcon = document.getElementById("notificationBell");
-			       if (bellIcon) {
-			           bellIcon.addEventListener("click", window.toggleNotifications);
-			       }
+			   		          dropdown.classList.toggle("show");
 
-			       connectWebSocket();
-			       fetchUnreadNotifications();
-			   });
+			   		          if (dropdown.classList.contains("show")) {
+			   		              unseenNotifications.forEach((item, index) => {
+			   		                  setTimeout(() => {
+			   		                      item.remove();
+			   		                      unseenNotifications.splice(index, 1);
+			   		                      if (unseenNotifications.length === 0) {
+			   		                          document.getElementById("notificationCount").style.display = "none";
+			   		                      }
+			   		                  }, 5 * 60 * 1000);
+			   		              });
 
+			   		              unseenNotifications = [];
+			   		          }
+
+			   		          notificationCount = 0;
+			   		          const badge = document.getElementById("notificationCount");
+			   		          if (badge) {
+			   		              badge.style.display = "none";
+			   		          }
+			   		      }
+
+			   		      document.addEventListener("click", function (event) {
+			   		          const dropdown = document.getElementById("notificationDropdown");
+			   		          const bellIcon = document.getElementById("notificationBell");
+			   		          if (dropdown && bellIcon) {
+			   		              if (!dropdown.contains(event.target) && !bellIcon.contains(event.target)) {
+			   		                  dropdown.classList.remove("show");
+			   		              }
+			   		          }
+			   		      });
+
+			   		      const bellIcon = document.getElementById("notificationBell");
+			   		      if (bellIcon) {
+			   		          bellIcon.addEventListener("click", toggleNotifications);
+			   		      } else {
+			   		          console.error("❌ Notification bell icon not found.");
+			   		      }
+
+			   		      connectWebSocket();
+			   		      fetchUnreadNotifications();
+			   		  });
 
 
 

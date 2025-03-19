@@ -75,6 +75,32 @@ function showContent(section) {
 					
         `,
 		"approval": `
+		<div>
+		    <button class="btn btn-info" id="showEmployeesBtn" onclick="listAssignedEmployees()">Show Assigned Employees</button>
+		</div>
+		<br>
+
+		<!-- Search Box -->
+		<input type="text" id="searchAssignedEmployee" class="form-control mb-2" 
+		       placeholder="Search Assigned Employee..." style="display: none;">
+
+		<!-- Scrollable Assigned Employees Table -->
+		<div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 5px; display: none;" id="assignedEmployeeTableContainer">
+		    <table id="assignedEmployeeTable" class="table table-bordered table-striped">
+		        <thead class="table-dark">
+		            <tr>
+		                <th>Employee Name</th>
+		                <th>Charge Code</th>
+		                <th>Description</th>
+		            </tr>
+		        </thead>
+		        <tbody id="assignedEmployeeTableBody">
+		            <!-- Rows will be added dynamically -->
+		        </tbody>
+		    </table>
+		</div> <br>
+
+
 		<div class="d-flex gap-3">
 		    <div class="card text-center bg-warning text-white" style="cursor: pointer;" onclick="showSection('pending')">
 		        <div class="card-body">
@@ -299,7 +325,59 @@ function showContent(section) {
 					}
 						
 				}
-							
+						
+				function listAssignedEmployees() {
+				    const searchInput = document.getElementById("searchAssignedEmployee");
+				    const employeeTableBody = document.getElementById("assignedEmployeeTableBody");
+				    const tableContainer = document.getElementById("assignedEmployeeTableContainer");
+
+				    // ✅ Toggle visibility on button click
+				    if (tableContainer.style.display === "block") {
+				        searchInput.style.display = "none";
+				        tableContainer.style.display = "none";
+				        return; // ✅ Exit function if hiding the table
+				    }
+
+				    fetch("/assigned-employees") // ✅ Fetching assigned employees
+				        .then(response => response.json())
+				        .then(data => {
+				            employeeTableBody.innerHTML = ""; // ✅ Clear previous table rows
+
+				            data.forEach(employee => {
+				                const row = document.createElement("tr");
+
+				                row.innerHTML = `
+				                    <td>${employee.employeeName}</td>
+				                    <td>${employee.chargeCode}</td>
+				                    <td>${employee.description}</td>
+				                `;
+
+				                employeeTableBody.appendChild(row);
+				            });
+
+				            // ✅ Show the search input and table container
+				            searchInput.style.display = "block";
+				            tableContainer.style.display = "block";
+				        })
+				        .catch(error => console.error("❌ Error fetching employees:", error));
+
+				    // ✅ Search Functionality
+				    searchInput.addEventListener("keyup", function () {
+				        const filter = searchInput.value.toLowerCase();
+				        const rows = employeeTableBody.getElementsByTagName("tr");
+
+				        Array.from(rows).forEach(row => {
+				            const text = row.textContent.toLowerCase();
+				            row.style.display = text.includes(filter) ? "" : "none";
+				        });
+				    });
+				}
+
+
+
+
+
+					
 							function showSection(section) {
 							    document.getElementById("pendingSection").style.display = "none";
 							    document.getElementById("approvedSection").style.display = "none";

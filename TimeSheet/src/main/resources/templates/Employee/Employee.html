@@ -62,12 +62,12 @@
 	                <form>
 	                    <div class="mb-3">
 	                        <label for="newPassword" class="form-label">New Password</label>
-	                        <input type="password" class="form-control" id="newPassword" placeholder="Enter your new password" required>
+	                        <input type="text" class="form-control" id="newPassword" placeholder="Enter your new password" required>
 	                        <div id="passwordError" style="color: red; display: none;"></div>
 	                    </div>
 	                    <div class="mb-3">
 	                        <label for="confirmPassword" class="form-label">Confirm New Password</label>
-	                        <input type="password" class="form-control" id="confirmPassword" placeholder="Confirm your new password" required>
+	                        <input type="text" class="form-control" id="confirmPassword" placeholder="Confirm your new password" required>
 	                    </div>
 	                </form>
 	            </div>
@@ -455,6 +455,29 @@
 	        </div>
 	    </div>
 	</div>
+	
+	<!-- Approval Confirmation Modal -->
+	<div id="submitModal" class="modal fade" tabindex="-1" aria-labelledby="submitModalLabel" aria-hidden="true">
+	    <div class="modal-dialog">
+	        <div class="modal-content">
+	            <div class="modal-header">
+	                <h5 class="modal-title" id="submitModalLabel">Confirm Timesheet Submission</h5>
+	                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	            </div>
+	            <div class="modal-body">
+	                <p><strong>Are you sure you want to Submit this Timesheet on this period  <span id="selectedPeriodText2"></span>?</strong> </p>
+	                <p class="text-danger"><strong>Note:</strong></p>
+	                <p class="text-danger">
+	                    Please make sure your save the timesheet before sending and all entered details are correct. If incorrect, it may affect your salary, and we are not responsible for that!
+	                </p>
+	            </div>
+	            <div class="modal-footer">
+	                <button type="button" class="btn btn-primary" id="confirmsubmit">Submit</button>
+	                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+	            </div>
+	        </div>
+	    </div>
+	</div>
 
 
 
@@ -466,6 +489,31 @@
 
 
 <script>
+	
+	
+	document.addEventListener("DOMContentLoaded", function () {
+	    const navLinks = document.querySelectorAll(".nav-link");
+
+	    navLinks.forEach(link => {
+	        link.addEventListener("click", function (event) {
+	            event.preventDefault(); // Prevent default anchor action
+	            
+	            // Remove active class from all
+	            navLinks.forEach(l => l.classList.remove("active"));
+
+	            // Add active class to clicked link
+	            this.classList.add("active");
+
+	            // Show the target section (Optional)
+	            const targetSection = document.getElementById(this.getAttribute("data-target"));
+	            if (targetSection) {
+	                document.querySelectorAll(".section-content").forEach(sec => sec.style.display = "none");
+	                targetSection.style.display = "block";
+	            }
+	        });
+	    });
+	});
+
 	
 	function showAlert(message, type = 'success') {
 	    const alertToast = document.getElementById('alertToast');
@@ -701,25 +749,25 @@
 		  		        if (result.success) {
 		  		            showAlert("Your password was changed successfully.", "success");
 
-		  		            // Close the OTP modal (password change form)
+		  		        
 		  		            var otpModal = bootstrap.Modal.getInstance(document.getElementById('otpModal'));
 		  		            otpModal.hide();  // Hide the OTP modal after successful password change
 		  					
-		  					// Close the Change Password modal (in case it is still open)
+		  		
 		  					          var changePasswordModal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
 		  					          changePasswordModal.hide();  // Hide the Change Password modal as well
 
-		  		            // Reset the OTP field and form for clean state
+		  		     
 		  		            document.getElementById('otp').value = '';
 		  		            document.getElementById('newPassword').value = '';
 		  		            document.getElementById('confirmPassword').value = '';
 
-		  		            // Optional: Hide the Resend OTP button again, in case the modal is reopened
+		  		           
 		  		            document.getElementById('resendOtpBtn').style.display = 'none';
 		  		            document.getElementById('sendOtpBtn').style.display = 'inline-block';
 		  		        } else {
 		  		            console.log("Error response:", result); // Debug log to check the response from backend
-		  		            showAlert("Failed to change the password. Please try again.", "danger");
+		  		            showAlert("Incorrect OTP,  Enter Correctly..!.", "danger");
 		  		        }
 		  		    })
 		  		    .catch(error => {
@@ -739,7 +787,7 @@
 
 				       // Redirect to the login page
 				       window.location.href = '/login'; // Redirect to the login page or wherever needed
-					   alert("Logout Successfully..! ");
+					   showAlert("Logout Successfully..! ");
 				   });
 				
 				
@@ -1449,22 +1497,22 @@
 				      let stompClient = null;
 				      let notificationCount = 0;
 				      let unseenNotifications = [];
-				      let removeTimer = null; // Timer for removing notifications
+				      let removeTimer = null;
 
 				      function connectWebSocket() {
 				          const socket = new SockJS('/ws');
 				          stompClient = Stomp.over(socket);
 
 				          stompClient.connect({}, function () {
-				              console.log("Connected to WebSocket");
+				              console.log("✅ Connected to WebSocket");
 
-				              // ✅ Listen for admin notifications
+				              // ✅ Admin notifications
 				              stompClient.subscribe('/topic/adminNotifications', function (notification) {
 				                  const message = JSON.parse(notification.body).message;
 				                  showNotification(message, "admin");
 				              });
 
-				              // ✅ Listen for employee-specific notifications
+				              // ✅ Employee-specific notifications
 				              const userName = sessionStorage.getItem("userName");
 				              if (userName) {
 				                  stompClient.subscribe(`/user/${userName}/topic/notifications`, function (notification) {
@@ -1472,20 +1520,29 @@
 				                      showNotification(message, "employee");
 				                  });
 				              }
+				          }, function (error) {
+				              console.error("❌ WebSocket error:", error);
+				              retryConnection();
 				          });
 				      }
 
+				      function retryConnection() {
+				          console.log("🔄 Retrying WebSocket Connection in 3s...");
+				          setTimeout(connectWebSocket, 3000);
+				      }
+
 				      function fetchUnreadNotifications() {
-				         const userName = sessionStorage.getItem("userName");
-				          if (userName) {
-				              fetch(`/notifications/unread/${userName}`)
-				                  .then(response => response.json())
-				                  .then(data => {
-				                      data.forEach(notification => {
-				                          showNotification(notification.message, "unread");
-				                      });
+				          const userName = sessionStorage.getItem("userName");
+				          if (!userName) return;
+
+				          fetch(`/notifications/unread/${userName}`)
+				              .then(response => response.json())
+				              .then(data => {
+				                  data.forEach(notification => {
+				                      showNotification(notification.message, "unread");
 				                  });
-				          }
+				              })
+				              .catch(error => console.error("❌ Error fetching unread notifications:", error));
 				      }
 
 				      function showNotification(message, panelType) {
@@ -1499,34 +1556,50 @@
 
 				          const notificationItem = document.createElement("div");
 				          notificationItem.className = "dropdown-item";
-				          notificationItem.textContent = message;
+				          notificationItem.innerHTML  = message;
 				          notificationList.prepend(notificationItem);
 				          unseenNotifications.push(notificationItem);
+
+				          // Start the auto-remove timer
+				          startNotificationTimer();
 				      }
 
 				      function startNotificationTimer() {
-				          if (removeTimer) clearTimeout(removeTimer); // Reset timer if already running
+				          if (removeTimer) clearTimeout(removeTimer);
 
 				          removeTimer = setTimeout(() => {
 				              unseenNotifications.forEach((item) => item.remove());
 				              unseenNotifications = [];
 				              document.getElementById("notificationCount").style.display = "none";
-				          }, 5 * 60 * 1000); // 5 minutes
+				          }, 5 * 60 * 1000);
 				      }
 
-				      window.toggleNotifications = function () {
+				      function toggleNotifications() {
 				          const dropdown = document.getElementById("notificationDropdown");
-				          if (dropdown) {
-				              dropdown.classList.toggle("show");
+				          if (!dropdown) return;
 
-				              if (dropdown.classList.contains("show")) {
-				                  startNotificationTimer(); // ✅ Start the 5-minute timer when opened
-				              }
+				          dropdown.classList.toggle("show");
+
+				          if (dropdown.classList.contains("show")) {
+				              unseenNotifications.forEach((item, index) => {
+				                  setTimeout(() => {
+				                      item.remove();
+				                      unseenNotifications.splice(index, 1);
+				                      if (unseenNotifications.length === 0) {
+				                          document.getElementById("notificationCount").style.display = "none";
+				                      }
+				                  }, 5 * 60 * 1000);
+				              });
+
+				              unseenNotifications = [];
 				          }
 
 				          notificationCount = 0;
-				          document.getElementById("notificationCount").style.display = "none";
-				      };
+				          const badge = document.getElementById("notificationCount");
+				          if (badge) {
+				              badge.style.display = "none";
+				          }
+				      }
 
 				      document.addEventListener("click", function (event) {
 				          const dropdown = document.getElementById("notificationDropdown");
@@ -1540,12 +1613,15 @@
 
 				      const bellIcon = document.getElementById("notificationBell");
 				      if (bellIcon) {
-				          bellIcon.addEventListener("click", window.toggleNotifications);
+				          bellIcon.addEventListener("click", toggleNotifications);
+				      } else {
+				          console.error("❌ Notification bell icon not found.");
 				      }
 
 				      connectWebSocket();
 				      fetchUnreadNotifications();
 				  });
+
 
 
 				  

@@ -122,7 +122,7 @@ public class EmailService {
                     + "<p>If you did not make this change, please contact our support team immediately for assistance.</p>"
                     + "<br>"
                     + "<p><b>Current Email:</b> " + employee.geteMail() + "</p>"
-                    + "<p><b>Updated Password:</b> Your password has been updated successfully. (For security reasons, we do not display your new password.)</p>"
+                    + "<p><b>Updated Password:</b> " + employee.getePassword()+ " (For security reasons, Don't share this Password to anyone.)</p>"
                     + "<br>"
                     + "<img src='cid:logoImage' width='200'/>"
                     + "<p>Best regards,<br>The Tidy Digital Solutions Team</p>"
