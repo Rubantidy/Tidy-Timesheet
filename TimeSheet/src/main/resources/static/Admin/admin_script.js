@@ -124,12 +124,15 @@ function showContent(section) {
 		    </div>
 		</div> <br> <br>
 
+
 		<!-- Sections (Initially Hidden) -->
 		<div id="pendingSection" style="display: none;">
 		    <h3>Pending Approvals</h3>
-		    <select id="employeeDropdown1" class="form-select mb-3">
-		        <option value="">Select Employee</option>
-		    </select>
+		    
+		    <!-- Search Input for Pending Approvals -->
+		    <input type="text" id="searchPendingEmployee" class="form-control mb-2" 
+		           placeholder="Search Pending Employee..." oninput="filterTable('pendingSummaryBody', this.value)">
+
 		    <div id="pendingSummaryContent" class="border p-3 bg-light">
 		        <table class="table table-bordered">
 		            <thead>
@@ -139,6 +142,7 @@ function showContent(section) {
 		                    <th>Total Hours</th>
 		                    <th>Total Absences</th>
 		                    <th>Charge Code Details</th>
+		                    <th>Action</th>
 		                </tr>
 		            </thead>
 		            <tbody id="pendingSummaryBody">
@@ -146,17 +150,15 @@ function showContent(section) {
 		            </tbody>
 		        </table>
 		    </div>
-		    <div class="d-flex gap-3 mt-3">
-		        <button id="approveBtn" class="btn btn-success" onclick="handleApproval()">✅ Approve</button>
-		        <button id="issueBtn" class="btn btn-danger" onclick="handleIssue()">🛑 Reject</button>
-		    </div>
 		</div>
 
 		<div id="approvedSection" style="display: none;">
 		    <h3>Approved List</h3>
-		    <select id="employeeDropdown2" class="form-select mb-3">
-		        <option value="">Select Employee</option>
-		    </select>
+
+		    <!-- Search Input for Approved List -->
+		    <input type="text" id="searchApprovedEmployee" class="form-control mb-2" 
+		           placeholder="Search Approved Employee..." oninput="filterTable('approvedSummaryBody', this.value)">
+
 		    <div id="approvedSummaryContent" class="border p-3 bg-light">
 		        <table class="table table-bordered">
 		            <thead>
@@ -177,9 +179,11 @@ function showContent(section) {
 
 		<div id="issueSection" style="display: none;">
 		    <h3>Issued List</h3>
-		    <select id="employeeDropdown3" class="form-select mb-3">
-		        <option value="">Select Employee</option>
-		    </select>
+
+		    <!-- Search Input for Issued List -->
+		    <input type="text" id="searchIssueEmployee" class="form-control mb-2" 
+		           placeholder="Search Issue Employee..." oninput="filterTable('issueSummaryBody', this.value)">
+
 		    <div id="issueSummaryContent" class="border p-3 bg-light">
 		        <table class="table table-bordered">
 		            <thead>
@@ -197,6 +201,7 @@ function showContent(section) {
 		        </table>
 		    </div>
 		</div>
+
 
 		       `,
 		"manage-user": `<button class="btn btn-info mb-3" id="addEmployeeBtn">Add Users</button><div id="form-container"></div>
@@ -373,6 +378,21 @@ function showContent(section) {
 				    });
 				}
 
+				
+				function filterTable(tableId, searchValue) {
+				    searchValue = searchValue.toLowerCase().trim();
+				    let tableRows = document.querySelectorAll(`#${tableId} tr`);
+
+				    tableRows.forEach(row => {
+				        let username = row.cells[0].textContent.toLowerCase(); // Get the first column (Username)
+
+				        if (username.includes(searchValue)) {
+				            row.style.display = ""; // Show matching rows
+				        } else {
+				            row.style.display = "none"; // Hide non-matching rows
+				        }
+				    });
+				}
 
 
 
@@ -396,9 +416,7 @@ function showContent(section) {
 							
 							    
 							    // Ensure the dropdowns exist before calling the functions
-							    if (document.getElementById("employeeDropdown1") &&
-							        document.getElementById("employeeDropdown2") &&
-							        document.getElementById("employeeDropdown3") &&
+							    if (
 									document.getElementById("issueCount") &&
 									document.getElementById("approvedCount") &&
 									document.getElementById("pendingCount")
@@ -414,6 +432,7 @@ function showContent(section) {
 							});
 
 
+							
 							function fetchCounts() {
 							    fetch('/counts')
 							        .then(response => response.json())
@@ -433,67 +452,87 @@ function showContent(section) {
 							        .catch(error => console.error("❌ Error fetching counts:", error));
 							}
 
+							
 
-							// ✅ Fetch pending approvals and populate dropdown
+							// ✅ Fetch pending approvals and populate the table
 							function fetchPendingApprovals() {
 							    fetch("/getPendingApprovals")
 							        .then(response => response.json())
-							        .then(data => populateDropdown("employeeDropdown1", data, "Pending"))
+							        .then(data => populateTable("pendingSummaryBody", data, "Pending"))
 							        .catch(error => console.error("Error fetching pending approvals:", error));
 							}
 
-							// ✅ Fetch approved list and populate dropdown
+							// ✅ Fetch approved list and populate the table
 							function fetchApprovalslist() {
 							    fetch("/getApprovalslist")
 							        .then(response => response.json())
-							        .then(data => populateDropdown("employeeDropdown2", data, "Approved"))
+							        .then(data => populateTable("approvedSummaryBody", data, "Approved"))
 							        .catch(error => console.error("Error fetching approvals list:", error));
 							}
 
-							// ✅ Fetch issue list and populate dropdown
+							// ✅ Fetch issue list and populate the table
 							function fetchIssuelist() {
 							    fetch("/getIssuelist")
 							        .then(response => response.json())
-							        .then(data => populateDropdown("employeeDropdown3", data, "Issue"))
+							        .then(data => populateTable("issueSummaryBody", data, "Issue"))
 							        .catch(error => console.error("Error fetching issue list:", error));
 							}
 
-							function populateDropdown(dropdownId, data, status) {
-							    let dropdown = document.getElementById(dropdownId);
-							    
-							    // 🔴 Fix: Check if dropdown exists before modifying it
-							    if (!dropdown) {
-							        console.error(`Error: Dropdown with ID '${dropdownId}' not found.`);
+							function populateTable(tableId, data, status) {
+								const searchInput = document.getElementById("searchEEmployee");
+							    let tableBody = document.getElementById(tableId);
+
+							    if (!tableBody) {
+							        console.error(`Error: Table with ID '${tableId}' not found.`);
 							        return;
 							    }
 
-							    dropdown.innerHTML = '<option value="">Select Employee</option>'; // Reset dropdown
+							    tableBody.innerHTML = ""; // Clear previous data
 
-							    if (!Array.isArray(data)) {
-							        console.error("Error: Data is not an array", data);
+							    if (!Array.isArray(data) || data.length === 0) {
+							        tableBody.innerHTML = `<tr><td colspan="6">No data available</td></tr>`;
 							        return;
 							    }
 
 							    data.forEach(entry => {
-							        let option = document.createElement("option");
-							        option.value = `${entry.username}  ${entry.period}`;
-							        option.textContent = `${entry.username} - ${entry.period}`;
-							        dropdown.appendChild(option);
+							        let row = document.createElement("tr");
+
+							        row.innerHTML = `
+							            <td>${entry.username}</td>
+							            <td><b>${entry.period}</b></td>    
+							            <td id="hours-${entry.username}-${entry.period}">Loading...</td>
+							            <td id="absences-${entry.username}-${entry.period}">Loading...</td>
+							            <td id="charge-${entry.username}-${entry.period}">Loading...</td>
+							            ${status === "Pending" ? `
+							                <td>
+							                    <div class="actionbutton-container">
+							                        <button class="btn btn-success btn-sm" onclick="handleApproval('${entry.username}', '${entry.period}')">Approve</button>
+							                        <button class="btn btn-danger btn-sm" onclick="handleIssue('${entry.username}', '${entry.period}')">Issue</button>
+							                    </div>
+							                </td>
+							            ` : ""}
+							        `;
+
+							        tableBody.appendChild(row);
+									
+									
+
+							        // ✅ Fetch employee summary for this row
+							        fetchEmployeeSummary(entry.username, entry.period, status);
 							    });
+								
+								// ✅ Search Functionality
+												    searchInput.addEventListener("keyup", function () {
+												        const filter = searchInput.value.toLowerCase();
+												        const rows = employeeTableBody.getElementsByTagName("tr");
 
-							    // ✅ Add event listener for dropdown selection
-							    dropdown.addEventListener("change", function () {
-							        let selectedOption = this.value;
-							        if (!selectedOption) return;
-
-							        let [username, period] = selectedOption.split("  ");
-							        sessionStorage.setItem("SummaryEmployee", username);
-
-							        fetchEmployeeSummary(username, period, status);
-							    });
+												        Array.from(rows).forEach(row => {
+												            const text = row.textContent.toLowerCase();
+												            row.style.display = text.includes(filter) ? "" : "none";
+												        });
+												    });
 							}
 
-							// ✅ Fetch employee summary based on selection
 							function fetchEmployeeSummary(username, period, status) {
 							    console.log(`Fetching summary for ${username} - ${period} [${status}]`);
 
@@ -501,37 +540,28 @@ function showContent(section) {
 							    
 							    fetch(url)
 							        .then(response => response.json())
-							        .then(summary => updateSummaryTable(summary, username, period, status))
-							        .catch(error => console.error("Error fetching summary data:", error));
+							        .then(summary => {
+							            if (!summary) {
+							                console.error("No summary data received");
+							                return;
+							            }
+
+							            document.getElementById(`hours-${username}-${period}`).textContent = summary.totalHours - summary.totalAbsences || "0";
+							            document.getElementById(`absences-${username}-${period}`).textContent = summary.totalAbsences || "0";
+
+							            // ✅ Format Charge Codes inside a single cell using a flex container
+							            let chargeCell = document.getElementById(`charge-${username}-${period}`);
+							            chargeCell.innerHTML = summary.entries.length > 0
+							                ? summary.entries.map(entry => `<div class="charge-code-item">${entry.chargeCode} - ${entry.hours} hrs</div>`).join("")
+							                : "No data";
+							        })
+							        .catch(error => {
+							            console.error("Error fetching summary data:", error);
+							        });
 							}
 
-							// ✅ Update the correct table with fetched data
-							function updateSummaryTable(summary, username, period, status) {
-							    let tableBody = getTableBodyByStatus(status);
-							    tableBody.innerHTML = ""; // Clear previous data
 
-							    if (!summary || Object.keys(summary).length === 0) {
-							        tableBody.innerHTML = `<tr><td colspan="5">No data available</td></tr>`;
-							        return;
-							    }
-
-							    let chargeCodeRows = summary.entries.map(entry =>
-							        `<tr>
-							            <td>${entry.chargeCode}</td>
-							            <td>${entry.hours}</td>
-							        </tr>`
-							    ).join("");
-
-							    let row = `
-							        <tr>
-							            <td rowspan="${summary.entries.length + 1}">${username}</td>
-							            <td rowspan="${summary.entries.length + 1}">${period}</td>
-							            <td rowspan="${summary.entries.length + 1}">${summary.totalHours}</td>
-							            <td rowspan="${summary.entries.length + 1}">${summary.totalAbsences}</td>
-							        </tr>`;
-
-							    tableBody.innerHTML = row + chargeCodeRows;
-							}
+							
 
 							// ✅ Helper function to get the correct table body
 							function getTableBodyByStatus(status) {
@@ -541,117 +571,70 @@ function showContent(section) {
 							}
 
 
+							// ✅ Handle Approval Click
+							function handleApproval(username, period) {
+							    selectedUsername = username;
+							    selectedPeriod = period;
 
-			let selectedUsername, selectedPeriod; // Store selected values
+							    document.getElementById("approvalMessage").innerText = 
+							        `Are you sure you want to approve ${selectedUsername}'s timesheet for ${selectedPeriod}?`;
 
-			function handleApproval() {
-			    let dropdown = document.getElementById("employeeDropdown1");
-			    let selectedValue = dropdown.value;
+							    let approvalModal = new bootstrap.Modal(document.getElementById("approvalConfirmModal"));
+							    approvalModal.show();
+							}
 
-				
-				
-			    if (!selectedValue) {
-			        showAlert("Please select an employee before approving.", "danger");
-			        return;
-			    }
+							// ✅ Confirm Approval (Modal)
+							document.getElementById("confirmApprovalBtn").addEventListener("click", function () {
+							    fetch("/approve", {
+							        method: "POST",
+							        headers: { "Content-Type": "application/json" },
+							        body: JSON.stringify({ username: selectedUsername, period: selectedPeriod })
+							    })
+							    .then(response => response.json())
+							    .then(result => {
+							        showAlert(result.message, "success");
+							        fetchPendingApprovals(); // Refresh list
+							    })
+							    .catch(error => console.error("Error approving timesheet:", error));
 
-			    // ✅ Store selected values globally
-			    [selectedUsername, selectedPeriod] = selectedValue.split("  ");
+							    let approvalModal = bootstrap.Modal.getInstance(document.getElementById("approvalConfirmModal"));
+							    approvalModal.hide();
+							});
 
-			    // ✅ Update modal message dynamically
-			    document.getElementById("approvalMessage").innerText = 
-			        `Are you sure you want to approve ${selectedUsername}'s timesheet for ${selectedPeriod}?`;
+							// ✅ Handle Issue Click
+							function handleIssue(username, period) {
+							    selectedUsername = username;
+							    selectedPeriod = period;
 
-			    // ✅ Show the modal
-			    let approvalModal = new bootstrap.Modal(document.getElementById("approvalConfirmModal"));
-			    approvalModal.show();
-			}
+							    let issueModal = new bootstrap.Modal(document.getElementById("issueMessageModal"));
+							    issueModal.show();
+							}
 
-			// ✅ Handle Approval after Confirming in the Modal
-			document.getElementById("confirmApprovalBtn").addEventListener("click", function () {
-			    let approveBtn = document.getElementById("approveBtn");
-			    approveBtn.disabled = true;
+							// ✅ Confirm Issue Submission (Modal)
+							document.getElementById("confirmIssueBtn").addEventListener("click", function () {
+							    let issueMessage = document.getElementById("issueMessageInput").value.trim();
 
-			    let adminSummaryBody = document.getElementById("pendingSummaryBody");
+							    if (!issueMessage) {
+							        document.getElementById("issueError").style.display = "block";
+							        return;
+							    }
+							    document.getElementById("issueError").style.display = "none";
 
-			    fetch("/approve", {
-			        method: "POST",
-			        headers: { "Content-Type": "application/json" },
-			        body: JSON.stringify({ username: selectedUsername, period: selectedPeriod })
-			    })
-			    .then(response => response.json())
-			    .then(result => {
-			        showAlert(result.message, "success");
-			        fetchPendingApprovals(); // Refresh list after approval
+							    fetch("/raiseIssue", {
+							        method: "POST",
+							        headers: { "Content-Type": "application/json" },
+							        body: JSON.stringify({ username: selectedUsername, period: selectedPeriod, issueMessage })
+							    })
+							    .then(response => response.json())
+							    .then(result => {
+							        showAlert(result.message, "success");
+							        fetchPendingApprovals(); // Refresh list
+							    })
+							    .catch(error => console.error("Error raising issue:", error));
 
-			        // ✅ Update Employee button dynamically
-			        updateEmployeeButton(selectedUsername, selectedPeriod, "Approved");
-
-			        adminSummaryBody.innerHTML = ""; // Clear previous data
-			    })
-			    .catch(error => console.error("Error approving timesheet:", error))
-			    .finally(() => approveBtn.disabled = false);
-
-			    // ✅ Close the modal after confirmation
-			    let approvalModal = bootstrap.Modal.getInstance(document.getElementById("approvalConfirmModal"));
-			    approvalModal.hide();
-			});
-
-			
-
-			function handleIssue() {
-			    let issueBtn = document.getElementById("issueBtn");
-			    let dropdown = document.getElementById("employeeDropdown1");
-			    let selectedValue = dropdown.value;
-
-			  
-
-			    if (!selectedValue) {
-			        showAlert("Please select an employee before raising an issue.", "danger");
-			        issueBtn.disabled = false;
-			        return;
-			    }
-
-			    // Store selected username & period in a global variable for later use
-			    [selectedUsername, selectedPeriod] = selectedValue.split("  ");
-
-			    // Show the issue message modal
-			    let issueModal = new bootstrap.Modal(document.getElementById("issueMessageModal"));
-			    issueModal.show();
-			}
-
-			// Handle Issue Submission from Modal
-			document.getElementById("confirmIssueBtn").addEventListener("click", function () {
-			    let issueMessage = document.getElementById("issueMessageInput").value.trim();
-			    let issueError = document.getElementById("issueError");
-
-			    if (!issueMessage) {
-			        issueError.style.display = "block";
-			        return;
-			    }
-			    issueError.style.display = "none";
-
-			    // Close modal
-			    let issueModal = bootstrap.Modal.getInstance(document.getElementById("issueMessageModal"));
-			    issueModal.hide();
-
-			    // Call the API to raise an issue
-			    fetch("/raiseIssue", {
-			        method: "POST",
-			        headers: { "Content-Type": "application/json" },
-			        body: JSON.stringify({ username: selectedUsername, period: selectedPeriod, issueMessage })
-			    })
-			    .then(response => response.json())
-			    .then(result => {
-			        showAlert(result.message, "success");
-			        fetchPendingApprovals(); // Refresh pending approvals list
-			        updateEmployeeButton(selectedUsername, selectedPeriod, "Timesheet Issue");
-			        document.getElementById("pendingSummaryBody").innerHTML = ""; // Clear previous data
-			    })
-			    .catch(error => console.error("Error raising issue:", error))
-			    .finally(() => document.getElementById("issueBtn").disabled = false);
-			});
-
+							    let issueModal = bootstrap.Modal.getInstance(document.getElementById("issueMessageModal"));
+							    issueModal.hide();
+							});
 
 			// ✅ Function to update the button state dynamically
 			function updateEmployeeButton(username, period, status) {

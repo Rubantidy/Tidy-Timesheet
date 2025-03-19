@@ -510,7 +510,7 @@ body {
 }
 /* Dropdown Styling */
 .form-select {
-    max-width: 300px;
+    max-width: 400px;
     border-radius: 8px;
     border: 1px solid #ccc;
     padding: 8px;
@@ -626,5 +626,31 @@ body {
 
 
 
+	
+	.charge-code-item {
+	    display: flex;
+	    justify-content: space-between;
+	    padding: 4px 8px;
+	    border-bottom: 1px solid #ddd; /* Adds separation */
+	}
+
+	.charge-code-item:last-child {
+	    border-bottom: none; /* Remove border from last item */
+	}
+
+
+	.actionbutton-container {
+	    display: flex;
+	    gap: 10px;  /* Adds space between buttons */
+	    justify-content: center;  /* Centers buttons horizontally */
+	    align-items: center;
+	}
+
+	.actionbutton-container .btn {
+	    min-width: 100px; /* Ensures buttons have consistent width */
+	    padding: 5px 12px;
+	    font-size: 14px;
+	    text-align: center;
+	}
 
 

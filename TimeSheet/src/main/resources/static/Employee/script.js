@@ -1061,6 +1061,6 @@ document.addEventListener("DOMContentLoaded", function () {
     nextPeriod.addEventListener("click", updateButtonState);
     prevPeriod.addEventListener("click", updateButtonState);
 
-    setInterval(updateButtonState, 5000);
+    setInterval(updateButtonState, 2000);
 });
 
