@@ -19,7 +19,10 @@
         <!-- Sidebar -->
         <nav class="bg-dark text-white p-3 sidebar collapse show" id="sidebar">
             <button class="btn btn-outline-light d-md-none mb-3" onclick="toggleSidebar()">☰ Menu</button>
-            <h2 class="mb-4 text-center">Administration</h2>
+			<h2 class="mb-4 text-center fw-bold text-uppercase text-white position-relative tidy-heading">
+				Tidy Dashboard
+
+			</h2>
             <ul class="nav flex-column">
                 <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('dashboard')"><i class="bi bi-house me-2"></i> Dashboard</a></li>
                 <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('manage-user')"><i class="bi bi-people me-2"></i> Manage Users</a></li>
@@ -307,6 +310,22 @@
 	<script src="/notifications.js"></script>
 
     <script>
+		
+		document.addEventListener("DOMContentLoaded", function () {
+		    const navLinks = document.querySelectorAll(".nav-link");
+
+		    navLinks.forEach(link => {
+		        link.addEventListener("click", function () {
+		            // Remove active class from all links
+		            navLinks.forEach(nav => nav.classList.remove("active"));
+		            
+		            // Add active class to clicked link
+		            this.classList.add("active");
+		        });
+		    });
+		});
+
+		
 		
 		document.addEventListener("DOMContentLoaded", function() {
 		          const userName = sessionStorage.getItem('userName');

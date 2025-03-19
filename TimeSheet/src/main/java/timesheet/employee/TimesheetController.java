@@ -115,19 +115,17 @@ public class TimesheetController {
     public ResponseEntity<Map<String, Object>> getSummary(
             @RequestParam String username, @RequestParam String period) {
 
-        
-
         List<TimesheetEntry> entries = timesheetService.getTimesheet(username, period);
 
-        int totalHours = 0;
-        int totalAbsences = 0;
+        float totalHours = 0;
+        float totalAbsences = 0;
 
         // Store charge code totals in a Map to merge duplicates
-        Map<String, Integer> chargeCodeTotals = new HashMap<>();
+        Map<String, Float> chargeCodeTotals = new HashMap<>();
 
-        int casualLeaveThisMonth = 0;
-        int sickLeaveThisYear = 0;
-        int paidLeave = 0;
+        float casualLeaveThisMonth = 0;
+        float sickLeaveThisYear = 0;
+        float paidLeave = 0;
 
         for (TimesheetEntry entry : entries) {
             String code = entry.getChargeCode();
@@ -136,19 +134,20 @@ public class TimesheetController {
                 continue;
             }
 
-            int hours = entry.getHours() == null || entry.getHours().isEmpty() ? 0 : Integer.parseInt(entry.getHours());
-            int leaveDays = hours / 9; // Convert hours to days
+            // ✅ FIX: Parse as Float instead of Integer
+            float hours = (entry.getHours() == null || entry.getHours().isEmpty()) ? 0 : Float.parseFloat(entry.getHours());
+            float leaveDays = hours / 9.0f; // ✅ FIX: Ensure float division
 
-            chargeCodeTotals.put(code, chargeCodeTotals.getOrDefault(code, 0) + hours);
+            chargeCodeTotals.put(code, chargeCodeTotals.getOrDefault(code, 0f) + hours);
             totalHours += hours;
 
-            if (code.equals("TdL1 - Casual Leave")) { // ✅ Casual Leave Check
+            if (code.equals("TLS01 - Casual Leave")) { 
                 if (casualLeaveThisMonth < 1) {
                     casualLeaveThisMonth += leaveDays;
                 } else {
                     paidLeave += leaveDays; // ✅ Convert excess Casual Leave to Paid Leave
                 }
-            } else if (code.equals("TdL2 - Sick Leave")) { // ✅ Sick Leave Check
+            } else if (code.equals("TLS02 - Sick Leave")) { 
                 if (sickLeaveThisYear < 6) {
                     sickLeaveThisYear += leaveDays;
                 } else {
@@ -162,7 +161,7 @@ public class TimesheetController {
         }
 
         List<Map<String, String>> processedEntries = new ArrayList<>();
-        for (Map.Entry<String, Integer> entry : chargeCodeTotals.entrySet()) {
+        for (Map.Entry<String, Float> entry : chargeCodeTotals.entrySet()) {
             Map<String, String> row = new HashMap<>();
             row.put("chargeCode", entry.getKey());
             row.put("hours", String.valueOf(entry.getValue()));
@@ -177,7 +176,6 @@ public class TimesheetController {
         summaryData.put("paidLeaveDays", paidLeave);
         summaryData.put("entries", processedEntries);
 
-        
         return ResponseEntity.ok(summaryData);
     }
 
