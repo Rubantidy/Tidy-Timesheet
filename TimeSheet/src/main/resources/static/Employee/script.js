@@ -346,7 +346,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	            .then(response => response.text())
 	            .then(result => {
 	                showAlert(result, "success");
-	                location.reload();
+	                fetchTimesheetData();
 	            })
 	            .catch(error => console.error("❌ Error saving timesheet:", error));
 	        } catch (e) {
@@ -425,10 +425,12 @@ document.addEventListener("DOMContentLoaded", function () {
                 selectedRow.remove(); // Remove row from UI
                 selectedRow = null; // Reset selection
                 showAlert("✅ Row deleted successfully!", "success");
-                location.reload();
+			location.reload();
             } else {
                 showAlert("❌ Failed to delete row from database.", "danger");
             }
+			
+			
         })
         .catch(error => {
             console.error("❌ Error deleting row:", error);
@@ -822,7 +824,7 @@ function savePreferences() {
                 delegator: document.getElementById("selectedDelegators").value.trim().split("\n").join(",")
             };
 
-            console.log("Sending Preferences:", preferences);
+            
 
             fetch("/savePreferences", {
                 method: "POST",
@@ -862,7 +864,7 @@ function fetchPreferences() {
         return;
     }
 
-    console.log(`Fetching preferences for ${loggedInUser} - ${selectedPeriod}`);
+
 
     fetch(`/getPreferences?period=${selectedPeriod}&employeename=${encodeURIComponent(loggedInUser)}`)
         .then(response => {

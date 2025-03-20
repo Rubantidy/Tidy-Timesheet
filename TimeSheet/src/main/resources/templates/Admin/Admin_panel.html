@@ -646,7 +646,7 @@
 			   		              unseenNotifications.forEach((item) => item.remove());
 			   		              unseenNotifications = [];
 			   		              document.getElementById("notificationCount").style.display = "none";
-			   		          }, 5 * 60 * 1000);
+			   		          }, 2 * 60 * 1000);
 			   		      }
 
 			   		      function toggleNotifications() {
@@ -663,7 +663,7 @@
 			   		                      if (unseenNotifications.length === 0) {
 			   		                          document.getElementById("notificationCount").style.display = "none";
 			   		                      }
-			   		                  }, 5 * 60 * 1000);
+			   		                  }, 2 * 60 * 1000);
 			   		              });
 
 			   		              unseenNotifications = [];

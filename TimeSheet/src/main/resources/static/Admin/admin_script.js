@@ -634,7 +634,7 @@ function showContent(section) {
 							    .then(response => response.json())
 							    .then(result => {
 							        showAlert(result.message, "success");
-							      
+									fetchPendingApprovals();
 									fetchCounts();
 									fetchIssuelist();
 							    })

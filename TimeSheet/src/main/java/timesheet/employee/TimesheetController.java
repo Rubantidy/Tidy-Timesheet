@@ -158,7 +158,7 @@ public class TimesheetController {
             totalHours += hours;
 
             // ✅ Casual Leave Handling (Ensure tracking across periods)
-            if (code.equals("TLS01 - Casual Leave")) { 
+            if (code.endsWith("Casual Leave")) { 
                 if (totalCasualLeaveInMonth + leaveDays <= 1) { 
                     casualLeaveThisMonth += leaveDays;
                     totalCasualLeaveInMonth += leaveDays;
@@ -171,7 +171,7 @@ public class TimesheetController {
             }
 
             // ✅ Sick Leave Handling (Ensure tracking across periods)
-            else if (code.equals("TLS02 - Sick Leave")) { 
+            else if (code.endsWith("Sick Leave")) { 
                 if (totalSickLeaveInYear + leaveDays <= 6) { 
                     sickLeaveThisYear += leaveDays;
                     totalSickLeaveInYear += leaveDays;
