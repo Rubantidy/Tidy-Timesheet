@@ -474,7 +474,7 @@ function generateSummary() {
                     let row = `<tr>
                         <td>${entry.chargeCode}</td>
                         <td>${entry.hours}</td>
-                        <td>${(entry.chargeCode.includes("Leave")) ? entry.hours : 0}</td>
+                        <td>0</td>
                     </tr>`;
                     summaryBody.innerHTML += row;
                 });
@@ -497,8 +497,9 @@ function generateSummary() {
                 `Casual Leave Taken: ${casualLeaveDays.toFixed(1)} (Max: 1 per month)`;
             document.getElementById("sickLeave").textContent = 
                 `Sick Leave Taken: ${sickLeaveDays.toFixed(1)} (Max: 6 per year)`;
-            document.getElementById("paidLeave").textContent = 
-                `Paid Leave: ${paidLeaveDays.toFixed(1)}`;
+				document.getElementById("paidLeave").textContent = 
+				    `Paid Leave: ${Math.max(0, paidLeaveDays.toFixed(1))}`;
+
         })
         .catch(error => {
             console.error("Error fetching summary data:", error);

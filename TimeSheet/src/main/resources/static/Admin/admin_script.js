@@ -141,6 +141,7 @@ function showContent(section) {
 		                    <th>Period</th>
 		                    <th>Total Hours</th>
 		                    <th>Total Absences</th>
+							<th>Paid Leave</th>
 		                    <th>Charge Code Details</th>
 		                    <th>Action</th>
 		                </tr>
@@ -167,6 +168,7 @@ function showContent(section) {
 		                    <th>Period</th>
 		                    <th>Total Hours</th>
 		                    <th>Total Absences</th>
+							<th>Paid Leave</th>
 		                    <th>Charge Code Details</th>
 		                </tr>
 		            </thead>
@@ -192,6 +194,7 @@ function showContent(section) {
 		                    <th>Period</th>
 		                    <th>Total Hours</th>
 		                    <th>Total Absences</th>
+							<th>Paid Leave</th>
 		                    <th>Charge Code Details</th>
 		                </tr>
 		            </thead>
@@ -502,6 +505,7 @@ function showContent(section) {
 							            <td><b>${entry.period}</b></td>    
 							            <td id="hours-${entry.username}-${entry.period}">Loading...</td>
 							            <td id="absences-${entry.username}-${entry.period}">Loading...</td>
+										<td id="paid-${entry.username}-${entry.period}">Loading...</td>
 							            <td id="charge-${entry.username}-${entry.period}">Loading...</td>
 							            ${status === "Pending" ? `
 							                <td>
@@ -548,6 +552,7 @@ function showContent(section) {
 
 							            document.getElementById(`hours-${username}-${period}`).textContent = summary.totalHours - summary.totalAbsences || "0";
 							            document.getElementById(`absences-${username}-${period}`).textContent = summary.totalAbsences || "0";
+										document.getElementById(`paid-${username}-${period}`).textContent = summary.paidLeaveDays || "0";
 
 							            // ✅ Format Charge Codes inside a single cell using a flex container
 							            let chargeCell = document.getElementById(`charge-${username}-${period}`);

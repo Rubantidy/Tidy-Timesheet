@@ -1,5 +1,6 @@
 package timesheet.employee;
 
+import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -27,6 +28,7 @@ import timesheet.admin.repo.AssignmentRepository;
 import timesheet.employee.dao.Preference;
 import timesheet.employee.dao.SummaryEntry;
 import timesheet.employee.dao.TimesheetEntry;
+import timesheet.employee.repo.LeaveRepository;
 import timesheet.employee.repo.PreferenceRepository;
 import timesheet.employee.repo.SummaryRepository;
 import timesheet.employee.repo.TimesheetRepository;
@@ -52,6 +54,10 @@ public class TimesheetController {
     private AssignmentRepository assignrepo;
 
   
+    @Autowired
+    private LeaveRepository leaverepo;
+    
+    
     private final NotificationService notificationService;
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -127,37 +133,68 @@ public class TimesheetController {
         float sickLeaveThisYear = 0;
         float paidLeave = 0;
 
+        // ✅ Extract month and year correctly from "01/03/2025 - 15/03/2025"
+        String firstDate = period.split(" - ")[0];  // "01/03/2025"
+        String[] dateParts = firstDate.split("/");  // { "01", "03", "2025" }
+        int currentMonth = Integer.parseInt(dateParts[1]);  // 03
+        int currentYear = Integer.parseInt(dateParts[2]);   // 2025
+
+     // ✅ Fetch total casual leave used in this month
+        float totalCasualLeaveInMonth = leaverepo.getTotalCasualLeave(username, currentYear, currentMonth);
+
+        // ✅ Fetch total sick leave used in this year
+        float totalSickLeaveInYear = leaverepo.getTotalSickLeave(username, currentYear);
+
         for (TimesheetEntry entry : entries) {
             String code = entry.getChargeCode();
-            
             if ("Company Code".equals(code) || "Work Location".equals(code)) {
                 continue;
             }
 
-            // ✅ FIX: Parse as Float instead of Integer
             float hours = (entry.getHours() == null || entry.getHours().isEmpty()) ? 0 : Float.parseFloat(entry.getHours());
-            float leaveDays = hours / 9.0f; // ✅ FIX: Ensure float division
+            float leaveDays = hours / 9.0f;
 
             chargeCodeTotals.put(code, chargeCodeTotals.getOrDefault(code, 0f) + hours);
             totalHours += hours;
 
+            // ✅ Casual Leave Handling (Ensure tracking across periods)
             if (code.equals("TLS01 - Casual Leave")) { 
-                if (casualLeaveThisMonth < 1) {
+                if (totalCasualLeaveInMonth + leaveDays <= 1) { 
                     casualLeaveThisMonth += leaveDays;
-                } else {
-                    paidLeave += leaveDays; // ✅ Convert excess Casual Leave to Paid Leave
+                    totalCasualLeaveInMonth += leaveDays;
+                } else { 
+                    float excess = (totalCasualLeaveInMonth + leaveDays) - 1;
+                    casualLeaveThisMonth += leaveDays - excess;
+                    paidLeave += excess;
+                    totalCasualLeaveInMonth = 1; // Cap at 1 per month
                 }
-            } else if (code.equals("TLS02 - Sick Leave")) { 
-                if (sickLeaveThisYear < 6) {
+            }
+
+            // ✅ Sick Leave Handling (Ensure tracking across periods)
+            else if (code.equals("TLS02 - Sick Leave")) { 
+                if (totalSickLeaveInYear + leaveDays <= 6) { 
                     sickLeaveThisYear += leaveDays;
-                } else {
-                    paidLeave += leaveDays; // ✅ Convert excess Sick Leave to Paid Leave
+                    totalSickLeaveInYear += leaveDays;
+                } else { 
+                    float excess = (totalSickLeaveInYear + leaveDays) - 6;
+                    sickLeaveThisYear += leaveDays - excess;
+                    paidLeave += excess;
+                    totalSickLeaveInYear = 6; // Cap at 6 per year
                 }
             }
 
             if (code.endsWith("Leave")) {
                 totalAbsences += hours;
             }
+        }
+
+        // ✅ Update Leave Records in DB Correctly
+        if (leaverepo.updateLeave(username, currentYear, currentMonth, "Casual Leave", casualLeaveThisMonth) == 0) {
+            leaverepo.insertLeave(username, currentYear, currentMonth, "Casual Leave", casualLeaveThisMonth, period);
+        }
+
+        if (leaverepo.updateLeave(username, currentYear, currentMonth, "Sick Leave", sickLeaveThisYear) == 0) {
+            leaverepo.insertLeave(username, currentYear, currentMonth, "Sick Leave", sickLeaveThisYear, period);
         }
 
         List<Map<String, String>> processedEntries = new ArrayList<>();
@@ -179,7 +216,7 @@ public class TimesheetController {
         return ResponseEntity.ok(summaryData);
     }
 
- 
+
     
     
     
