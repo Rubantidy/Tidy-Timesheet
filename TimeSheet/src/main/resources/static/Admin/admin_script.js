@@ -1,6 +1,5 @@
 
 
-
 document.addEventListener("DOMContentLoaded", function() {
 	    const userName = sessionStorage.getItem("userName");
 
@@ -599,6 +598,8 @@ function showContent(section) {
 							    .then(result => {
 							        showAlert(result.message, "success");
 							        fetchPendingApprovals(); // Refresh list
+									fetchCounts();
+									fetchApprovalslist();
 							    })
 							    .catch(error => console.error("Error approving timesheet:", error));
 
@@ -633,7 +634,9 @@ function showContent(section) {
 							    .then(response => response.json())
 							    .then(result => {
 							        showAlert(result.message, "success");
-							        fetchPendingApprovals(); // Refresh list
+							      
+									fetchCounts();
+									fetchIssuelist();
 							    })
 							    .catch(error => console.error("Error raising issue:", error));
 
@@ -724,6 +727,11 @@ function handleFormSubmit(event) {
         showAlert(data, "success");
 		
         hideForm(); 
+		fetchEmployeeData();
+		fetchCodeDatas();
+		fetchDelegator();
+		fetchExpense();
+		fe
     })
     .catch(error => {
         console.error("Error:", error);
