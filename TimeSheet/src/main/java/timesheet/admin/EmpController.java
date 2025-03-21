@@ -39,7 +39,7 @@ public class EmpController {
     @Autowired
     private JavaMailSender mailSender;  
 
-    @GetMapping("/Admin_Dashboard")
+    @GetMapping("/Admin_Dashboard") 
     public String M1() {
         return "Admin/Admin_panel";
     }
