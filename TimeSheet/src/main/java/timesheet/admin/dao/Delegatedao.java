@@ -9,7 +9,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "DelegatorsTable")
+@Table(name = "delegators_table")
 public class Delegatedao {
 
 	@Id

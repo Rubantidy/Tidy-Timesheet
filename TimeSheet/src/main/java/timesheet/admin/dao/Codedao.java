@@ -8,7 +8,7 @@ import jakarta.persistence.Table;
 
 
 @Entity
-@Table(name = "Codes_details")
+@Table(name = "codes_details")
 public class Codedao {
 
 	@Id

@@ -2,8 +2,10 @@ package timesheet.admin.dao;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
 @Entity
+@Table(name = "charge_code_counter")
 public class ChargeCodeCounter {
 
     @Id

@@ -14,7 +14,7 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "Employee_details")
+@Table(name = "employee_details")
 public class Employeedao {
 
 	@Id
