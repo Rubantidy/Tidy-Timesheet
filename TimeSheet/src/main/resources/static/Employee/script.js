@@ -416,27 +416,32 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // 🔥 Send DELETE request (Unchanged Logic)
     function sendDeleteRequest(chargeCode) {
-        fetch(`/deleteRow?chargeCode=${encodeURIComponent(chargeCode)}`, {
-            method: "DELETE",
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                selectedRow.remove(); // Remove row from UI
-                selectedRow = null; // Reset selection
-                showAlert("✅ Row deleted successfully!", "success");
-			location.reload();
-            } else {
-                showAlert("❌ Failed to delete row from database.", "danger");
-            }
-			
-			
-        })
-        .catch(error => {
-            console.error("❌ Error deleting row:", error);
-            showAlert("❌ Error deleting row. Check console.", "danger");
-        });
-    }
+		
+		function getSelectedPeriod() {
+		       return periodDropdown.options[periodDropdown.selectedIndex].text;
+		   }
+
+		   const selectedPeriod = getSelectedPeriod();
+		   
+		   fetch(`/deleteRow?chargeCode=${encodeURIComponent(chargeCode)}&period=${encodeURIComponent(selectedPeriod)}`, {
+		           method: "DELETE",
+		       })
+		       .then(response => response.json())
+		       .then(data => {
+		           if (data.success) {
+		               selectedRow.remove(); // Remove row from UI
+		               selectedRow = null; // Reset selection
+		               showAlert("✅ Row deleted successfully!", "success");
+		               location.reload();
+		           } else {
+		               showAlert("❌ Failed to delete row from database.", "danger");
+		           }
+		       })
+		       .catch(error => {
+		           console.error("❌ Error deleting row:", error);
+		           showAlert("❌ Error deleting row. Check console.", "danger");
+		       });
+		   }
 
     // 🔥 Function to Protect Certain Rows (Work Location & Company Code)
     function isProtectedRow(row) {

@@ -93,19 +93,20 @@ public class TimesheetController {
     }
     
     @DeleteMapping("/deleteRow")
-    public ResponseEntity<?> deleteRow(@RequestParam String chargeCode) {
+    public ResponseEntity<?> deleteRow(@RequestParam String chargeCode, @RequestParam String period) {
         try {
-            String trimmedChargeCode = chargeCode.trim(); // ✅ Remove extra spaces
-            
-            // 🔥 Get all rows matching the charge code
-            List<TimesheetEntry> rowsToDelete = timesheetRepository.findByChargeCode(trimmedChargeCode);
+            String trimmedChargeCode = chargeCode.trim();
+        
+
+            // 🔥 Find only the entries matching the charge code AND the period
+            List<TimesheetEntry> rowsToDelete = timesheetRepository.findByChargeCodeAndPeriod(trimmedChargeCode, period);
 
             if (rowsToDelete.isEmpty()) {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                        .body(Collections.singletonMap("error", "Row not found"));
+                        .body(Collections.singletonMap("error", "Row not found for the selected period"));
             }
 
-            // 🔥 Delete all matching rows
+            // 🔥 Delete only the matching row(s) for the selected period
             timesheetRepository.deleteAll(rowsToDelete);
 
             return ResponseEntity.ok(Collections.singletonMap("success", true));
@@ -115,6 +116,7 @@ public class TimesheetController {
                     .body(Collections.singletonMap("error", "Failed to delete row"));
         }
     }
+
 
 
     @GetMapping("/getSummary")
