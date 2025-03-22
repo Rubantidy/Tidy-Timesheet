@@ -140,7 +140,7 @@ function showContent(section) {
 		                    <th>Period</th>
 		                    <th>Total Hours</th>
 		                    <th>Total Absences</th>
-							<th>Paid Leave</th>
+							<th>Loss of Pay</th>
 		                    <th>Charge Code Details</th>
 		                    <th>Action</th>
 		                </tr>
@@ -167,7 +167,7 @@ function showContent(section) {
 		                    <th>Period</th>
 		                    <th>Total Hours</th>
 		                    <th>Total Absences</th>
-							<th>Paid Leave</th>
+							<th>Loss of Pay</th>
 		                    <th>Charge Code Details</th>
 		                </tr>
 		            </thead>
@@ -193,7 +193,7 @@ function showContent(section) {
 		                    <th>Period</th>
 		                    <th>Total Hours</th>
 		                    <th>Total Absences</th>
-							<th>Paid Leave</th>
+							<th>Loss of Pay</th>
 		                    <th>Charge Code Details</th>
 		                </tr>
 		            </thead>
