@@ -136,7 +136,7 @@ function showContent(section) {
 		        <table class="table table-bordered">
 		            <thead>
 		                <tr>
-		                    <th>Username</th>
+		                    <th>Employee</th>
 		                    <th>Period</th>
 		                    <th>Total Hours</th>
 		                    <th>Total Absences</th>
@@ -163,7 +163,7 @@ function showContent(section) {
 		        <table class="table table-bordered">
 		            <thead>
 		                <tr>
-		                    <th>Username</th>
+		                    <th>Employee</th>
 		                    <th>Period</th>
 		                    <th>Total Hours</th>
 		                    <th>Total Absences</th>
@@ -189,7 +189,7 @@ function showContent(section) {
 		        <table class="table table-bordered">
 		            <thead>
 		                <tr>
-		                    <th>Username</th>
+		                    <th>Employee</th>
 		                    <th>Period</th>
 		                    <th>Total Hours</th>
 		                    <th>Total Absences</th>
@@ -214,7 +214,7 @@ function showContent(section) {
 		                   <tr>
 						   	  <th>ID</th>
 						   	   <th>Registered Date</th>
-		                       <th>Name</th>
+		                       <th>Employee</th>
 		                       <th>Email</th>
 		
 							   <th>Designation</th>
@@ -272,7 +272,10 @@ function showContent(section) {
 		   		   	 <tbody id="Expense-table-body"></tbody>
 		   		  </table>
 		   		   
-		    `
+		    `,
+			"payroll": `
+				<h1> Payroll </h1>
+			 `
     };
 
     title.innerText = section.replace("-", " ").replace(/\b\w/g, l => l.toUpperCase());
@@ -1097,6 +1100,7 @@ function createForm(type) {
 					${inputField("Email", "email", "E-mail")}
 					${inputField("Password", "password", "E-pass")}
 					${inputField("Designation", "text", "E-desg")}
+					${inputField("Salary", "text", "salary")}
                     ${selectField("Role", "E-role", ["Admin","Employee"])}
                     ${formButtons()}
                 </form>

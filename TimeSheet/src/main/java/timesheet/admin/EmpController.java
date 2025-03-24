@@ -81,7 +81,7 @@ public class EmpController {
                 + "<p><b>Password:</b> " + EmpData.getePassword() + "</p>"
                 + "<p><b>Designation:</b> " + EmpData.getDesignation() + "</p>"
                 + "<p><b>Role:</b> " + EmpData.getE_Role() + "</p><br>"
-                + "<p><b>Access your Timesheet here:</b> <a href=\"https://rm.tidyds.com\">https://rm.tidyds.com</a></p>"
+                + "<p><b>Access your Timesheet here:</b> <a href=\"https://timex.tidyds.com\">https://timex.tidyds.com</a></p>"
                 + "<h3>Important:</h3>"
                 + "<p><b>Note:</b> After logging into the Timesheet, please update your user details to ensure accurate information.</p>"
                 + "<p><b>If you face any issues with logging in, feel free to contact support.</b></p>"
