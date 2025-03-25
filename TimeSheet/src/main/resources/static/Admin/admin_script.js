@@ -215,8 +215,6 @@ function showContent(section) {
 		                       <th>Employee</th>
 		                       <th>Email</th>
 							   <th>Designation</th>
-							   <th>Role</th>
-							   <th>Salary</th>
 							   <th>Status</th>
 		                       <th>Action</th>	
 		                   </tr>
@@ -759,46 +757,20 @@ function fetchEmployeeData() {
                         <td>${employee.createdDate}</td>
                         <td>${employee['E-name']}</td>
                         <td>${employee['E-mail']}</td>
+            
                         <td>${employee['E-desg']}</td>
-						<td>${employee['E-role']}</td>
-                        <td>${employee['E-salary']}</td>
+             
                         <td>${employee.status}</td>
-						<td>
-						    <div class="employee-options-dropdown">
-						        <button class="btn btn-success btn-sm custom-dropdown-toggle" type="button">
-						            &#x22EE; <!-- 3 vertical dots -->
-						        </button>
-						        <div class="custom-dropdown-menu">
-						            <a href="#" class="custom-dropdown-item" onclick="employeeAction('${employee.id}', '${employee.status}')">
-						                ${employee.status === 'active' ? 'Deactivate' : 'Activate'}
-						            </a>
-						            <a href="#" class="custom-dropdown-item" onclick="openEditModal('${employee.id}', '${employee['E-salary']}', '${employee['E-role']}')">Promote</a>
-						        </div>
-						    </div>
-						</td>
-
+                        <td>
+                            <button class="btn btn-${employee.status === 'active' ? 'danger' : 'success'} btn-sm"
+                                    onclick="employeeAction('${employee.id}', '${employee.status}')">
+                                ${employee.status === 'active' ? 'Deactivate' : 'Activate'}
+                            </button>
+                        </td>
                     </tr>
                 `;
             });
-
-            // Attach event listeners to custom dropdowns
-            document.querySelectorAll(".custom-dropdown-toggle").forEach(button => {
-                button.addEventListener("click", function () {
-                    const menu = this.nextElementSibling;
-                    menu.classList.toggle("show");
-                });
-            });
-
-            // Close dropdown when clicking outside
-            document.addEventListener("click", function (event) {
-                if (!event.target.closest(".employee-options-dropdown")) {
-                    document.querySelectorAll(".custom-dropdown-menu").forEach(menu => {
-                        menu.classList.remove("show");
-                    });
-                }
-            });
-
-
+ 
 			// Populate Assign Employee Dropdown
 			const employeeListContainer = document.getElementById("employeeList");
 			employeeListContainer.innerHTML = ""; // Clear existing list
@@ -853,39 +825,6 @@ function employeeAction(employeeId, currentStatus) {
     };
 }
 
-
-function openEditModal(employeeId, currentSalary, currentRole) {
-    document.getElementById("editEmployeeId").value = employeeId;
-    document.getElementById("editSalary").value = currentSalary;
-    document.getElementById("editRole").value = currentRole;
-    document.getElementById("editEmployeeModal").style.display = "block";
-}
-
-function closeEditModal() {
-    document.getElementById("editEmployeeModal").style.display = "none";
-}
-
-// Handle form submission
-document.getElementById("editEmployeeForm").addEventListener("submit", function(event) {
-    event.preventDefault();
-
-    const employeeId = document.getElementById("editEmployeeId").value;
-    const newSalary = document.getElementById("editSalary").value;
-    const newRole = document.getElementById("editRole").value;
-
-    fetch("/updateEmployee", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: employeeId, salary: newSalary, role: newRole })
-    })
-    .then(response => response.text())
-    .then(message => {
-        alert(message);
-        fetchEmployeeData(); // Refresh table
-        closeEditModal();
-    })
-    .catch(error => console.error("Error updating employee:", error));
-});
 
 
 
@@ -1153,7 +1092,6 @@ function createForm(type) {
 					${inputField("Email", "email", "E-mail")}
 					${inputField("Password", "password", "E-pass")}
 					${inputField("Designation", "text", "E-desg")}
-					${inputField("Basic Pay", "text", "E-salary")}
                     ${selectField("Role", "E-role", ["Admin","Employee"])}
                     ${formButtons()}
                 </form>

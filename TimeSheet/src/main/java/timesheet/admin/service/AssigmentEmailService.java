@@ -58,7 +58,7 @@ public class AssigmentEmailService {
 
         helper.setText(emailContent, true); 
 
-        helper.setFrom("rubanmtidyds@gmail.com", "Tidy Digital Solutions"); // Replace with your company’s no-reply email
+        helper.setFrom("timextidyds@gmail.com", "Tidy Digital Solutions"); // Replace with your company’s no-reply email
         helper.setTo(recipientEmail);
         helper.setSubject("Tidyds - Charge code Assignment");
 

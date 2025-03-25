@@ -71,7 +71,7 @@ public class EmpController {
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
 
-        helper.setFrom("rubanmtidyds@gmail.com", "Tidy Digital Solutions");
+        helper.setFrom("timextidyds@gmail.com", "Tidy Digital Solutions");
         helper.setTo(EmpData.geteMail());
         helper.setSubject("Welcome to the Tidy Digital Solutions");
         
@@ -81,7 +81,6 @@ public class EmpController {
                  + "<p><b>Email:</b> " + EmpData.geteMail() + "</p>"
                  + "<p><b>Temporary Password:</b> " + EmpData.getePassword() + "</p>"
                  + "<p><b>Designation:</b> " + EmpData.getDesignation() + "</p>"
-                 + "<p><b>Monthly Salary:</b> " + EmpData.getSalary() +"/-" +  "</p>"
                  + "<p><b>Role:</b> " + EmpData.getE_Role() + "</p>"
                  + "<br>"
                  + "<p><b>Access your Timesheet here:</b> <a href=\"https://timex.tidyds.com\">Tidy Timesheet Portal</a></p>"
@@ -105,103 +104,103 @@ public class EmpController {
         mailSender.send(message);
     }
     
-    @PostMapping("/updateEmployee")
-    public ResponseEntity<String> updateEmployee(@RequestBody Map<String, String> requestData) throws UnsupportedEncodingException {
-        int employeeId = Integer.parseInt(requestData.get("id"));
-        Optional<Employeedao> optionalEmp = EmpRepo.findById(employeeId);
-
-        if (!optionalEmp.isPresent()) {
-            return ResponseEntity.status(404).body("Employee not found");
-        }
-
-        Employeedao employee = optionalEmp.get();
-        long oldSalary = employee.getSalary();
-        long newSalary = Long.parseLong(requestData.get("salary"));
-
-        boolean salaryChanged = oldSalary != newSalary;
-        boolean roleChanged = !employee.getE_Role().equals(requestData.get("role"));
-
-        // Update salary and role
-        employee.setSalary(newSalary);
-        employee.setE_Role(requestData.get("role"));
-        EmpRepo.save(employee);
-
-        // Send email notifications
-        try {
-            if (salaryChanged) {
-                double percentageHike = ((double) (newSalary - oldSalary) / oldSalary) * 100;
-                if (!roleChanged) {
-                    sendAppraisalEmail(employee, percentageHike);
-                } else {
-                    sendPromotionEmail(employee, percentageHike);
-                }
-            }
-        } catch (MessagingException e) {
-            return ResponseEntity.status(500).body("Update successful, but email failed to send.");
-        }
-
-        return ResponseEntity.ok("Employee updated successfully!");
-    }
-
-    // Email notification for salary appraisal with percentage hike
-    private void sendAppraisalEmail(Employeedao employee, double percentageHike) throws MessagingException, UnsupportedEncodingException {
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-
-        helper.setFrom("rubanmtidyds@gmail.com", "Tidy Digital Solutions");
-        helper.setTo(employee.geteMail());
-        helper.setSubject("🎉 Salary Appraisal Notification!");
-
-        String emailContent = "<html><body>"
-                + "<h2>Congratulations, " + employee.geteName() + "!</h2>"
-                + "<p>We are pleased to inform you that, based on your hard work and dedication, your salary has been increased by <b>" 
-                + String.format("%.2f", percentageHike) + "%</b>.</p>"
-                + "<p><b>New Salary:</b> ₹" + employee.getSalary() + "/- per month</p>"
-                + "<p>This increment reflects your valuable contributions to Tidy Digital Solutions. We appreciate your efforts and look forward to your continued excellence.</p>"
-                + "<br>"
-                + "<p>If you have any questions regarding this update, feel free to reach out to the Admin Department.</p>"
-                + "<br>"
-                + "<img src='cid:logoImage' width='200'/>"
-                + "<p>Best Regards,<br><b>Tidy Digital Solutions Team</b></p>"
-                + "</body></html>";
-
-        helper.setText(emailContent, true);
-
-        ClassPathResource image = new ClassPathResource("static/img/logo.png");
-        helper.addInline("logoImage", image);
-
-        mailSender.send(message);
-    }
-
-    // Email notification for promotion + salary increase with percentage hike
-    private void sendPromotionEmail(Employeedao employee, double percentageHike) throws MessagingException, UnsupportedEncodingException {
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-
-        helper.setFrom("rubanmtidyds@gmail.com", "Tidy Digital Solutions");
-        helper.setTo(employee.geteMail());
-        helper.setSubject("🚀 Promotion & Salary Increase Notification!");
-
-        String emailContent = "<html><body>"
-                + "<h2>Congratulations on Your Promotion, " + employee.geteName() + "!</h2>"
-                + "<p>We are pleased to inform you that you have been promoted to the position of <b>" + employee.getE_Role() + "</b>.</p>"
-                + "<p>As part of this promotion, your salary has been increased by <b>" + String.format("%.2f", percentageHike) + "%</b>.</p>"
-                + "<p><b>New Salary:</b> ₹" + employee.getSalary() + "/- per month</p>"
-                + "<br>"
-                + "<p>We appreciate your valuable contributions to Tidy Digital Solutions and look forward to your continued excellence in this new role.</p>"
-                + "<br>"
-                + "<p>If you have any questions or require further details, please feel free to reach out to the Admin Department.</p>"
-                + "<br>"
-                + "<img src='cid:logoImage' width='200'/>"
-                + "<p>Best Regards,<br><b>Tidy Digital Solutions Team</b></p>"
-                + "</body></html>";
-
-        helper.setText(emailContent, true);
-
-        ClassPathResource image = new ClassPathResource("static/img/logo.png");
-        helper.addInline("logoImage", image);
-        mailSender.send(message);
-    }
+//    @PostMapping("/updateEmployee")
+//    public ResponseEntity<String> updateEmployee(@RequestBody Map<String, String> requestData) throws UnsupportedEncodingException {
+//        int employeeId = Integer.parseInt(requestData.get("id"));
+//        Optional<Employeedao> optionalEmp = EmpRepo.findById(employeeId);
+//
+//        if (!optionalEmp.isPresent()) {
+//            return ResponseEntity.status(404).body("Employee not found");
+//        }
+//
+//        Employeedao employee = optionalEmp.get();
+//        long oldSalary = employee.getSalary();
+//        long newSalary = Long.parseLong(requestData.get("salary"));
+//
+//        boolean salaryChanged = oldSalary != newSalary;
+//        boolean roleChanged = !employee.getE_Role().equals(requestData.get("role"));
+//
+//        // Update salary and role
+//        employee.setSalary(newSalary);
+//        employee.setE_Role(requestData.get("role"));
+//        EmpRepo.save(employee);
+//
+//        // Send email notifications
+//        try {
+//            if (salaryChanged) {
+//                double percentageHike = ((double) (newSalary - oldSalary) / oldSalary) * 100;
+//                if (!roleChanged) {
+//                    sendAppraisalEmail(employee, percentageHike);
+//                } else {
+//                    sendPromotionEmail(employee, percentageHike);
+//                }
+//            }
+//        } catch (MessagingException e) {
+//            return ResponseEntity.status(500).body("Update successful, but email failed to send.");
+//        }
+//
+//        return ResponseEntity.ok("Employee updated successfully!");
+//    }
+//
+//    // Email notification for salary appraisal with percentage hike
+//    private void sendAppraisalEmail(Employeedao employee, double percentageHike) throws MessagingException, UnsupportedEncodingException {
+//        MimeMessage message = mailSender.createMimeMessage();
+//        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+//
+//        helper.setFrom("timextidyds@gmail.com", "Tidy Digital Solutions");
+//        helper.setTo(employee.geteMail());
+//        helper.setSubject("🎉 Salary Appraisal Notification!");
+//
+//        String emailContent = "<html><body>"
+//                + "<h2>Congratulations, " + employee.geteName() + "!</h2>"
+//                + "<p>We are pleased to inform you that, based on your hard work and dedication, your salary has been increased by <b>" 
+//                + String.format("%.2f", percentageHike) + "%</b>.</p>"
+//                + "<p><b>New Salary:</b> ₹" + employee.getSalary() + "/- per month</p>"
+//                + "<p>This increment reflects your valuable contributions to Tidy Digital Solutions. We appreciate your efforts and look forward to your continued excellence.</p>"
+//                + "<br>"
+//                + "<p>If you have any questions regarding this update, feel free to reach out to the Admin Department.</p>"
+//                + "<br>"
+//                + "<img src='cid:logoImage' width='200'/>"
+//                + "<p>Best Regards,<br><b>Tidy Digital Solutions Team</b></p>"
+//                + "</body></html>";
+//
+//        helper.setText(emailContent, true);
+//
+//        ClassPathResource image = new ClassPathResource("static/img/logo.png");
+//        helper.addInline("logoImage", image);
+//
+//        mailSender.send(message);
+//    }
+//
+//    // Email notification for promotion + salary increase with percentage hike
+//    private void sendPromotionEmail(Employeedao employee, double percentageHike) throws MessagingException, UnsupportedEncodingException {
+//        MimeMessage message = mailSender.createMimeMessage();
+//        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+//
+//        helper.setFrom("timextidyds@gmail.com", "Tidy Digital Solutions");
+//        helper.setTo(employee.geteMail());
+//        helper.setSubject("🚀 Promotion & Salary Increase Notification!");
+//
+//        String emailContent = "<html><body>"
+//                + "<h2>Congratulations on Your Promotion, " + employee.geteName() + "!</h2>"
+//                + "<p>We are pleased to inform you that you have been promoted to the position of <b>" + employee.getE_Role() + "</b>.</p>"
+//                + "<p>As part of this promotion, your salary has been increased by <b>" + String.format("%.2f", percentageHike) + "%</b>.</p>"
+//                + "<p><b>New Salary:</b> ₹" + employee.getSalary() + "/- per month</p>"
+//                + "<br>"
+//                + "<p>We appreciate your valuable contributions to Tidy Digital Solutions and look forward to your continued excellence in this new role.</p>"
+//                + "<br>"
+//                + "<p>If you have any questions or require further details, please feel free to reach out to the Admin Department.</p>"
+//                + "<br>"
+//                + "<img src='cid:logoImage' width='200'/>"
+//                + "<p>Best Regards,<br><b>Tidy Digital Solutions Team</b></p>"
+//                + "</body></html>";
+//
+//        helper.setText(emailContent, true);
+//
+//        ClassPathResource image = new ClassPathResource("static/img/logo.png");
+//        helper.addInline("logoImage", image);
+//        mailSender.send(message);
+//    }
 
     
     @GetMapping("/getEmployees")

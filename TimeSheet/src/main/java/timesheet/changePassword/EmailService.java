@@ -39,7 +39,7 @@ public class EmailService {
             MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, true);
  
             // Email content
-            messageHelper.setFrom("rubanmtidyds@gmail.com", "Tidy Digital Solutions"); // Your email address
+            messageHelper.setFrom("timextidyds@gmail.com", "Tidy Digital Solutions"); // Your email address
             messageHelper.setTo(email); // Recipient's email address
             messageHelper.setSubject("Your OTP for Password Change Request");
 
@@ -111,7 +111,7 @@ public class EmailService {
             MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, true);
  
             
-            messageHelper.setFrom("rubanmtidyds@gmail.com", "Tidy Digital Solutions"); 
+            messageHelper.setFrom("timextidyds@gmail.com", "Tidy Digital Solutions"); 
             messageHelper.setTo(mail); 
             messageHelper.setSubject("Confirmation: Your Password Has Been Successfully Changed");
           

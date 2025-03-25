@@ -368,7 +368,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
-
+/*icons funtions*/
 
 document.addEventListener("DOMContentLoaded", function () {
     let selectedRow = null; // Store the selected row
@@ -451,7 +451,35 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
+/*expense js*/
+document.addEventListener("DOMContentLoaded", function () {
+	
+      const addExpenseBtn = document.getElementById("addExpenseBtn");
+      const cancelExpenseBtn = document.getElementById("cancelExpenseBtn");
+      const expenseForm = document.getElementById("expenseForm");
+      const expensePeriod = document.getElementById("expensePeriod");	  
+      const periodDropdown = document.getElementById("periodDropdown");
+	  
+	  function getSelectedPeriod() {
+	  		       return periodDropdown.options[periodDropdown.selectedIndex].text;
+	  		   }
 
+	  const selectedPeriod = getSelectedPeriod();
+			
+
+      if (addExpenseBtn && cancelExpenseBtn && expenseForm && expensePeriod && selectedPeriod) {
+          addExpenseBtn.addEventListener("click", function () {
+              expenseForm.style.display = "block";
+              expensePeriod.value = selectedPeriod.value; // Auto-fill period
+          });
+
+          cancelExpenseBtn.addEventListener("click", function () {
+              expenseForm.style.display = "none";
+          });
+      } else {
+          console.error("One or more elements not found. Check IDs.");
+      }
+  });
 
 
 function generateSummary() {
