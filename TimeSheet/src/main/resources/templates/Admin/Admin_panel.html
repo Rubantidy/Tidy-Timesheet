@@ -305,6 +305,35 @@
 					        <span class="visually-hidden">Loading...</span>
 					    </div>
 					</div>
+					
+					
+					<div id="editEmployeeModal" class="modal">
+					    <div class="modal-content">
+					        <span class="close" onclick="closeEditModal()">&times;</span>
+					        <h2>Edit Employee</h2>
+					        <form id="editEmployeeForm">
+					            <input type="hidden" id="editEmployeeId">
+
+					            <div class="input-group">
+					                <label for="editSalary">Salary</label>
+					                <input type="number" id="editSalary" required>
+					            </div>
+
+					            <div class="input-group">
+					                <label for="editRole">Role</label>
+					                <select id="editRole">
+					                    <option value="Admin">Admin</option>
+					                    <option value="Employee">Employee</option>
+					                    <option value="TL">Team Lead</option>
+					                </select>
+					            </div>
+
+					            <button type="submit" class="update-btn">Update</button>
+					        </form>
+					    </div>
+					</div>
+
+
 
     
     <!-- Bootstrap JS -->

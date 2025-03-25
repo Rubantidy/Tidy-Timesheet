@@ -61,6 +61,9 @@ public class Employeedao {
 
 		@JsonProperty("E-desg")
 	    private String designation;
+		
+		@JsonProperty("E-salary")
+		private long Salary;
 	    
 	    
 	    private String additionalRole;  // New field
@@ -133,12 +136,24 @@ public class Employeedao {
 		E_Role = e_Role;
 	}
 
+	public long getSalary() {
+		return Salary;
+	}
+
+	public void setSalary(long salary) {
+		Salary = salary;
+	}
+
 	@Override
 	public String toString() {
 		return "Employeedao [id=" + id + ", createdDate=" + createdDate + ", eName=" + eName + ", eMail=" + eMail
-				+ ", ePassword=" + ePassword + ", E_Role=" + E_Role + ", designation=" + designation
-				+ ", additionalRole=" + additionalRole + ", status=" + status + "]";
+				+ ", ePassword=" + ePassword + ", E_Role=" + E_Role + ", designation=" + designation + ", Salary="
+				+ Salary + ", additionalRole=" + additionalRole + ", status=" + status + "]";
 	}
+	
+	
+
+	
 
 	
 

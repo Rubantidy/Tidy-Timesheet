@@ -203,8 +203,6 @@ function showContent(section) {
 		        </table>
 		    </div>
 		</div>
-
-
 		       `,
 		"manage-user": `<button class="btn btn-info mb-3" id="addEmployeeBtn">Add Users</button><div id="form-container"></div>
 		     <div id="form-container"></div>
@@ -213,14 +211,14 @@ function showContent(section) {
 		               <thead>
 		                   <tr>
 						   	  <th>ID</th>
-						   	   <th>Registered Date</th>
+						   	   <th>Onboard Date</th>
 		                       <th>Employee</th>
 		                       <th>Email</th>
-		
 							   <th>Designation</th>
-		           
+							   <th>Role</th>
+							   <th>Salary</th>
 							   <th>Status</th>
-		                       <th>Action</th>
+		                       <th>Action</th>	
 		                   </tr>
 		               </thead>
 		               <tbody id="employee-table-body"></tbody>
@@ -399,63 +397,59 @@ function showContent(section) {
 				    });
 				}
 
-
-
-
 					
-							function showSection(section) {
-							    document.getElementById("pendingSection").style.display = "none";
-							    document.getElementById("approvedSection").style.display = "none";
-							    document.getElementById("issueSection").style.display = "none";
+			function showSection(section) {
+					document.getElementById("pendingSection").style.display = "none";
+					 document.getElementById("approvedSection").style.display = "none";
+					document.getElementById("issueSection").style.display = "none";
 
-							    if (section === "pending") {
-							        document.getElementById("pendingSection").style.display = "block";
-							    } else if (section === "approved") {
-							        document.getElementById("approvedSection").style.display = "block";
-							    } else if (section === "issue") {
-							        document.getElementById("issueSection").style.display = "block";
-							    }
-							}
+					if (section === "pending") {
+						document.getElementById("pendingSection").style.display = "block";
+					} else if (section === "approved") {
+							document.getElementById("approvedSection").style.display = "block";
+					} else if (section === "issue") {
+							document.getElementById("issueSection").style.display = "block";
+					 }
+				}
 
-							document.addEventListener("DOMContentLoaded", function () {
+		document.addEventListener("DOMContentLoaded", function () {
 							
 							    
-							    // Ensure the dropdowns exist before calling the functions
-							    if (
-									document.getElementById("issueCount") &&
-									document.getElementById("approvedCount") &&
-									document.getElementById("pendingCount")
+				// Ensure the dropdowns exist before calling the functions
+				if (
+				document.getElementById("issueCount") &&
+				document.getElementById("approvedCount") &&
+				document.getElementById("pendingCount")
 								
-								
-								) {
+					) {
 							        
-							        fetchPendingApprovals();
-							        fetchApprovalslist();
-							        fetchIssuelist();
-							        fetchCounts();
-							    } 
-							});
+						fetchPendingApprovals();
+						fetchApprovalslist();
+						fetchIssuelist();
+						 fetchCounts();
+					 } 
+				});
 
 
 							
-							function fetchCounts() {
-							    fetch('/counts')
-							        .then(response => response.json())
-							        .then(data => {
+		function fetchCounts() {
+				fetch('/counts')
+					.then(response => response.json())
+					 .then(data => {
 							         
 
-							            let pendingCountElem = document.getElementById("pendingCount");
-							            let approvedCountElem = document.getElementById("approvedCount");
-							            let issueCountElem = document.getElementById("issueCount");
+						let pendingCountElem = document.getElementById("pendingCount");
+						let approvedCountElem = document.getElementById("approvedCount");
+						let issueCountElem = document.getElementById("issueCount");
 
 
-							            // Update values
-							            pendingCountElem.textContent = data.pending ?? 0;
-							            approvedCountElem.textContent = data.approved ?? 0;
-							            issueCountElem.textContent = data.issue ?? 0;
-							        })
-							        .catch(error => console.error("❌ Error fetching counts:", error));
-							}
+						 // Update values
+						pendingCountElem.textContent = data.pending ?? 0;
+						 approvedCountElem.textContent = data.approved ?? 0;
+						issueCountElem.textContent = data.issue ?? 0;
+						})
+							 .catch(error => console.error("❌ Error fetching counts:", error));
+				}
 
 							
 
@@ -765,19 +759,45 @@ function fetchEmployeeData() {
                         <td>${employee.createdDate}</td>
                         <td>${employee['E-name']}</td>
                         <td>${employee['E-mail']}</td>
-            
                         <td>${employee['E-desg']}</td>
-             
+						<td>${employee['E-role']}</td>
+                        <td>${employee['E-salary']}</td>
                         <td>${employee.status}</td>
-                        <td>
-                            <button class="btn btn-${employee.status === 'active' ? 'danger' : 'success'} btn-sm" 
-                                    onclick="employeeAction('${employee.id}', '${employee.status}')">
-                                ${employee.status === 'active' ? 'Deactivate' : 'Activate'}
-                            </button>
-                        </td>
+						<td>
+						    <div class="employee-options-dropdown">
+						        <button class="btn btn-success btn-sm custom-dropdown-toggle" type="button">
+						            &#x22EE; <!-- 3 vertical dots -->
+						        </button>
+						        <div class="custom-dropdown-menu">
+						            <a href="#" class="custom-dropdown-item" onclick="employeeAction('${employee.id}', '${employee.status}')">
+						                ${employee.status === 'active' ? 'Deactivate' : 'Activate'}
+						            </a>
+						            <a href="#" class="custom-dropdown-item" onclick="openEditModal('${employee.id}', '${employee['E-salary']}', '${employee['E-role']}')">Promote</a>
+						        </div>
+						    </div>
+						</td>
+
                     </tr>
                 `;
             });
+
+            // Attach event listeners to custom dropdowns
+            document.querySelectorAll(".custom-dropdown-toggle").forEach(button => {
+                button.addEventListener("click", function () {
+                    const menu = this.nextElementSibling;
+                    menu.classList.toggle("show");
+                });
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener("click", function (event) {
+                if (!event.target.closest(".employee-options-dropdown")) {
+                    document.querySelectorAll(".custom-dropdown-menu").forEach(menu => {
+                        menu.classList.remove("show");
+                    });
+                }
+            });
+
 
 			// Populate Assign Employee Dropdown
 			const employeeListContainer = document.getElementById("employeeList");
@@ -833,6 +853,39 @@ function employeeAction(employeeId, currentStatus) {
     };
 }
 
+
+function openEditModal(employeeId, currentSalary, currentRole) {
+    document.getElementById("editEmployeeId").value = employeeId;
+    document.getElementById("editSalary").value = currentSalary;
+    document.getElementById("editRole").value = currentRole;
+    document.getElementById("editEmployeeModal").style.display = "block";
+}
+
+function closeEditModal() {
+    document.getElementById("editEmployeeModal").style.display = "none";
+}
+
+// Handle form submission
+document.getElementById("editEmployeeForm").addEventListener("submit", function(event) {
+    event.preventDefault();
+
+    const employeeId = document.getElementById("editEmployeeId").value;
+    const newSalary = document.getElementById("editSalary").value;
+    const newRole = document.getElementById("editRole").value;
+
+    fetch("/updateEmployee", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: employeeId, salary: newSalary, role: newRole })
+    })
+    .then(response => response.text())
+    .then(message => {
+        alert(message);
+        fetchEmployeeData(); // Refresh table
+        closeEditModal();
+    })
+    .catch(error => console.error("Error updating employee:", error));
+});
 
 
 
@@ -1100,7 +1153,7 @@ function createForm(type) {
 					${inputField("Email", "email", "E-mail")}
 					${inputField("Password", "password", "E-pass")}
 					${inputField("Designation", "text", "E-desg")}
-					${inputField("Salary", "text", "salary")}
+					${inputField("Basic Pay", "text", "E-salary")}
                     ${selectField("Role", "E-role", ["Admin","Employee"])}
                     ${formButtons()}
                 </form>
