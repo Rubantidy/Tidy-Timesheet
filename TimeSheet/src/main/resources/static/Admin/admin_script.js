@@ -726,7 +726,7 @@ function handleFormSubmit(event) {
 		fetchCodeDatas();
 		fetchDelegator();
 		fetchExpense();
-		fe
+		
     })
     .catch(error => {
         console.error("Error:", error);

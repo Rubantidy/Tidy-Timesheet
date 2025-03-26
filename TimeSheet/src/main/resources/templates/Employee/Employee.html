@@ -184,7 +184,7 @@
     </div>
 
 
-<!-- Section for Expense -->
+
 <!-- Expense Section UI -->
 <div id="expenseSection" class="content-section" style="display: none; padding: 20px;">
     <h3 class="text-primary">Expense Section</h3>
@@ -205,26 +205,33 @@
             
             <!-- Expense Type -->
             <div class="mb-3">
-                <label class="form-label">Expense Type</label>
-                <select id="expenseType" class="form-select">
+                <label class="form-label" >Expense Type</label>
+                <select id="expenseType" class="form-select" required>
                     <option value="">Select Type</option>
-                    <option value="Travel">Travel</option>
-                    <option value="Food">Food</option>
-                    <option value="Lodging">Lodging</option>
-                    <option value="Other">Other</option>
+              
                 </select>
             </div>
             
             <!-- Amount -->
             <div class="mb-3">
                 <label class="form-label">Amount</label>
-                <input type="number" id="expenseAmount" class="form-control" placeholder="Enter Amount">
+                <input type="number" id="expenseAmount" class="form-control" placeholder="Enter Amount" required>
             </div>
+			
+			<div class="mb-3">
+			      <label class="form-label">Invoice Number</label>
+			       <input type="text" id="expenseInvoice" class="form-control" placeholder="Transaction ID" required>
+			 </div>
+					   
+			<div class="mb-3">
+				<label class="form-label">GST Number</label>
+				<input type="text" id="expenseGST" class="form-control" placeholder="GST Number (optional)">
+			 </div>
             
             <!-- Receipt Upload -->
             <div class="mb-3">
                 <label class="form-label">Upload Receipt</label>
-                <input type="file" id="expenseReceipt" class="form-control">
+                <input type="file" id="expenseReceipt" class="form-control" required>
             </div>
             
             <!-- Description -->
@@ -240,6 +247,24 @@
             </div>
         </form>
     </div>
+	
+	<table id="expenseTable" border="1">
+	    <thead>
+	        <tr>
+	            <th>Period</th>
+	            <th>Expense Type</th>
+	            <th>Invoice</th>
+	            <th>GST</th>
+	            <th>Description</th>
+				<th>Amount</th>
+				<th>Receipt</th>
+	        </tr>
+	    </thead>
+	    <tbody>
+	        <!-- Expense data will be inserted here -->
+	    </tbody>
+	</table>
+
 </div>
 
 
@@ -648,7 +673,7 @@
 	          document.addEventListener("DOMContentLoaded", function() {
 		
 	          const userName = sessionStorage.getItem('userName');
-	          console.log(userName); // Debugging: Check if the value is correct
+	         
 
 	          if (userName) {
 	              const userNameElement = document.getElementById('userName');
@@ -822,7 +847,7 @@
 		  		            document.getElementById('resendOtpBtn').style.display = 'none';
 		  		            document.getElementById('sendOtpBtn').style.display = 'inline-block';
 		  		        } else {
-		  		            console.log("Error response:", result); // Debug log to check the response from backend
+		  		       
 		  		            showAlert("Incorrect OTP,  Enter Correctly..!.", "danger");
 		  		        }
 		  		    })
@@ -844,6 +869,7 @@
 				       // Redirect to the login page
 				       window.location.href = '/login'; // Redirect to the login page or wherever needed
 					   showAlert("Logout Successfully..! ");
+					   
 				   });
 				
 				
@@ -1112,7 +1138,7 @@
 				       const inputs = row.querySelectorAll("td input[type='text']"); 
 				       let firstValue = null;
 
-				       console.log("Before filling:", Array.from(inputs).map(input => input.value));
+				       
 
 				       // Find the first non-empty, non-disabled value (ONLY from columns 1-16)
 				       inputs.forEach((input, index) => {
@@ -1130,7 +1156,7 @@
 				               }
 				           });
 
-				           console.log("After filling:", Array.from(inputs).map(input => input.value));
+	
 
 				           // ✅ Ensure the total is updated correctly
 				           setTimeout(() => {
@@ -1560,7 +1586,7 @@
 				          stompClient = Stomp.over(socket);
 
 				          stompClient.connect({}, function () {
-				              console.log("✅ Connected to WebSocket");
+				    
 
 				              // ✅ Admin notifications
 				              stompClient.subscribe('/topic/adminNotifications', function (notification) {
@@ -1577,13 +1603,13 @@
 				                  });
 				              }
 				          }, function (error) {
-				              console.error("❌ WebSocket error:", error);
+				              
 				              retryConnection();
 				          });
 				      }
 
 				      function retryConnection() {
-				          console.log("🔄 Retrying WebSocket Connection in 3s...");
+				   
 				          setTimeout(connectWebSocket, 3000);
 				      }
 

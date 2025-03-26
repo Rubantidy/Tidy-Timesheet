@@ -1,7 +1,6 @@
 package timesheet.admin;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -45,6 +44,11 @@ public class EmpController {
         return "Admin/Admin_panel";
     }
     
+    
+    @GetMapping("/Employee_Dashboard")
+	public String Employee() {
+		return "Employee/Employee"; 
+	}
 
 
     @PostMapping("/addEmployee")
@@ -250,7 +254,7 @@ public class EmpController {
 
     
     @PostMapping("/addDelegate")
-    public ResponseEntity<String> addExpense(@RequestBody Delegatedao Dele) {
+    public ResponseEntity<String> addDelegator(@RequestBody Delegatedao Dele) {
     	Delrepo.save(Dele);
     	return ResponseEntity.ok("Delegator Data Saved Successfully");
     }

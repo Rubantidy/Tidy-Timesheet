@@ -47,13 +47,13 @@ navLinks.forEach(link => {
 	        .then(data => {
 	            renderTable(data);
 	        })
-	        .catch(error => console.error("Error fetching Charge codes:", error));
+	        
 	}
 
 	function renderTable(data) {
 	    const employeeTableBody = document.getElementById("employee-code-table-body");
 	    if (!employeeTableBody) {
-	        console.error("Table body for Employee not found!");
+	     
 	        return;
 	    }
 	    
@@ -86,7 +86,7 @@ navLinks.forEach(link => {
 	        fetch("/getChargecodes")
 	            .then(response => response.json())
 	            .then(data => renderTable(data))
-	            .catch(error => console.error("Error fetching Charge codes:", error));
+	            
 	    });
 	});
 
@@ -111,15 +111,15 @@ document.addEventListener("DOMContentLoaded", function () {
 	    fetch(`/getTimesheet?username=${username}&period=${selectedPeriod}`)
 	        .then(response => response.json())
 	        .then(data => {
-	            console.log("Fetched Data:", data);
+	         
 	            // Call populateTable() only once.
 	            populateTable(data);
 	        })
-	        .catch(error => console.error("Error fetching timesheet:", error));
+	    
 	}
 	
 	function populateTable(fetchedData) {
-	    console.log("📌 Populating Table with Data:", fetchedData);
+	    
 
 	    fetchedData.forEach(entry => {
 	        let { chargeCode, cellIndex, hours } = entry;
@@ -192,7 +192,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	            // ✅ Ensure `data-prev` is set correctly during population
 	            input.setAttribute("data-prev", hours || "");
 
-	            console.log(`✅ Populated ${cellIndex} → Value: ${hours}, Data-prev: ${input.getAttribute("data-prev")}`);
+	           
 	        }
 	    });
 
@@ -243,8 +243,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	            columnIndex++;
 	        }
 
-	        console.log("📌 Excluding Sunday Columns:", sundayColumns);
-
+	     
 	        document.querySelectorAll("#tableBody tr td input").forEach(input => {
 	            input.style.backgroundColor = "";
 	            input.removeAttribute("title"); // Clear previous tooltip
@@ -259,7 +258,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	            chargeCode = chargeCode.replace(/✖.*/, "").trim();
 	            if (!chargeCode) return;
 
-	            console.log("✅ Valid Charge Code Found:", chargeCode);
+
 
 	            let isStaticRow = chargeCode.toLowerCase().includes("work location") || chargeCode.toLowerCase().includes("company code");
 	            let rowHasValue = false;
@@ -295,7 +294,8 @@ document.addEventListener("DOMContentLoaded", function () {
 	                } 
 	                // ✅ Handle cleared cells: If the cell had a value before but is now empty, mark for deletion
 	                else if (previousValue !== "" && currentValue === "") {
-	                    console.log(`🛑 Cell CLEARED at ${cellIndex} (Previous: "${previousValue}", Now: "EMPTY")`);
+
+
 
 	                    timesheetEntries.push({
 	                        username: sessionStorage.getItem("userName"),
@@ -336,7 +336,8 @@ document.addEventListener("DOMContentLoaded", function () {
 	        }
 
 	        try {
-	            console.log("✅ JSON Payload Before Sending:", timesheetEntries); // Debugging Log
+
+
 
 	            fetch("/saveTimesheet", {
 	                method: "POST",
@@ -348,9 +349,9 @@ document.addEventListener("DOMContentLoaded", function () {
 	                showAlert(result, "success");
 	                fetchTimesheetData();
 	            })
-	            .catch(error => console.error("❌ Error saving timesheet:", error));
+	         
 	        } catch (e) {
-	            console.error("❌ JSON Formatting Error:", e);
+	            showAlert("❌ JSON Formatting Error:", "danger");
 	        }
 	    };
 	}
@@ -369,7 +370,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 /*icons funtions*/
-
 document.addEventListener("DOMContentLoaded", function () {
     let selectedRow = null; // Store the selected row
 
@@ -437,10 +437,9 @@ document.addEventListener("DOMContentLoaded", function () {
 		               showAlert("❌ Failed to delete row from database.", "danger");
 		           }
 		       })
-		       .catch(error => {
-		           console.error("❌ Error deleting row:", error);
-		           showAlert("❌ Error deleting row. Check console.", "danger");
-		       });
+
+
+			   
 		   }
 
     // 🔥 Function to Protect Certain Rows (Work Location & Company Code)
@@ -451,35 +450,196 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-/*expense js*/
+
 document.addEventListener("DOMContentLoaded", function () {
+    const addExpenseBtn = document.getElementById("addExpenseBtn");
+    const cancelExpenseBtn = document.getElementById("cancelExpenseBtn");
+    const expenseForm = document.getElementById("expenseForm");
+    const expensePeriod = document.getElementById("expensePeriod");  
+    const periodDropdown = document.getElementById("periodDropdown");
+	const calender = document.getElementById('calendarPicker');
+	const preview = document.getElementById('prevPeriod');
+	const nextpre = document.getElementById('nextPeriod');
+
+    function getSelectedPeriod() {
+        return periodDropdown.options[periodDropdown.selectedIndex].text;
+    }
+
+    // Update period field when periodDropdown changes
+    periodDropdown.addEventListener("change", function () {
+        expensePeriod.value = getSelectedPeriod();
+    });
+	calender.addEventListener("change", function () {
+	        expensePeriod.value = getSelectedPeriod();
+	    });
+		preview.addEventListener("click", function () {
+		        expensePeriod.value = getSelectedPeriod();
+		    });
+			nextpre.addEventListener("click", function () {
+			        expensePeriod.value = getSelectedPeriod();
+			    });
+
+    if (addExpenseBtn && cancelExpenseBtn && expenseForm && expensePeriod) {
+        addExpenseBtn.addEventListener("click", function () {
+            expenseForm.style.display = "block";
+            expensePeriod.value = getSelectedPeriod(); // Auto-fill period
+        });
+
+        cancelExpenseBtn.addEventListener("click", function () {
+            expenseForm.style.display = "none";
+        });
+    }
+
+    // Fetch Expense Types
+    function fetchExpenseTypes() {
+        fetch("/getExpensecode") // API call
+            .then(response => response.json())
+            .then(data => {
+                const expenseTypeDropdown = document.getElementById("expenseType");
+                expenseTypeDropdown.innerHTML = `<option value="">Select Type</option>`; // Default option
+
+                data.forEach(expense => {
+                    let exCode = expense["Ex-code"] || expense["Ex_code"] || expense["exCode"];
+                    let exType = expense["Ex-type"] || expense["Ex_type"] || expense["exType"];
+
+                    if (exCode && exType) {
+                        let option = document.createElement("option");
+                        option.value = exCode; // Store Ex_code as value
+                        option.textContent = `${exCode} - ${exType}`;
+                        expenseTypeDropdown.appendChild(option);
+                    } else {
+                        console.warn("Invalid Expense Type Data:", expense); 
+                    }
+                });
+            })
+            .catch(error => console.error("Error fetching expense types:", error));
+    }
+
+    fetchExpenseTypes(); // Load on page load
 	
-      const addExpenseBtn = document.getElementById("addExpenseBtn");
-      const cancelExpenseBtn = document.getElementById("cancelExpenseBtn");
-      const expenseForm = document.getElementById("expenseForm");
-      const expensePeriod = document.getElementById("expensePeriod");	  
-      const periodDropdown = document.getElementById("periodDropdown");
-	  
-	  function getSelectedPeriod() {
-	  		       return periodDropdown.options[periodDropdown.selectedIndex].text;
-	  		   }
+	document.getElementById("saveExpenseBtn").addEventListener("click", function () {
+	    const username = sessionStorage.getItem("userName"); 
+	    const period = document.getElementById("expensePeriod").value;
+	    
+	
+	    const expenseText = document.getElementById("expenseType").options[document.getElementById("expenseType").selectedIndex].text; // Example: "TDE01 - Network Expense"
 
-	  const selectedPeriod = getSelectedPeriod();
-			
+	    const expenseType = expenseText; // Send full type
 
-      if (addExpenseBtn && cancelExpenseBtn && expenseForm && expensePeriod && selectedPeriod) {
-          addExpenseBtn.addEventListener("click", function () {
-              expenseForm.style.display = "block";
-              expensePeriod.value = selectedPeriod.value; // Auto-fill period
-          });
+	    const amount = document.getElementById("expenseAmount").value;
+	    const invoice = document.getElementById("expenseInvoice").value;
+	    const gst = document.getElementById("expenseGST").value;
+	    const receipt = document.getElementById("expenseReceipt").files[0];
+	    const description = document.getElementById("expenseDescription").value;
 
-          cancelExpenseBtn.addEventListener("click", function () {
-              expenseForm.style.display = "none";
-          });
-      } else {
-          console.error("One or more elements not found. Check IDs.");
-      }
-  });
+	    if (!username || !period || !expenseType || !amount || !invoice) {
+	        alert("Please fill all required fields!");
+	        return;
+	    }
+
+	    console.log("Selected Expense Type:", expenseType); // Debugging log
+
+	    let formData = new FormData();
+	    formData.append("username", username);
+	    formData.append("period", period);
+	    formData.append("expenseType", expenseType); // Send full type
+	    formData.append("amount", amount);
+	    formData.append("invoice", invoice);
+	    formData.append("gst", gst);
+	    if (receipt) {
+	        formData.append("receipt", receipt);
+	    }
+	    formData.append("description", description);
+
+	    fetch("/saveEmpExpense", {
+	        method: "POST",
+	        body: formData,
+	    })
+	        .then(response => response.json())
+	        .then(data => {
+	            alert("Expense Saved Successfully!");
+	            console.log("Saved Expense:", data);
+				fetchExpenses();
+	            document.getElementById("expenseFormElement").reset();
+	            document.getElementById("expenseForm").style.display = "none";
+				
+	        })
+	        .catch(error => console.error("Error saving expense:", error));
+	});
+	
+	function fetchExpenses() {
+	    
+	    function getSelectedPeriod() {
+	        return periodDropdown.options[periodDropdown.selectedIndex].text;
+	    }
+
+	    let username = sessionStorage.getItem("userName");  // Get username
+	    let period = getSelectedPeriod();  // Get selected period
+
+	    if (!username || !period) {
+	        alert("Please select a period!");
+	        return;
+	    }
+
+	    fetch(`/getEmpExpenses?username=${encodeURIComponent(username)}&period=${encodeURIComponent(period)}`)
+	        .then(response => response.json())
+	        .then(data => {
+	            console.log("Fetched Expenses:", data); // Debugging
+
+	            let tableBody = document.querySelector("#expenseTable tbody");
+	            tableBody.innerHTML = ""; // Clear previous data
+
+	            let totalExpense = 0; // Initialize total expense
+
+	            if (data.length === 0) {
+	                tableBody.innerHTML = `<tr><td colspan="7">No expenses found for this period</td></tr>`;
+	                return;
+	            }
+
+	            data.forEach(expense => {
+	                let row = document.createElement("tr");
+
+	                row.innerHTML = `
+	                    <td>${expense.period}</td>
+	                    <td>${expense.expenseType}</td>
+	                    <td>${expense.invoice}</td>
+	                    <td>${expense.gst}</td>
+	                    <td>${expense.description}</td>
+						<td>${expense.amount}</td>
+						<td style="text-align: center;">
+						                       ${expense.receipt ? "✅" : "❌"}
+						                   </td>
+	                `;
+
+	                tableBody.appendChild(row);
+
+	                // Add expense amount to total
+	                totalExpense += parseFloat(expense.amount) || 0;
+	            });
+
+	            // Append Total Expense Row
+	            let totalRow = document.createElement("tr");
+	            totalRow.innerHTML = `
+	                <td colspan="5"><strong>Total Expense:</strong></td>
+	                <td><strong>${totalExpense.toFixed(2)}</strong></td>
+	                <td colspan="4"></td> 
+	            `;
+	            tableBody.appendChild(totalRow);
+
+	        })
+	        .catch(error => console.error("Error fetching expenses:", error));
+	}
+
+		periodDropdown.addEventListener("change", fetchExpenses)
+	    calender.addEventListener("change", fetchExpenses);
+		preview.addEventListener("click", fetchExpenses);
+		nextpre.addEventListener("click", fetchExpenses);
+		
+	fetchExpenses();
+
+
+});
+
 
 
 function generateSummary() {
@@ -536,9 +696,9 @@ function generateSummary() {
 				    `Paid Leave: ${Math.max(0, paidLeaveDays.toFixed(1))}`;
 
         })
-        .catch(error => {
-            console.error("Error fetching summary data:", error);
-        });
+
+
+		
 }
 
 
@@ -556,7 +716,7 @@ function calculateStandardAllocatedHours(selectedPeriod) {
     let endDate = parseDate(endDateStr);
 
     if (isNaN(startDate) || isNaN(endDate)) {
-        console.error("Invalid date format:", selectedPeriod);
+    
         return 0; // Return 0 if dates are invalid
     }
 
@@ -569,7 +729,8 @@ function calculateStandardAllocatedHours(selectedPeriod) {
         startDate.setDate(startDate.getDate() + 1); // Move to next day
     }
 
-    console.log(`Total Working Days (excluding Sundays): ${totalWorkingDays}`);
+
+
 
     return totalWorkingDays * 9; // 1 working day = 9 hours
 }
@@ -590,9 +751,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     } 
 	
-	else {
-        console.error("Element with ID 'timePeriod' not found.");
-    }
+	
 
 	if(preview || nextpre) {
 		addEventListener("click", function(){
@@ -602,7 +761,8 @@ document.addEventListener("DOMContentLoaded", function () {
 		});
 	}
 	else{
-		console.log("Element with ID not found.")
+
+
 	}
     // Call generateSummary once page loads (if needed)
     generateSummary();
@@ -615,7 +775,8 @@ function fetchEmployeeData() {
     fetch("/getEmployees")
         .then(response => response.json())
         .then(data => {
-            console.log("Fetched Employees:", data); // Debugging log
+
+
 
             // Populate Approvers with only Admins
             const adminEmployees = data.filter(employee => employee.e_Role === "Admin" && employee.status === "active");
@@ -626,7 +787,8 @@ function fetchEmployeeData() {
             populateEmployeeDropdown("reviewersDropdown", "reviewersList", activeEmployees);
             populateEmployeeDropdown("delegatorDropdown", "delegatorsList", activeEmployees);
         })
-        .catch(error => console.error("Error fetching employees:", error));
+
+
 }
 
 /* Populate Employee Dropdown */
@@ -635,7 +797,7 @@ function populateEmployeeDropdown(dropdownButtonId, dropdownListId, employees) {
     dropdownList.innerHTML = ""; // Clear existing items
 
     if (!dropdownList) {
-        console.error("Dropdown list not found:", dropdownListId);
+
         return;
     }
 
@@ -660,7 +822,8 @@ function fetchEmployeeData() {
     fetch("/getEmployees")
         .then(response => response.json())
         .then(data => {
-            console.log("Fetched Employees:", data); // Debugging log
+
+
 
             // Filter Admin employees who are also active
             const activeAdmins = data.filter(employee => employee.e_Role === "Admin" && employee.status === "active");
@@ -671,7 +834,7 @@ function fetchEmployeeData() {
             populateEmployeeDropdown("reviewersDropdown", "reviewersList", activeEmployees);
             populateEmployeeDropdown("delegatorDropdown", "delegatorsList", activeEmployees);
         })
-        .catch(error => console.error("Error fetching employees:", error));
+ 
 }
 
 /* Populate Employee Dropdown */
@@ -680,7 +843,7 @@ function populateEmployeeDropdown(dropdownButtonId, dropdownListId, employees) {
     dropdownList.innerHTML = ""; // Clear existing items
 
     if (!dropdownList) {
-        console.error("Dropdown list not found:", dropdownListId);
+
         return;
     }
 
@@ -736,7 +899,7 @@ function selectEmployee(name, email, dropdownButtonId) {
 function removeLastEntry(textAreaId) {
     const textArea = document.getElementById(textAreaId);
     if (!textArea) {
-        console.error("Text area not found:", textAreaId);
+
         return;
     }
 
@@ -868,9 +1031,10 @@ function savePreferences() {
             .then(data => {
                 showAlert("Preferences Saved!", "success");
             })
-            .catch(error => console.error("Error saving preferences:", error));
+
         } else {
-            console.log("Saving canceled.");
+
+
         }
     });
 }
@@ -880,7 +1044,7 @@ function fetchPreferences() {
     const periodDropdown = document.getElementById("periodDropdown");
 
     if (!periodDropdown) {
-        console.error("Period dropdown not found!");
+
         return;
     }
 
@@ -892,7 +1056,7 @@ function fetchPreferences() {
     const loggedInUser = sessionStorage.getItem("userName"); // ✅ Get logged-in username
 
     if (!selectedPeriod || !loggedInUser) {
-        console.warn("Period or username missing!"); 
+
         resetPreferences(); // Clear fields if no period is selected
         return;
     }
@@ -902,7 +1066,7 @@ function fetchPreferences() {
     fetch(`/getPreferences?period=${selectedPeriod}&employeename=${encodeURIComponent(loggedInUser)}`)
         .then(response => {
             if (!response.ok) {
-                console.warn("No saved preferences found.");
+
                 resetPreferences();
                 return null;
             }
@@ -911,7 +1075,8 @@ function fetchPreferences() {
         .then(data => {
             if (!data) return;
             
-            console.log("Fetched Preferences:", data);
+
+
 
             function formatEmails(emails) {
                 return (emails || "").split(",").map(email => email.trim()).join("\n");
@@ -921,7 +1086,7 @@ function fetchPreferences() {
             document.getElementById("selectedReviewers").value = formatEmails(data.reviewers);
             document.getElementById("selectedDelegators").value = formatEmails(data.delegator);
         })
-        .catch(error => console.error("Error fetching preferences:", error));
+
 }
 
 
@@ -941,9 +1106,7 @@ document.addEventListener("DOMContentLoaded", function () {
 		calender.addEventListener("change", fetchPreferences);
 		preview.addEventListener("click", fetchPreferences);
 		nextpre.addEventListener("click", fetchPreferences);
-    } else {
-        console.error("Element with ID 'periodDropdown' not found!");
-    }
+    } 
 });
 
 
@@ -963,7 +1126,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const selectedPeriod = getSelectedPeriod();
 
         if (!selectedPeriod) {
-            console.warn("No period selected, skipping button update.");
+
             return;
         }
 
@@ -971,10 +1134,11 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(response => response.json())
             .then(data => {
                 const approvalStatus = data.status || "No Data"; // Default if no data is found
-                console.log("Fetched Status from DB:", approvalStatus); // ✅ Debugging Output
+
+
 
                 if (!sendApprovalBtn || !submitBtn) {
-                    console.warn("Buttons not found!");
+    
                     return;
                 }
 
@@ -1011,10 +1175,10 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
 
                 if (prevText !== sendApprovalBtn.textContent) {
-                    console.log("Button text updated to: " + sendApprovalBtn.textContent);
+                   
                 }
             })
-            .catch(error => console.error("Error fetching approval status:", error));
+
     }
 
     // ✅ Function to Send for Approval OR Submit
@@ -1042,7 +1206,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 sessionStorage.setItem(`approvalStatus_${username}_${selectedPeriod}`, status); // Store state
             }
         })
-        .catch(error => console.error("Error sending for approval:", error));
+
     }
 
     // ✅ "Send for Approval" Button Click

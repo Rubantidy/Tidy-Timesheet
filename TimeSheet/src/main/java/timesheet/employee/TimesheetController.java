@@ -1,5 +1,9 @@
 package timesheet.employee;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,14 +23,17 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.google.gson.Gson;
 
 import timesheet.admin.dao.Assignment;
 import timesheet.admin.repo.AssignmentRepository;
+import timesheet.employee.dao.EmpExpensedao;
 import timesheet.employee.dao.Preference;
 import timesheet.employee.dao.SummaryEntry;
 import timesheet.employee.dao.TimesheetEntry;
+import timesheet.employee.repo.EmpExpenseRepository;
 import timesheet.employee.repo.LeaveRepository;
 import timesheet.employee.repo.PreferenceRepository;
 import timesheet.employee.repo.SummaryRepository;
@@ -56,19 +63,25 @@ public class TimesheetController {
     @Autowired
     private LeaveRepository leaverepo;
     
+    private EmpExpenseRepository expenseRepository;
+    
     
     private final NotificationService notificationService;
     private final SimpMessagingTemplate messagingTemplate;
+    
+    private static final String UPLOAD_DIR = "uploads/receipts/";
 
  // ✅ Correct Constructor Injection
 
     public TimesheetController(
             TimesheetService timesheetService,
             NotificationService notificationService,
-            SimpMessagingTemplate messagingTemplate) {
+            SimpMessagingTemplate messagingTemplate,
+            EmpExpenseRepository expenseRepository) {
         this.timesheetService = timesheetService;
         this.notificationService = notificationService;
         this.messagingTemplate = messagingTemplate;
+        this.expenseRepository = expenseRepository;
     }
     
 
@@ -457,6 +470,59 @@ public class TimesheetController {
 
     
     
+    
+    // Save Expense API
+    @PostMapping("/saveEmpExpense")
+    public EmpExpensedao saveExpense(
+            @RequestParam("username") String username,
+            @RequestParam("period") String period,
+            @RequestParam("expenseType") String expenseType, // Full type stored here
+            @RequestParam("amount") double amount,
+            @RequestParam("invoice") String invoice,
+            @RequestParam("gst") String gst,
+            @RequestParam(value = "receipt", required = false) MultipartFile receipt,
+            @RequestParam("description") String description) {
+
+    	EmpExpensedao expense = new EmpExpensedao();
+        expense.setUsername(username);
+        expense.setPeriod(period);
+        expense.setExpenseType(expenseType); // Store full type here
+        expense.setAmount(amount);
+        expense.setInvoiceNumber(invoice);
+        expense.setGstNumber(gst);
+        expense.setDescription(description);
+
+        // Handle File Upload with Directory Check
+        if (receipt != null && !receipt.isEmpty()) {
+            try {
+                String fileName = System.currentTimeMillis() + "_" + receipt.getOriginalFilename();
+                Path uploadPath = Paths.get(UPLOAD_DIR);
+                
+                // Ensure directory exists
+                if (!Files.exists(uploadPath)) {
+                    Files.createDirectories(uploadPath);
+                }
+
+                Path filePath = uploadPath.resolve(fileName);
+                Files.write(filePath, receipt.getBytes());
+                expense.setReceiptPath(filePath.toString());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return expenseRepository.save(expense);
+    }
+
+    // Fetch Expenses for a Specific Employee and Period
+    @GetMapping("/getEmpExpenses")
+    public List<EmpExpensedao> getExpenses(
+            @RequestParam("username") String username,
+            @RequestParam("period") String period) {
+        return expenseRepository.findByUsernameAndPeriod(username, period);
+    }
+
+
 }
 
 

@@ -187,6 +187,47 @@
 }*/
 
 
+#expenseTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px auto;
+    font-family: 'Arial', sans-serif;
+    font-size: 14px;
+    text-align: left;
+}
+
+/* Table header styling (matching charge code table) */
+#expenseTable thead {
+    background-color: #004080; /* Blue header */
+    color: white;
+    text-transform: uppercase;
+}
+
+#expenseTable th, #expenseTable td {
+    padding: 12px;
+    border: 1px solid #ddd;
+}
+
+/* Alternating row colors for better readability */
+#expenseTable tbody tr:nth-child(odd) {
+    background-color: #f9f9f9;
+}
+
+#expenseTable tbody tr:nth-child(even) {
+    background-color: #ffffff;
+}
+
+/* Hover effect */
+#expenseTable tbody tr:hover {
+    background-color: #f1f1f1;
+    transition: 0.3s;
+}
+
+/* Footer row styling */
+#expenseTable tfoot {
+    background-color: #e9ecef; 
+    font-weight: bold;
+}
    
    
   /*timesheet table */
