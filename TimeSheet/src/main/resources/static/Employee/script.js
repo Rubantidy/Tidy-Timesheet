@@ -512,18 +512,16 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 });
             })
-            .catch(error => console.error("Error fetching expense types:", error));
+
+
     }
 
     fetchExpenseTypes(); // Load on page load
 	
 	document.getElementById("saveExpenseBtn").addEventListener("click", function () {
-	    const username = sessionStorage.getItem("userName"); 
+	    const username = sessionStorage.getItem("userName");
 	    const period = document.getElementById("expensePeriod").value;
-	    
-	
-	    const expenseText = document.getElementById("expenseType").options[document.getElementById("expenseType").selectedIndex].text; // Example: "TDE01 - Network Expense"
-
+	    const expenseText = document.getElementById("expenseType").options[document.getElementById("expenseType").selectedIndex].text;
 	    const expenseType = expenseText; // Send full type
 
 	    const amount = document.getElementById("expenseAmount").value;
@@ -537,36 +535,44 @@ document.addEventListener("DOMContentLoaded", function () {
 	        return;
 	    }
 
-	    console.log("Selected Expense Type:", expenseType); // Debugging log
+	    // Set the period dynamically in the modal text
+	    document.getElementById("confirmExpenseText").innerText = `Are you sure you want to save this expense for the period: ${period}?`;
 
-	    let formData = new FormData();
-	    formData.append("username", username);
-	    formData.append("period", period);
-	    formData.append("expenseType", expenseType); // Send full type
-	    formData.append("amount", amount);
-	    formData.append("invoice", invoice);
-	    formData.append("gst", gst);
-	    if (receipt) {
-	        formData.append("receipt", receipt);
-	    }
-	    formData.append("description", description);
+	    // Show Bootstrap modal
+	    let confirmModal = new bootstrap.Modal(document.getElementById("confirmExpenseModal"));
+	    confirmModal.show();
 
-	    fetch("/saveEmpExpense", {
-	        method: "POST",
-	        body: formData,
-	    })
+	    // On confirm button click, proceed with saving
+	    document.getElementById("confirmSaveExpense").onclick = function () {
+	        let formData = new FormData();
+	        formData.append("username", username);
+	        formData.append("period", period);
+	        formData.append("expenseType", expenseType);
+	        formData.append("amount", amount);
+	        formData.append("invoice", invoice);
+	        formData.append("gst", gst);
+	        if (receipt) {
+	            formData.append("receipt", receipt);
+	        }
+	        formData.append("description", description);
+
+	        fetch("/saveEmpExpense", {
+	            method: "POST",
+	            body: formData,
+	        })
 	        .then(response => response.json())
 	        .then(data => {
-	            alert("Expense Saved Successfully!");
-	            console.log("Saved Expense:", data);
-				fetchExpenses();
+	            showAlert("Expense Saved Successfully!", "success");
+	            fetchExpenses();
 	            document.getElementById("expenseFormElement").reset();
 	            document.getElementById("expenseForm").style.display = "none";
-				
 	        })
-	        .catch(error => console.error("Error saving expense:", error));
+
+	        
+	        confirmModal.hide(); // Hide modal after saving
+	    };
 	});
-	
+
 	function fetchExpenses() {
 	    
 	    function getSelectedPeriod() {
@@ -584,7 +590,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	    fetch(`/getEmpExpenses?username=${encodeURIComponent(username)}&period=${encodeURIComponent(period)}`)
 	        .then(response => response.json())
 	        .then(data => {
-	            console.log("Fetched Expenses:", data); // Debugging
+	       
 
 	            let tableBody = document.querySelector("#expenseTable tbody");
 	            tableBody.innerHTML = ""; // Clear previous data
@@ -627,7 +633,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	            tableBody.appendChild(totalRow);
 
 	        })
-	        .catch(error => console.error("Error fetching expenses:", error));
+	       
 	}
 
 		periodDropdown.addEventListener("change", fetchExpenses)
