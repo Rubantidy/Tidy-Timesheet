@@ -202,14 +202,15 @@ public class TimesheetController {
             }
         }
 
-        // ✅ Update Leave Records in DB Correctly
-        if (leaverepo.updateLeave(username, currentYear, currentMonth, "Casual Leave", casualLeaveThisMonth) == 0) {
+     // ✅ Update Leave Records in DB Correctly
+        if (leaverepo.updateLeave(username, currentYear, currentMonth, "Casual Leave", casualLeaveThisMonth, period) == 0) {
             leaverepo.insertLeave(username, currentYear, currentMonth, "Casual Leave", casualLeaveThisMonth, period);
         }
 
-        if (leaverepo.updateLeave(username, currentYear, currentMonth, "Sick Leave", sickLeaveThisYear) == 0) {
+        if (leaverepo.updateLeave(username, currentYear, currentMonth, "Sick Leave", sickLeaveThisYear, period) == 0) {
             leaverepo.insertLeave(username, currentYear, currentMonth, "Sick Leave", sickLeaveThisYear, period);
         }
+
 
         List<Map<String, String>> processedEntries = new ArrayList<>();
         for (Map.Entry<String, Float> entry : chargeCodeTotals.entrySet()) {

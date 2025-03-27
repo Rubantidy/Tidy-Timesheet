@@ -20,8 +20,10 @@ public interface LeaveRepository extends JpaRepository<LeaveEntry, Long> {
 
     @Modifying
     @Transactional
-    @Query("UPDATE LeaveEntry l SET l.leaveDays = :leaveDays WHERE l.username = :username AND l.year = :year AND l.month = :month AND l.leaveType = :leaveType")
-    int updateLeave(@Param("username") String username, @Param("year") int year, @Param("month") int month, @Param("leaveType") String leaveType, @Param("leaveDays") float leaveDays);
+    @Query("UPDATE LeaveEntry l SET l.leaveDays = :leaveDays WHERE l.username = :username AND l.year = :year AND l.month = :month AND l.leaveType = :leaveType AND l.period = :period")
+    int updateLeave(@Param("username") String username, @Param("year") int year, @Param("month") int month, 
+                    @Param("leaveType") String leaveType, @Param("leaveDays") float leaveDays, @Param("period") String period);
+
 
     @Modifying
     @Transactional

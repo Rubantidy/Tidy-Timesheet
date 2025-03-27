@@ -66,7 +66,7 @@ navLinks.forEach(link => {
 	        
 	        employeeTableBody.innerHTML += `
 	            <tr ${rowColor}>
-	                <td>${code.id}</td>
+	               
 	                <td>${code.codeType}</td>
 	                <td>${code.code}</td>
 	                <td>${code.clientName}</td>
@@ -642,6 +642,51 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
+document.addEventListener("DOMContentLoaded", function () {
+    let timePeriodElement = document.getElementById("periodDropdown");
+    let calendar = document.getElementById("calendarPicker");
+    let preview = document.getElementById("prevPeriod");
+    let nextPeriod = document.getElementById("nextPeriod");
+    let navLinks = document.querySelectorAll(".nav-link");
+
+    function generateSummaryIfVisible() {
+        if (document.getElementById("summarySection").style.display !== "none") {
+            generateSummary();
+        }
+    }
+
+    if (timePeriodElement) {
+        timePeriodElement.addEventListener("change", generateSummaryIfVisible);
+    }
+
+    if (calendar) {
+        calendar.addEventListener("change", generateSummaryIfVisible);
+    }
+
+    if (preview) {
+        preview.addEventListener("click", generateSummaryIfVisible);
+    }
+
+    if (nextPeriod) {
+        nextPeriod.addEventListener("click", generateSummaryIfVisible);
+    }
+
+    // 🔥 Detect section change and update summary when switching to Summary
+    navLinks.forEach(link => {
+        link.addEventListener("click", function (event) {
+            let targetSection = this.getAttribute("data-target");
+            if (targetSection === "summarySection") {
+                setTimeout(generateSummary, 100); // Small delay to ensure section is visible
+            }
+        });
+    });
+
+    // Call generateSummary once page loads (if needed)
+    generateSummary();
+});
+
+
+
 function generateSummary() {
     const username = sessionStorage.getItem("userName");
 
@@ -693,12 +738,9 @@ function generateSummary() {
             document.getElementById("sickLeave").textContent = 
                 `Sick Leave Taken: ${sickLeaveDays.toFixed(1)} (Max: 6 per year)`;
 				document.getElementById("paidLeave").textContent = 
-				    `Paid Leave: ${Math.max(0, paidLeaveDays.toFixed(1))}`;
+				    `Loss of Pay: ${Math.max(0, paidLeaveDays.toFixed(1))}`;
 
-        })
-
-
-		
+        })		
 }
 
 
@@ -737,36 +779,8 @@ function calculateStandardAllocatedHours(selectedPeriod) {
 
 
 
-document.addEventListener("DOMContentLoaded", function () {
-    let timePeriodElement = document.getElementById("periodDropdown");
-	let calender = document.getElementById('calendarPicker');
-		let preview = document.getElementById('prevPeriod');
-		let nextpre = document.getElementById('nextPeriod');
-    
-    if (timePeriodElement || calender ) {
-        addEventListener("change", function () {
-            if (document.getElementById("summarySection").style.display !== "none") {
-                generateSummary();
-            }
-        });
-    } 
-	
-	
-
-	if(preview || nextpre) {
-		addEventListener("click", function(){
-			if(document.getElementById("summarySection").style.display !== "none") {
-				generateSummary();
-			}
-		});
-	}
-	else{
 
 
-	}
-    // Call generateSummary once page loads (if needed)
-    generateSummary();
-});
 
 
 
