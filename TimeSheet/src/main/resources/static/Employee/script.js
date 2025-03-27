@@ -641,7 +641,6 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-
 document.addEventListener("DOMContentLoaded", function () {
     let timePeriodElement = document.getElementById("periodDropdown");
     let calendar = document.getElementById("calendarPicker");
@@ -685,8 +684,6 @@ document.addEventListener("DOMContentLoaded", function () {
     generateSummary();
 });
 
-
-
 function generateSummary() {
     const username = sessionStorage.getItem("userName");
 
@@ -697,50 +694,51 @@ function generateSummary() {
     const selectedPeriod = getSelectedPeriod();
     const selectedMonth = selectedPeriod.split(" ")[0]; // Extract month (assuming format: "March - First Half")
 
-    fetch(`/getSummary?username=${username}&period=${selectedPeriod}`)
-        .then(response => response.json())
-        .then(data => {
-            let summaryBody = document.getElementById("summaryBody");
-            summaryBody.innerHTML = ""; // Clear previous data
+	fetch(`/getSummary?username=${username}&period=${selectedPeriod}`)
+	    .then(response => response.json())
+	    .then(data => {
+	        let summaryBody = document.getElementById("summaryBody");
+	        summaryBody.innerHTML = ""; // Clear previous data
 
-            let casualLeaveDays = data.casualLeaveDays;
-            let sickLeaveDays = data.sickLeaveDays;
-            let paidLeaveDays = data.paidLeaveDays;
+	        let casualLeaveDays = data.casualLeaveDays;
+	        let sickLeaveDays = data.sickLeaveDays;
+	        let paidLeaveDays = data.paidLeaveDays;
+	        
 
-            if (data.entries.length === 0) {
-                summaryBody.innerHTML = `<tr><td colspan="3">No data available</td></tr>`;
-            } else {
-                data.entries.forEach(entry => {
-                    let row = `<tr>
-                        <td>${entry.chargeCode}</td>
-                        <td>${entry.hours}</td>
-                        <td>0</td>
-                    </tr>`;
-                    summaryBody.innerHTML += row;
-                });
-            }
+	        if (data.entries.length === 0) {
+	            summaryBody.innerHTML = `<tr><td colspan="3">No data available</td></tr>`;
+	        } else {
+	            data.entries.forEach(entry => {
+	                let row = `<tr>
+	                    <td>${entry.chargeCode}</td>
+	                    <td>${entry.hours}</td>
+	                 
+	                </tr>`;
+	                summaryBody.innerHTML += row;
+	            });
+	        }
 
-            let standardHours = calculateStandardAllocatedHours(selectedPeriod);
-            let totalWorkingHours = data.totalHours - data.totalAbsences;
+	        let standardHours = calculateStandardAllocatedHours(selectedPeriod);
+	        let totalWorkingHours = data.totalHours - data.totalAbsences;
 
-            // Update total values
-            document.getElementById("totalHours").textContent = data.totalHours;
-            document.getElementById("totalAbsences").textContent = data.totalAbsences;
-            document.getElementById("locationTotalHours").textContent = totalWorkingHours;
-            document.getElementById("totalworking").textContent = totalWorkingHours;
-            document.getElementById("standardHours").textContent = standardHours;
+	        // Update total values
+	        document.getElementById("totalHours").textContent = data.totalHours;
+	        document.getElementById("totalAbsences").textContent = data.totalAbsences;
+	        document.getElementById("locationTotalHours").textContent = totalWorkingHours;
+	        document.getElementById("totalworking").textContent = totalWorkingHours;
+	        document.getElementById("standardHours").textContent = standardHours;
+	        document.getElementById("totalExpense").textContent = data.totalExpense; // Update total expense
 
-            // Update leave details
-            document.getElementById("contributionPercent").textContent = 
-                `Contribution on this Period : ${((totalWorkingHours / standardHours) * 100).toFixed(2)}%`;
-            document.getElementById("casualLeave").textContent = 
-                `Casual Leave Taken: ${casualLeaveDays.toFixed(1)} (Max: 1 per month)`;
-            document.getElementById("sickLeave").textContent = 
-                `Sick Leave Taken: ${sickLeaveDays.toFixed(1)} (Max: 6 per year)`;
-				document.getElementById("paidLeave").textContent = 
-				    `Loss of Pay: ${Math.max(0, paidLeaveDays.toFixed(1))}`;
-
-        })		
+	        // Update leave details
+	        document.getElementById("contributionPercent").textContent = 
+	            `Contribution on this Period : ${((totalWorkingHours / standardHours) * 100).toFixed(2)}%`;
+	        document.getElementById("casualLeave").textContent = 
+	            `Casual Leave Taken: ${casualLeaveDays.toFixed(1)} (Max: 1 per month)`;
+	        document.getElementById("sickLeave").textContent = 
+	            `Sick Leave Taken: ${sickLeaveDays.toFixed(1)} (Max: 6 per year)`;
+	        document.getElementById("paidLeave").textContent = 
+	            `Loss of Pay: ${Math.max(0, paidLeaveDays.toFixed(1))}`;
+	    });
 }
 
 

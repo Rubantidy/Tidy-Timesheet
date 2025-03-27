@@ -1,6 +1,7 @@
 package timesheet.employee;
 
 import java.io.IOException;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,7 +35,7 @@ import timesheet.employee.dao.Preference;
 import timesheet.employee.dao.SummaryEntry;
 import timesheet.employee.dao.TimesheetEntry;
 import timesheet.employee.repo.EmpExpenseRepository;
-import timesheet.employee.repo.LeaveRepository;
+
 import timesheet.employee.repo.PreferenceRepository;
 import timesheet.employee.repo.SummaryRepository;
 import timesheet.employee.repo.TimesheetRepository;
@@ -60,8 +61,7 @@ public class TimesheetController {
     private AssignmentRepository assignrepo;
 
   
-    @Autowired
-    private LeaveRepository leaverepo;
+
     
     private EmpExpenseRepository expenseRepository;
     
@@ -130,7 +130,6 @@ public class TimesheetController {
     }
 
 
-
     @GetMapping("/getSummary")
     public ResponseEntity<Map<String, Object>> getSummary(
             @RequestParam String username, @RequestParam String period) {
@@ -139,6 +138,7 @@ public class TimesheetController {
 
         float totalHours = 0;
         float totalAbsences = 0;
+        float totalExpense = 0; // New total expense variable
 
         // Store charge code totals in a Map to merge duplicates
         Map<String, Float> chargeCodeTotals = new HashMap<>();
@@ -146,18 +146,6 @@ public class TimesheetController {
         float casualLeaveThisMonth = 0;
         float sickLeaveThisYear = 0;
         float paidLeave = 0;
-
-        // ✅ Extract month and year correctly from "01/03/2025 - 15/03/2025"
-        String firstDate = period.split(" - ")[0];  // "01/03/2025"
-        String[] dateParts = firstDate.split("/");  // { "01", "03", "2025" }
-        int currentMonth = Integer.parseInt(dateParts[1]);  // 03
-        int currentYear = Integer.parseInt(dateParts[2]);   // 2025
-
-     // ✅ Fetch total casual leave used in this month
-        float totalCasualLeaveInMonth = leaverepo.getTotalCasualLeave(username, currentYear, currentMonth);
-
-        // ✅ Fetch total sick leave used in this year
-        float totalSickLeaveInYear = leaverepo.getTotalSickLeave(username, currentYear);
 
         for (TimesheetEntry entry : entries) {
             String code = entry.getChargeCode();
@@ -171,46 +159,25 @@ public class TimesheetController {
             chargeCodeTotals.put(code, chargeCodeTotals.getOrDefault(code, 0f) + hours);
             totalHours += hours;
 
-            // ✅ Casual Leave Handling (Ensure tracking across periods)
+            // Update leave counts based on charge codes
             if (code.endsWith("Casual Leave")) { 
-                if (totalCasualLeaveInMonth + leaveDays <= 1) { 
-                    casualLeaveThisMonth += leaveDays;
-                    totalCasualLeaveInMonth += leaveDays;
-                } else { 
-                    float excess = (totalCasualLeaveInMonth + leaveDays) - 1;
-                    casualLeaveThisMonth += leaveDays - excess;
-                    paidLeave += excess;
-                    totalCasualLeaveInMonth = 1; // Cap at 1 per month
-                }
+                casualLeaveThisMonth += leaveDays;
+            } else if (code.endsWith("Sick Leave")) { 
+                sickLeaveThisYear += leaveDays;
+            } else if (code.endsWith("Loss of Pay")) { 
+                paidLeave += leaveDays;
             }
 
-            // ✅ Sick Leave Handling (Ensure tracking across periods)
-            else if (code.endsWith("Sick Leave")) { 
-                if (totalSickLeaveInYear + leaveDays <= 6) { 
-                    sickLeaveThisYear += leaveDays;
-                    totalSickLeaveInYear += leaveDays;
-                } else { 
-                    float excess = (totalSickLeaveInYear + leaveDays) - 6;
-                    sickLeaveThisYear += leaveDays - excess;
-                    paidLeave += excess;
-                    totalSickLeaveInYear = 6; // Cap at 6 per year
-                }
-            }
-
-            if (code.endsWith("Leave")) {
+            if (code.endsWith("Leave") || code.endsWith("Loss of Pay")) {
                 totalAbsences += hours;
             }
         }
 
-     // ✅ Update Leave Records in DB Correctly
-        if (leaverepo.updateLeave(username, currentYear, currentMonth, "Casual Leave", casualLeaveThisMonth, period) == 0) {
-            leaverepo.insertLeave(username, currentYear, currentMonth, "Casual Leave", casualLeaveThisMonth, period);
+        // Fetch total expense from database for the given user and period
+        List<EmpExpensedao> expenses = expenseRepository.findByUsernameAndPeriod(username, period);
+        for (EmpExpensedao expense : expenses) {
+            totalExpense += expense.getAmount();
         }
-
-        if (leaverepo.updateLeave(username, currentYear, currentMonth, "Sick Leave", sickLeaveThisYear, period) == 0) {
-            leaverepo.insertLeave(username, currentYear, currentMonth, "Sick Leave", sickLeaveThisYear, period);
-        }
-
 
         List<Map<String, String>> processedEntries = new ArrayList<>();
         for (Map.Entry<String, Float> entry : chargeCodeTotals.entrySet()) {
@@ -226,10 +193,12 @@ public class TimesheetController {
         summaryData.put("casualLeaveDays", casualLeaveThisMonth);
         summaryData.put("sickLeaveDays", sickLeaveThisYear);
         summaryData.put("paidLeaveDays", paidLeave);
+        summaryData.put("totalExpense", totalExpense); // Send total expense to frontend
         summaryData.put("entries", processedEntries);
 
         return ResponseEntity.ok(summaryData);
     }
+
 
 
     

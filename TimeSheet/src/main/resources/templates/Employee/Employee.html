@@ -214,7 +214,7 @@
             
             <!-- Amount -->
             <div class="mb-3">
-                <label class="form-label">Amount</label>
+                <label class="form-label">Amount(INR)</label>
                 <input type="number" id="expenseAmount" class="form-control" placeholder="Enter Amount" required>
             </div>
 			
@@ -546,7 +546,7 @@
 	                <p><strong>Are you sure you want to Submit this Timesheet on this period  <span id="selectedPeriodText2"></span>?</strong> </p>
 	                <p class="text-danger"><strong>Note:</strong></p>
 	                <p class="text-danger">
-	                    Please make sure your save the timesheet before sending and all entered details are correct. If incorrect, it may affect your salary, and we are not responsible for that!
+	                     Please ensure you save the timesheet before sending it and verify that all entered details, including leaves, are correct. Incorrect entries may lead to timesheet rejection and could affect your salary, for which we are not responsible.
 	                </p>
 	            </div>
 	            <div class="modal-footer">
@@ -568,6 +568,7 @@
 
 <script>
 	
+
 	
 	document.addEventListener("DOMContentLoaded", function () {
 	    const navLinks = document.querySelectorAll(".nav-link");
@@ -606,6 +607,14 @@
 	    toast.show();
 	}
 
+	
+	function showLoader() {
+	    document.getElementById("loader").style.display = "flex";
+	}
+
+	function hideLoader() {
+	    document.getElementById("loader").style.display = "none";
+	}
 	
 	
 	document.addEventListener("DOMContentLoaded", function () {
