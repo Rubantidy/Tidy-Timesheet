@@ -53,20 +53,28 @@ navLinks.forEach(link => {
 	function renderTable(data) {
 	    const employeeTableBody = document.getElementById("employee-code-table-body");
 	    if (!employeeTableBody) {
-	     
 	        return;
 	    }
-	    
+
 	    const selectedFilter = document.getElementById("projectTypeFilter").value;
-	    const filteredData = selectedFilter === "All" ? data : data.filter(code => code.projectType === selectedFilter);
-	    
+	    let filteredData = selectedFilter === "All" ? data : data.filter(code => code.projectType === selectedFilter);
+
+	    // Force sorting: Move "Leave Code" to the end
+	    filteredData = filteredData.sort((a, b) => {
+	        let aType = a.codeType.toLowerCase(); // Convert to lowercase to avoid case issues
+	        let bType = b.codeType.toLowerCase();
+	        return aType === "leave code" ? 1 : bType === "leave code" ? -1 : 0;
+	    });
+
+	    // Clear existing table content
 	    employeeTableBody.innerHTML = "";
+
+	    // Render the sorted data
 	    filteredData.forEach(code => {
-	        let rowColor = code.status === "Complete" ? "style='background-color: #d9e2f3; font-weight: bold;'" : ""; // Light red for Complete
+	        let rowColor = code.status === "Complete" ? "style='background-color: #d9e2f3; font-weight: bold;'" : ""; 
 	        
 	        employeeTableBody.innerHTML += `
 	            <tr ${rowColor}>
-	               
 	                <td>${code.codeType}</td>
 	                <td>${code.code}</td>
 	                <td>${code.clientName}</td>
@@ -78,6 +86,8 @@ navLinks.forEach(link => {
 	        `;
 	    });
 	}
+
+
 
 	document.addEventListener("DOMContentLoaded", function() {
 	    fetchCodeDatas();

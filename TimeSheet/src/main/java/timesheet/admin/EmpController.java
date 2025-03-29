@@ -75,7 +75,7 @@ public class EmpController {
         MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
 
-        helper.setFrom("timextidyds@gmail.com", "Tidy Digital Solutions");
+        helper.setFrom("timex@tidyds.com", "Tidy Digital Solutions");
         helper.setTo(EmpData.geteMail());
         helper.setSubject("Welcome to the Tidy Digital Solutions");
         
@@ -94,7 +94,7 @@ public class EmpController {
                  + "<br>"
                  + "<p>We look forward to working with you and wish you great success in your role.</p>"
                  + "<br>"
-                 + "<img src='cid:logoImage' width='200'/>"
+                 + "<img src='cid:logoImage' width='200' alt='Company logo' />"
                  + "<p>Best Regards,<br><b>Tidy Digital Solutions Team</b></p>"
                  + "</body></html>";
 
@@ -151,7 +151,7 @@ public class EmpController {
 //        MimeMessage message = mailSender.createMimeMessage();
 //        MimeMessageHelper helper = new MimeMessageHelper(message, true);
 //
-//        helper.setFrom("timextidyds@gmail.com", "Tidy Digital Solutions");
+//        helper.setFrom("timex@tidyds.com", "Tidy Digital Solutions");
 //        helper.setTo(employee.geteMail());
 //        helper.setSubject("🎉 Salary Appraisal Notification!");
 //
@@ -164,7 +164,7 @@ public class EmpController {
 //                + "<br>"
 //                + "<p>If you have any questions regarding this update, feel free to reach out to the Admin Department.</p>"
 //                + "<br>"
-//                + "<img src='cid:logoImage' width='200'/>"
+//                  + "<img src='cid:logoImage' width='200' alt='Company logo' />"
 //                + "<p>Best Regards,<br><b>Tidy Digital Solutions Team</b></p>"
 //                + "</body></html>";
 //
@@ -181,7 +181,7 @@ public class EmpController {
 //        MimeMessage message = mailSender.createMimeMessage();
 //        MimeMessageHelper helper = new MimeMessageHelper(message, true);
 //
-//        helper.setFrom("timextidyds@gmail.com", "Tidy Digital Solutions");
+//        helper.setFrom("timex@tidyds.com", "Tidy Digital Solutions");
 //        helper.setTo(employee.geteMail());
 //        helper.setSubject("🚀 Promotion & Salary Increase Notification!");
 //
@@ -195,7 +195,7 @@ public class EmpController {
 //                + "<br>"
 //                + "<p>If you have any questions or require further details, please feel free to reach out to the Admin Department.</p>"
 //                + "<br>"
-//                + "<img src='cid:logoImage' width='200'/>"
+//                 + "<img src='cid:logoImage' width='200' alt='Company logo' />"
 //                + "<p>Best Regards,<br><b>Tidy Digital Solutions Team</b></p>"
 //                + "</body></html>";
 //

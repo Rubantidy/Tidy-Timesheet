@@ -46,7 +46,7 @@ public class AssigmentEmailService {
                 + "</table>"
                 + "<p>Kindly ensure you are familiar with the scope and requirements associated with this charge code. Should you have any questions or require clarification, do not hesitate to reach out to the management team.</p>"
                 + "<p>For your reference, please see the company logo below:</p>"
-                + "<img src='cid:logoImage' width='200'/>"
+                + "<img src='cid:logoImage' width='200' alt='Company logo' />"
                 + "<p>Best regards,<br>"
                 + "<strong>Tidy Digital Solutions</strong><br>"
                 + "<i>Your trusted partner in digital transformation</i></p>"
@@ -58,7 +58,7 @@ public class AssigmentEmailService {
 
         helper.setText(emailContent, true); 
 
-        helper.setFrom("timextidyds@gmail.com", "Tidy Digital Solutions"); // Replace with your company’s no-reply email
+        helper.setFrom("timex@tidyds.com", "Tidy Digital Solutions"); // Replace with your company’s no-reply email
         helper.setTo(recipientEmail);
         helper.setSubject("Tidyds - Charge code Assignment");
 

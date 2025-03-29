@@ -39,7 +39,7 @@ public class EmailService {
             MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, true);
  
             // Email content
-            messageHelper.setFrom("timextidyds@gmail.com", "Tidy Digital Solutions"); // Your email address
+            messageHelper.setFrom("timex@tidyds.com", "Tidy Digital Solutions"); // Your email address
             messageHelper.setTo(email); // Recipient's email address
             messageHelper.setSubject("Your OTP for Password Change Request");
 
@@ -49,10 +49,10 @@ public class EmailService {
                     + "<h2>Dear " + employee.geteName() + ",</h2>"
                     + "<p>We have received a request to change the password for your account.</p>"
                     + "<p><b>Your One-Time Password (OTP): </b> " + otp + "</p>"
-                    + "<p>Please use this OTP within the next 15 minutes to complete the process. If you did not request this change, please ignore this email or contact us immediately.</p>"
+                    + "<p>Please use this OTP within the next 2 minutes to complete the process. If you did not request this change, please ignore this email or contact us immediately.</p>"
                     + "<br><br>"
                     + "<p>If you have any questions or need further assistance, feel free to reach out to our support team.</p>"
-                    + "<img src='cid:logoImage' width='200'/>"
+                    + "<img src='cid:logoImage' width='200' alt='Company logo' />"
                     + "<p>Best regards,<br>The Tidy Digital Solutions Team</p>"
                     + "</body></html>";
 
@@ -111,7 +111,7 @@ public class EmailService {
             MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, true);
  
             
-            messageHelper.setFrom("timextidyds@gmail.com", "Tidy Digital Solutions"); 
+            messageHelper.setFrom("timex@tidyds.com", "Tidy Digital Solutions"); 
             messageHelper.setTo(mail); 
             messageHelper.setSubject("Confirmation: Your Password Has Been Successfully Changed");
           
@@ -124,7 +124,7 @@ public class EmailService {
                     + "<p><b>Current Email:</b> " + employee.geteMail() + "</p>"
                     + "<p><b>Updated Password:</b> " + employee.getePassword()+ " (For security reasons, Don't share this Password to anyone.)</p>"
                     + "<br>"
-                    + "<img src='cid:logoImage' width='200'/>"
+                    + "<img src='cid:logoImage' width='200' alt='Company logo' />"
                     + "<p>Best regards,<br>The Tidy Digital Solutions Team</p>"
                     + "</body></html>";
 
