@@ -27,7 +27,7 @@ public class Codedao {
 
     public Codedao() {}
 
-    // Constructor for Charge Code
+    
     public Codedao(String codeType, String code, String clientName, String projectType, String startDate, String country, String description) {
         this.codeType = codeType;
         this.code = code;
@@ -40,11 +40,11 @@ public class Codedao {
    
     }
 
-    // Constructor for Leave Code
+    
     public Codedao(String codeType, String code, String description) {
         this.codeType = codeType;
-        this.code = code;       // Leave Code stored here
-        this.description = description; // Leave Name stored here
+        this.code = code;      
+        this.description = description; 
         this.clientName = "-";
         this.projectType = "-";
         this.startDate = "-";
@@ -53,10 +53,6 @@ public class Codedao {
         
        
     }
-    
-    
-
-
 
 	public String getStatus() {
 		return status;
