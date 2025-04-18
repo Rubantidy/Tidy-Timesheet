@@ -25,7 +25,9 @@
     
     <!-- Section 1: Header -->
     <div class="header-section d-flex justify-content-between align-items-center p-3 bg-light border-bottom">
-        <img src="img/logo.png" height="40"><h2>TimeX</h2>
+        <img src="img/logo.png" height="40">		<div class="d-flex align-items-center justify-content-center flex-grow-1">
+		    <h2 class="tidy-heading position-relative m-0 text-center">TimeX</h2>
+		</div>
 		<div class="iconsmenu">
 			<!-- <button>Review Another</button> -->
 			<i class="bi bi-bell" id="notificationBell" onclick="toggleNotifications()"></i>
@@ -1034,13 +1036,13 @@
 
 		 let chargeCodes = [];
 
-				  // Fetch charge codes from backend
+
 		     function fetchChargeCodes() {
 				  	fetch("/getChargecodes")
 				  		.then(response => response.json())
 				  		.then(data => {
 				  			  chargeCodes = data;
-				  			       populateDropdowns(); // Populate static + new rows
+				  			       populateDropdowns(); 
 				  			  })
 				  		.catch(error => console.error("Error fetching Charge codes:", error));
 				   }
@@ -1053,7 +1055,6 @@
 				       container.style.justifyContent = "space-between";
 				       container.style.width = "100%";
 
-				       // Dropdown button (Displays selected charge code)
 				       const button = document.createElement("div");
 				       button.classList.add("dropdown-button");
 				       button.textContent = "Select Charge Code";
@@ -1061,7 +1062,6 @@
 				       button.style.alignItems = "center";
 				       button.style.flexGrow = "1";
 
-				       // Remove (✖) button
 				       const clearButton = document.createElement("span");
 				       clearButton.textContent = "✖";
 				       clearButton.style.cursor = "pointer";
@@ -1072,7 +1072,6 @@
 				       clearButton.style.display = "none";
 				       clearButton.title = "Remove selected charge code";
 
-				       // Right Arrow Icon (➤) - Calls fillRowWithFirstValue()
 				       const arrowIcon = document.createElement("span");
 				       arrowIcon.textContent = "➤";
 				       arrowIcon.style.cursor = "pointer";
@@ -1082,53 +1081,52 @@
 				       arrowIcon.style.color = "#000";  
 				       arrowIcon.style.display = isDynamicRow ? "inline" : "none"; 
 				       arrowIcon.title = "Replication";
-				       
-				       // ✅ Ensure it calls the function on click
+
 				       arrowIcon.addEventListener("click", function(event) {
-				           event.stopPropagation(); // Prevent dropdown from closing
+				           event.stopPropagation();
 				           fillRowWithFirstValue(this);
 				       });
 
-				       // Dropdown panel
 				       const panel = document.createElement("div");
 				       panel.classList.add("dropdown-panel");
 
-				       // Search input inside dropdown
 				       const searchInput = document.createElement("input");
 				       searchInput.type = "text";
 				       searchInput.placeholder = "Search...";
 				       searchInput.classList.add("dropdown-search");
 				       panel.appendChild(searchInput);
 
-				       // Populate dropdown options from chargeCodes array
-				       chargeCodes.forEach(code => {
+
+				       const sortedCodes = [...chargeCodes].sort((a, b) => {
+				           const aIsTLS = a.code.trim().toUpperCase().startsWith("TLS");
+				           const bIsTLS = b.code.trim().toUpperCase().startsWith("TLS");
+				           return aIsTLS === bIsTLS ? 0 : aIsTLS ? 1 : -1;
+				       });
+
+				       sortedCodes.forEach(code => {
 				           const option = document.createElement("div");
 				           option.classList.add("dropdown-option");
 				           option.textContent = `${code.code} - ${code.description}`;
 				           option.dataset.value = code.code;
 
 				           option.addEventListener("click", function () {
-				               button.textContent = option.textContent;  
-				               button.appendChild(clearButton);  
+				               button.textContent = option.textContent;
+				               button.appendChild(clearButton);
 				               panel.style.display = "none";
-				               clearButton.style.display = "inline";  
-				               arrowIcon.style.display = "inline";  // Ensure arrow remains after selection
+				               clearButton.style.display = "inline";
+				               arrowIcon.style.display = "inline";
 				           });
 
 				           panel.appendChild(option);
-						   
 				       });
-					   
 
-				       // Handle remove functionality
 				       clearButton.addEventListener("click", function (event) {
-				           event.stopPropagation();  
-				           button.textContent = "Select Charge Code";  
-				           clearButton.style.display = "none";  
-				           arrowIcon.style.display = isDynamicRow ? "inline" : "none"; // Keep arrow for dynamic rows
+				           event.stopPropagation();
+				           button.textContent = "Select Charge Code";
+				           clearButton.style.display = "none";
+				           arrowIcon.style.display = isDynamicRow ? "inline" : "none";
 				       });
 
-				       // Handle search functionality  
 				       searchInput.addEventListener("input", function () {
 				           const filter = searchInput.value.toLowerCase();
 				           const options = panel.querySelectorAll(".dropdown-option");
@@ -1137,29 +1135,25 @@
 				           });
 				       });
 
-				       // Toggle dropdown visibility
 				       button.addEventListener("click", function () {
 				           panel.style.display = panel.style.display === "block" ? "none" : "block";
-						   addRow();
+				           addRow();
 				       });
 
-				       // Close dropdown when clicking outside
 				       document.addEventListener("click", function (event) {
 				           if (!container.contains(event.target)) {
 				               panel.style.display = "none";
 				           }
 				       });
-					   
-				
+
 				       container.appendChild(button);
 				       container.appendChild(clearButton);
 				       container.appendChild(arrowIcon); 
 				       container.appendChild(panel);
-				       
+
 				       return container;
-					   
-					  
 				   }
+
 
 				   function fillRowWithFirstValue(button) {
 				       const row = button.closest("tr"); 

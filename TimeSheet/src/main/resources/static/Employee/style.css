@@ -589,3 +589,28 @@
        height: 4rem;
    }
 
+   
+   .tidy-heading {
+       letter-spacing: 2px;
+       font-size: 25px !important;
+       padding-bottom: 10px;
+       text-shadow: 1px 1px 4px rgba(255, 255, 255, 0.2);
+       font-weight: 800;
+       position: relative;
+       margin: 0 auto; /* center horizontally */
+       display: inline-block; /* avoid stretching */
+   }
+
+   .tidy-heading::after {
+       content: "";
+       position: absolute;
+       left: 50%;
+       bottom: 0;
+       width: 60%;
+       height: 4px;
+       background: linear-gradient(90deg, rgb(255, 0, 128), rgb(0, 255, 255));
+       transform: translateX(-50%);
+       border-radius: 3px;
+       opacity: 0.8;
+   }
+

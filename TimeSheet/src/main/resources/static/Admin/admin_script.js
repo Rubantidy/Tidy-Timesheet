@@ -248,7 +248,7 @@ function showContent(section) {
 		   		           <table class="table table-striped">
 		   		               <thead>
 		   		                   <tr>
-		   						   	  <th>ID</th>
+		   						   	  
 		   						   	   <th>Code Type</th>
 		   		                       <th>Code</th>
 		   		                       <th>Client Name</th>
@@ -857,12 +857,14 @@ function fetchCodeDatas() {
                         <ul class="dropdown-menu" aria-labelledby="dropdownMenu${code.id}">
                             <li><a class="dropdown-item" href="#" onclick="completeChargeCode('${code.id}')">Complete</a></li>
                             <li><a class="dropdown-item" href="#" onclick="openAssignModal('${code.id}', '${code.code}', '${code.description}')">Assign to</a></li>
+							<li><a class="dropdown-item" href="#" onclick="editChargeCode('${code.id}')">Edit</a></li>
+							 <li><a class="dropdown-item" href="#" onclick="deleteChargeCode('${code.id}')">Delete</a></li>
                         </ul>
                     </div>` : '';
 
                 tableBody.innerHTML += `
                     <tr ${rowClass}>
-                        <td>${code.id}</td>
+                      
                         <td>${code.codeType}</td>
                         <td>${code.code}</td>
                         <td>${code.clientName}</td>
@@ -878,6 +880,88 @@ function fetchCodeDatas() {
         .catch(error => console.error("Error fetching Charge codes:", error));
 }
 
+
+
+function editChargeCode(codeId) {
+    fetch(`/getChargecodeById/${codeId}`)
+        .then(response => response.json())
+        .then(data => {
+			console.log("getting charge codes:", data);
+            const editFormHTML = `
+                <div class="card p-3 mb-3">
+                    <h4>Edit Charge Code</h4>
+                    <form onsubmit="submitUpdatedChargeCode(event, '${data.id}')">  
+                        ${selectField("Code Type", "codeType", ["Charge code"], data.codeType)}        
+                        ${selectField("Project Type", "projectType", ["External", "Internal"], data.projectType)}
+                        ${inputField("Client/Organization", "text", "clientName", "", data.clientName)}
+                        ${inputField("Onboard/Start date", "date", "startDate", "", data.startDate)}
+                        ${inputField("Country/Region", "text", "country", "", data.country)}
+                        ${textareaField("Description", "description", data.description)}
+                        ${inputField("Charge Code", "text", "code", "charge-code", data.code)}
+                        ${formButtons("Update")}
+                    </form>
+                </div>
+            `;
+            document.getElementById("form-container").innerHTML = editFormHTML;
+        })
+        .catch(error => console.error("Error fetching charge code for edit:", error));
+}
+
+function submitUpdatedChargeCode(event, id) {
+    event.preventDefault();
+    const updatedData = {
+        id: id,
+        codeType: document.getElementById("codeType").value,
+        projectType: document.getElementById("projectType").value,
+        clientName: document.getElementById("clientName").value,
+        startDate: document.getElementById("startDate").value,
+        country: document.getElementById("country").value,
+        description: document.getElementById("description").value,
+        code: document.getElementById("code").value,
+    };
+
+    fetch("/updateChargeCode", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData),
+    })
+    .then(response => response.text())
+    .then(message => {
+		hideForm();
+        showAlert(message,"success");
+        fetchCodeDatas(); 
+    })
+    .catch(error => console.error("Error updating charge code:", error));
+}
+
+
+let chargeCodeToDelete = null; 
+
+function deleteChargeCode(codeId) {
+    chargeCodeToDelete = codeId; 
+    const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    deleteModal.show();
+}
+
+
+document.getElementById("confirmDeleteBtn").addEventListener("click", function () {
+    if (chargeCodeToDelete) {
+        fetch(`/deleteChargeCode/${chargeCodeToDelete}`, {
+            method: "DELETE",
+        })
+        .then(response => response.text())
+        .then(message => {
+            showAlert(message, "success");
+            fetchCodeDatas(); // Refresh the table
+        })
+        .catch(error => console.error("Error deleting charge code:", error))
+        .finally(() => {
+            chargeCodeToDelete = null;
+            const modal = bootstrap.Modal.getInstance(document.getElementById('deleteModal'));
+            modal.hide();
+        });
+    }
+});
 
 
 let selectedChargeCodeId = null; // Store selected charge code ID
@@ -1258,44 +1342,43 @@ function generatePassword(inputId) {
 }
 
 /*Input field function*/
-function inputField(label, type, name, formType = "") {
-	
+function inputField(label, type, name, formType = "", value = "") {
     const isPasswordField = name === "E-pass" || name === "SA-pass";
-    
+    const isChargeCodeField = name === "code" && formType === "charge-code";
 
-	const isChargeCodeField = name === "code" && formType === "charge-code";
-    
     return `
         <div class="mb-3">
             <label class="form-label">${label}</label>
-            <input type="${type}" class="form-control" name="${name}" id="${name}" required>
+            <input type="${type}" class="form-control" name="${name}" id="${name}" value="${value || ""}" required>
             ${isPasswordField ? `<button class="btn btn-outline-primary" type="button" onclick="generatePassword('${name}')" style="margin-top: 10px;">Generate</button>` : ""}
             ${isChargeCodeField ? `<button class="btn btn-outline-primary" type="button" onclick="codeGenerate()" style="margin-top: 10px;">Generate Charge Code</button>` : ""}
         </div>
     `;
 }
 
+
 /*Select field function*/
-function selectField(label, name, options) {
+function selectField(label, name, options, selectedValue = "") {
     return `
         <div class="mb-3">
             <label class="form-label">${label}</label>
-            <select class="form-control" name="${name}">
-                ${options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+            <select class="form-control" name="${name}" id="${name}">
+                ${options.map(opt => `<option value="${opt}" ${opt === selectedValue ? "selected" : ""}>${opt}</option>`).join('')}
             </select>
         </div>
     `;
 }
 
-/*Text area field function*/
-function textareaField(label, name) {
+function textareaField(label, name, value = "") {
     return `
         <div class="mb-3">
             <label class="form-label">${label}</label>
-            <textarea class="form-control" name="${name}" required></textarea>
+            <textarea class="form-control" name="${name}" id="${name}" required>${value}</textarea>
         </div>
     `;
 }
+
+
 
 /*function for buttons*/
 function formButtons() {

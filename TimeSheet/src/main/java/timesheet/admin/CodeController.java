@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -131,6 +132,54 @@ public class CodeController {
 	    
 	   
 
+	    @GetMapping("/getChargecodeById/{id}")
+	    public ResponseEntity<?> getChargeCodeById(@PathVariable int id) {
+	    	System.out.println("get charge method called");
+	        Optional<Codedao> optionalCode = codeRepository.findById(id);
+	        System.out.println(optionalCode);
+	        if (optionalCode.isPresent()) {
+	            return ResponseEntity.ok(optionalCode.get());
+	        } else {
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Code not found");
+	        }
+	    }
+
+	    @PostMapping("/updateChargeCode")
+	    public String updateChargeCode(@RequestBody Map<String, String> requestData) {
+	    	System.out.println("update method called");
+	        int id = Integer.parseInt(requestData.get("id"));
+	        Optional<Codedao> optionalCode = codeRepository.findById(id);
+
+	        if (optionalCode.isPresent()) {
+	            Codedao code = optionalCode.get();
+	            code.setCodeType(requestData.get("codeType"));
+	            code.setCode(requestData.get("code"));
+	            code.setClientName(requestData.get("clientName"));
+	            code.setProjectType(requestData.get("projectType"));
+	            code.setStartDate(requestData.get("startDate"));
+	            code.setCountry(requestData.get("country"));
+	            code.setDescription(requestData.get("description"));
+
+	            codeRepository.save(code);
+	            return "Charge Code updated successfully!";
+	        } else {
+	            return "Charge Code not found!";
+	        }
+	    }
 	    
+	    
+	    @DeleteMapping("/deleteChargeCode/{id}")
+	    public String deleteChargeCode(@PathVariable("id") int id) {
+	        Optional<Codedao> optionalCode = codeRepository.findById(id);
+	        
+	        if (optionalCode.isPresent()) {
+	            codeRepository.deleteById(id);
+	            return "Charge Code deleted successfully!";
+	        } else {
+	            return "Charge Code not found!";
+	        }
+	    }
+
+
 	    
 }
