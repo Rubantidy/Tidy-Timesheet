@@ -110,33 +110,11 @@ public class CodeController {
 	    }
 
 	    
-	    @PostMapping("/addExpenseCode")
-	    public String addExpense(@RequestBody Expensedao Expense) {
-	    	Exrepo.save(Expense);
-	    	return "Expese Data Saved Successfully";
-	    }
-	    
-	    @GetMapping("/getExpensecode")
-	    public ResponseEntity<List<Expensedao>> getExpense() {
-	        List<Expensedao> ExCode = Exrepo.findAll();
-
-	        return ResponseEntity.ok(ExCode);
-	    }
-	    
-	    
-	    @GetMapping("/getNextCodeIncrement")
-	    public int getNextCodeIncrement() {
-	        return chargeCodeService.getNextCodeIncrement();
-	    }
-	   
-	    
-	   
-
 	    @GetMapping("/getChargecodeById/{id}")
 	    public ResponseEntity<?> getChargeCodeById(@PathVariable int id) {
-	    	System.out.println("get charge method called");
+	    	
 	        Optional<Codedao> optionalCode = codeRepository.findById(id);
-	        System.out.println(optionalCode);
+	        
 	        if (optionalCode.isPresent()) {
 	            return ResponseEntity.ok(optionalCode.get());
 	        } else {
@@ -146,7 +124,7 @@ public class CodeController {
 
 	    @PostMapping("/updateChargeCode")
 	    public String updateChargeCode(@RequestBody Map<String, String> requestData) {
-	    	System.out.println("update method called");
+	    	
 	        int id = Integer.parseInt(requestData.get("id"));
 	        Optional<Codedao> optionalCode = codeRepository.findById(id);
 
@@ -179,6 +157,77 @@ public class CodeController {
 	            return "Charge Code not found!";
 	        }
 	    }
+	    
+	    
+	    @PostMapping("/addExpenseCode")
+	    public String addExpense(@RequestBody Expensedao Expense) {
+	    	Exrepo.save(Expense);
+	    	return "Expese Data Saved Successfully";
+	    }
+	    
+	    @GetMapping("/getExpenseById/{id}")
+	    public ResponseEntity<?> getExpenseByid(@PathVariable int id) {
+	    
+	        Optional<Expensedao> optionalCode = Exrepo.findById(id);
+	       
+	        if (optionalCode.isPresent()) {
+	            return ResponseEntity.ok(optionalCode.get());
+	        } else {
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Code not found");
+	        }
+	    }
+	    
+	    @PostMapping("/updateExpense")
+	    public String updateExpense(@RequestBody Map<String, String> requestData) {
+
+	        int id = Integer.parseInt(requestData.get("id"));
+	        Optional<Expensedao> optionalCode = Exrepo.findById(id);
+
+	        if (optionalCode.isPresent()) {
+	        	Expensedao exp = optionalCode.get();
+	        	exp.setEx_code(requestData.get("Ex-code"));
+	        	exp.setEx_type(requestData.get("Ex-type"));	
+	        	
+	        	
+	        	Exrepo.save(exp);
+	            return "Expense Code updated successfully!";
+	        } else {
+	            return "Expense Code not found!";
+	        }
+	    }
+	    
+	    
+	    @DeleteMapping("/deleteExpense/{id}")
+	    public String deleteExpense(@PathVariable("id") int id) {
+
+	        Optional<Expensedao> optionalCode = Exrepo.findById(id);
+	        
+	        if (optionalCode.isPresent()) {
+	        	Exrepo.deleteById(id);
+	            return "Charge Code deleted successfully!";
+	        } else {
+	            return "Charge Code not found!";
+	        }
+	    }
+	    
+	    
+	    @GetMapping("/getExpensecode")
+	    public ResponseEntity<List<Expensedao>> getExpense() {
+	        List<Expensedao> ExCode = Exrepo.findAll();
+
+	        return ResponseEntity.ok(ExCode);
+	    }
+	    
+	    
+	    @GetMapping("/getNextCodeIncrement")
+	    public int getNextCodeIncrement() {
+	        return chargeCodeService.getNextCodeIncrement();
+	    }
+	   
+	    
+	   
+
+
 
 
 	    

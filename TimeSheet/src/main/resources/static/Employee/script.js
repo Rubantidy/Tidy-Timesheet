@@ -215,18 +215,18 @@ document.addEventListener("DOMContentLoaded", function () {
 	function saveTimesheetData() {
 	    const selectedPeriod = getSelectedPeriod();
 	    
-	    // 🔥 Show Confirmation Modal Before Saving
+	    
 	    document.getElementById("saveTimesheetMessage").innerText = 
 	        `⚠ Are you sure you want to save the timesheet for "${selectedPeriod}"?`;
 	    
 	    let saveModal = new bootstrap.Modal(document.getElementById("saveTimesheetModal"));
 	    saveModal.show();
 
-	    // ✅ Handle Save Confirmation - Only Save When "Save" is Clicked
+	    
 	    document.getElementById("confirmSaveTimesheet").onclick = function () {
 	        saveModal.hide();  // Close the modal before saving
 
-	        // 🔥 Proceed with Original Save Functionality
+	 
 	        const rows = document.querySelectorAll("#tableBody tr");
 	        let timesheetEntries = [];
 	        let columnFilled = {};
@@ -234,7 +234,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 	        function parseDate(dateStr) {
 	            let parts = dateStr.split("/");
-	            return new Date(parts[2], parts[1] - 1, parts[0]); // YYYY, MM (0-based), DD
+	            return new Date(parts[2], parts[1] - 1, parts[0]); 
 	        }
 
 	        let [startDateStr, endDateStr] = selectedPeriod.split(" - ");
@@ -256,7 +256,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	     
 	        document.querySelectorAll("#tableBody tr td input").forEach(input => {
 	            input.style.backgroundColor = "";
-	            input.removeAttribute("title"); // Clear previous tooltip
+	            input.removeAttribute("title"); 
 	        });
 
 	        rows.forEach((row, rowIndex) => {
@@ -280,7 +280,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 	                if (sundayColumns.includes(actualColIndex)) return;
 
-	                // ✅ Ensure "data-prev" is set during population
+	          
 	                if (!input.hasAttribute("data-prev")) {
 	                    input.setAttribute("data-prev", input.value.trim());
 	                }
@@ -300,9 +300,9 @@ document.addEventListener("DOMContentLoaded", function () {
 	                        hours: currentValue
 	                    });
 
-	                    input.setAttribute("data-prev", currentValue); // Update stored value
+	                    input.setAttribute("data-prev", currentValue); 
 	                } 
-	                // ✅ Handle cleared cells: If the cell had a value before but is now empty, mark for deletion
+	                
 	                else if (previousValue !== "" && currentValue === "") {
 
 
@@ -312,10 +312,10 @@ document.addEventListener("DOMContentLoaded", function () {
 	                        period: selectedPeriod,
 	                        chargeCode: chargeCode,
 	                        cellIndex: cellIndex,
-	                        hours: null // Indicating deletion
+	                        hours: null 
 	                    });
 
-	                    input.setAttribute("data-prev", ""); // Update stored value
+	                    input.setAttribute("data-prev", ""); 
 	                }
 	            });
 
@@ -334,7 +334,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	            emptyColumns.forEach(colIndex => {
 	                document.querySelectorAll(`#tableBody tr:not(.static-row) td:nth-child(${colIndex + 1}) input`).forEach(input => {
 	                    input.style.border = "1px solid red";
-	                    input.setAttribute("title", "⚠ Field is required!"); // Tooltip on hover
+	                    input.setAttribute("title", "⚠ Field is required!"); 
 	                });
 	            });
 	            return;

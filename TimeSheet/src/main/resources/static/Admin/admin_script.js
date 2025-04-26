@@ -267,7 +267,7 @@ function showContent(section) {
 		   		  <table class="table table-striped">
 		   		   		<thead>
 		   		   		   <tr>
-		   		   				<th>ID</th>
+		   		   				
 		   		   		         <th>Expense Code</th>
 		   		   		          <th>Expense Type</th>
 		   		   		          <th>Action</th>
@@ -540,7 +540,7 @@ function showContent(section) {
 							}
 
 							function fetchEmployeeSummary(username, period, status) {
-							    console.log(`Fetching summary for ${username} - ${period} [${status}]`);
+							    
 
 							    let url = `/getSummary?username=${encodeURIComponent(username)}&period=${encodeURIComponent(period)}&status=${encodeURIComponent(status)}`;
 							    
@@ -759,25 +759,36 @@ function fetchEmployeeData() {
             const tableBody = document.getElementById("employee-table-body");
             tableBody.innerHTML = "";
             data.forEach(employee => {
+				
+                const dropdownMenu = `
+                    <div class="dropdown">
+                        <button class="btn btn-success " type="button" data-bs-toggle="dropdown" aria-expanded="false">
+						&#8942;
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="editEmployee('${employee.id}')">Edit</a></li>
+                            <li>
+                                <a class="dropdown-item text-${employee.status === 'active' ? 'danger' : 'success'}" href="#" onclick="employeeAction('${employee.id}', '${employee.status}')">
+                                    ${employee.status === 'active' ? 'Deactivate' : 'Activate'}
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                `;
+
                 tableBody.innerHTML += `
                     <tr>
                         <td>${employee.id}</td>
-                        <td>${employee.createdDate}</td>
+                        <td>${employee.onborad}</td>
                         <td>${employee['E-name']}</td>
                         <td>${employee['E-mail']}</td>
-            
                         <td>${employee['E-desg']}</td>
-             
                         <td>${employee.status}</td>
-                        <td>
-                            <button class="btn btn-${employee.status === 'active' ? 'danger' : 'success'} btn-sm"
-                                    onclick="employeeAction('${employee.id}', '${employee.status}')">
-                                ${employee.status === 'active' ? 'Deactivate' : 'Activate'}
-                            </button>
-                        </td>
+                        <td>${dropdownMenu}</td>
                     </tr>
                 `;
             });
+
  
 			// Populate Assign Employee Dropdown
 			const employeeListContainer = document.getElementById("employeeList");
@@ -793,6 +804,64 @@ function fetchEmployeeData() {
         })
         .catch(error => console.error("Error fetching employees:", error));
 }
+
+function editEmployee(employeeid) {
+    fetch(`/getEmployeeById/${employeeid}`)
+        .then(response => response.json())
+        .then(data => {
+            
+
+            const editFormHTML = `
+                <div class="card p-3 mb-3">
+                    <h4>Edit Employee Details</h4>
+                    <form onsubmit="submitUpdatedEmployee(event, '${data.id}')">  
+                        ${inputField("Name", "text", "E-name", "", data["E-name"])}
+                        ${inputField("Email", "email", "E-mail", "", data["E-mail"])}
+                        ${inputField("Designation", "text", "E-desg", "", data["E-desg"])}
+						${inputField("Onboard date", "date", "onborad", "", data.onborad)}
+                        ${selectField("Role", "E-role", ["Admin", "Employee"], data["E-role"])}
+                        ${formButtons("Update")}
+                    </form>
+                </div>
+            `;
+            document.getElementById("form-container").innerHTML = editFormHTML;
+        })
+        .catch(error => console.error("Error fetching employee for edit:", error));
+}
+
+
+function submitUpdatedEmployee(event, id) {
+    event.preventDefault();
+    showLoader(); 
+
+    const updatedData = {
+        id: id,
+        "E-name": document.getElementById("E-name").value,
+        "E-mail": document.getElementById("E-mail").value,
+        "E-desg": document.getElementById("E-desg").value,
+        "E-role": document.getElementById("E-role").value,
+		"onborad": document.getElementById("onborad").value,
+    };
+
+    fetch("/updateEmployee", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData),
+    })
+    .then(response => response.text())
+    .then(message => {
+        hideLoader(); 
+        hideForm();
+        showAlert(message, "success");
+        fetchEmployeeData();
+    })
+    .catch(error => {
+        hideLoader(); 
+        console.error("Error updating employee:", error);
+    });
+}
+
+
 
 /* Function to handle employee status action */
 function employeeAction(employeeId, currentStatus) {
@@ -886,7 +955,7 @@ function editChargeCode(codeId) {
     fetch(`/getChargecodeById/${codeId}`)
         .then(response => response.json())
         .then(data => {
-			console.log("getting charge codes:", data);
+			
             const editFormHTML = `
                 <div class="card p-3 mb-3">
                     <h4>Edit Charge Code</h4>
@@ -1136,17 +1205,95 @@ function fetchExpense() {
             data.forEach(ExCode => {
                 tableBody.innerHTML += `
 				<tr>
-				    <td>${ExCode.id}</td>
+				    
 				    <td>${ExCode["Ex-code"]}</td>  <!-- Use correct JSON key -->
 				     <td>${ExCode["Ex-type"]}</td>  <!-- Use correct JSON key -->
 				      <td>
 				      <button class="btn btn-success btn-sm" onclick="editExpense('${ExCode.id}')">Edit</button>
+					  <button class="btn btn-danger btn-sm" onclick="DeleteExpense('${ExCode.id}')">Delete</button>
 				   </td>
 				                 
                 `;
             });
         })
         .catch(error => console.error("Error fetching Expense Details:", error));
+}
+
+function DeleteExpense(ExpId) {
+
+    expesetoDelete = ExpId; 
+    const deleteModal = new bootstrap.Modal(document.getElementById('ExpdeleteModal'));
+    deleteModal.show();
+}
+
+
+document.getElementById("confirmExpDeleteBtn").addEventListener("click", function () {
+    if (expesetoDelete) {
+        fetch(`/deleteExpense/${expesetoDelete}`, {
+            method: "DELETE",
+        })
+        .then(response => response.text())
+        .then(message => {
+            showAlert(message, "success");
+            fetchExpense();
+        })
+        .catch(error => console.error("Error deleting charge code:", error))
+        .finally(() => {
+            expesetoDelete = null;
+            const modal = bootstrap.Modal.getInstance(document.getElementById('ExpdeleteModal'));
+            modal.hide();
+        });
+    }
+});
+
+function editExpense(exId) {
+    fetch(`/getExpenseById/${exId}`)
+        .then(response => response.json())
+        .then(data => {
+
+
+            const editFormHTML = `               
+				<div class="card p-3 mb-3">
+					        <h4>Edit Expense Details</h4>
+					        <form onsubmit="submitUpdatedExpense(event, '${data.id}')">
+					            ${inputField("Expense Code", "text", "Ex-code", "", data["Ex-code"])}
+								${selectField("Expense Name", "Ex-type", 
+									["Select", "Travel","Accommodation", "Meals & Entertainment","Communication","Office Supplies","Subscription/Software","IT Equipment","Training & Certification","Miscellaneous "], data["Ex-type"])}
+					            ${formButtons()}
+					        </form>
+					   </div>
+            `;
+            document.getElementById("form-container").innerHTML = editFormHTML;
+        })
+        .catch(error => console.error("Error fetching employee for edit:", error));
+}
+
+function submitUpdatedExpense(event, id) {
+    event.preventDefault();
+    showLoader(); 
+
+    const updatedData = {
+        id: id,
+        "Ex-code": document.getElementById("Ex-code").value,
+        "Ex-type": document.getElementById("Ex-type").value,
+    };
+
+    fetch("/updateExpense", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData),
+    })
+    .then(response => response.text())
+    .then(message => {
+        hideLoader(); 
+        hideForm();
+        showAlert(message, "success");
+        fetchExpense();
+    })
+    .catch(error => {
+        hideLoader(); 
+        console.error("Error updating employee:", error);
+    });
 }
 
 /*Fetch delegator details*/
@@ -1183,6 +1330,7 @@ function createForm(type) {
                     ${inputField("Name", "text", "E-name")}
 					${inputField("Email", "email", "E-mail")}
 					${inputField("Password", "password", "E-pass")}
+					${inputField("Onboard date", "date", "onborad")}
 					${inputField("Designation", "text", "E-desg")}
                     ${selectField("Role", "E-role", ["Admin","Employee"])}
                     ${formButtons()}
@@ -1241,7 +1389,8 @@ function createForm(type) {
 		        <h4>Add Expense Code</h4>
 		        <form action="/addExpenseCode" method="POST">
 		            ${inputField("Expense Code", "text", "Ex-code")}
-					${selectField("Expense Name", "Ex-type", ["Select", "Network Expense", "Travel"])}
+					${selectField("Expense Name", "Ex-type", 
+						["Select", "Travel","Accommodation", "Meals & Entertainment","Communication","Office Supplies","Subscription/Software","IT Equipment","Training & Certification","Miscellaneous "])}
 		            ${formButtons()}
 		        </form>
 		   </div>

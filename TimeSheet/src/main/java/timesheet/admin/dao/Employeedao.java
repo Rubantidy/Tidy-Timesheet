@@ -2,8 +2,6 @@ package timesheet.admin.dao;
 
 
 
-import java.time.LocalDate;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.Entity;
@@ -17,32 +15,24 @@ import jakarta.persistence.Table;
 @Table(name = "employee_details")
 public class Employeedao {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private int id;
+		@Id
+		@GeneratedValue(strategy = GenerationType.IDENTITY)
+		private int id;
+		
+		@JsonProperty("onborad")
+		private String onboard; 
 	
-	private LocalDate createdDate; 
-
-    @PrePersist
-    protected void onCreate() {
-        createdDate = LocalDate.now(); 
-        
-        if (E_Role != null && E_Role.equalsIgnoreCase("Admin")) {
-            this.additionalRole = "Employee";
-        } else {
-            this.additionalRole = "-";
-        }
-        this.status = "active"; // Set status to "active"
-    }
-
-	public LocalDate getCreatedDate() {
-		return createdDate;
-	}
-
-	public void setCreatedDate(LocalDate createdDate) {
-		this.createdDate = createdDate;
-	}
-
+	    @PrePersist
+	    protected void onCreate() {
+	       
+	        
+	        if (E_Role != null && E_Role.equalsIgnoreCase("Admin")) {
+	            this.additionalRole = "Employee";
+	        } else {
+	            this.additionalRole = "-";
+	        }
+	        this.status = "active"; // Set status to "active"
+	    }
 
 	    @JsonProperty("E-name")
 	    private String eName;
@@ -57,16 +47,10 @@ public class Employeedao {
 	    private String E_Role;
 	    
 	  
-
-
 		@JsonProperty("E-desg")
 	    private String designation;
 		
-//		@JsonProperty("E-salary")
-//		private long Salary;
-	    
-	    
-	    private String additionalRole;  // New field
+	    private String additionalRole;  
 	    private String status; 
 	    
 	    public String getDesignation() {
@@ -136,20 +120,22 @@ public class Employeedao {
 		E_Role = e_Role;
 	}
 
+	public String getOnboard() {
+		return onboard;
+	}
+
+	public void setOnboard(String onboard) {
+		this.onboard = onboard;
+	}
+
 	@Override
 	public String toString() {
-		return "Employeedao [id=" + id + ", createdDate=" + createdDate + ", eName=" + eName + ", eMail=" + eMail
+		return "Employeedao [id=" + id + ", onboard=" + onboard + ", eName=" + eName + ", eMail=" + eMail
 				+ ", ePassword=" + ePassword + ", E_Role=" + E_Role + ", designation=" + designation
 				+ ", additionalRole=" + additionalRole + ", status=" + status + "]";
 	}
 
-//	public long getSalary() {
-//		return Salary;
-//	}
-//
-//	public void setSalary(long salary) {
-//		Salary = salary;
-//	}
+
 
 	
 	

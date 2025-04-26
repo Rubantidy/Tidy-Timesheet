@@ -19,9 +19,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import timesheet.admin.dao.Codedao;
 import timesheet.admin.dao.Delegatedao;
 import timesheet.admin.dao.Employeedao;
 import timesheet.admin.repo.DelegateRepo;
@@ -54,7 +56,6 @@ public class EmpController {
     @PostMapping("/addEmployee")
     public ResponseEntity<String> addEmployee(@RequestBody Employeedao EmpData) throws IOException {
         
-        EmpData.setCreatedDate(LocalDate.now());
         EmpRepo.save(EmpData);
 
 
@@ -107,6 +108,94 @@ public class EmpController {
         // Send the email
         mailSender.send(message);
     }
+    
+    @GetMapping("/getEmployeeById/{id}")
+    public ResponseEntity<?> getEmployeeByid(@PathVariable int id) {
+        Optional<Employeedao> optionalCode = EmpRepo.findById(id);
+        System.out.println(optionalCode);
+        if (optionalCode.isPresent()) {
+            return ResponseEntity.ok(optionalCode.get());
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Code not found");
+        }
+    }
+    
+    
+    @PostMapping("/updateEmployee")
+    @ResponseBody
+    public String updateEmployee(@RequestBody Map<String, String> requestData) throws IOException {
+        int id = Integer.parseInt(requestData.get("id"));
+        Optional<Employeedao> optionalEmp = EmpRepo.findById(id);
+
+        if (optionalEmp.isPresent()) {
+            Employeedao emp = optionalEmp.get();
+            
+            // Update with new values from request
+            emp.seteName(requestData.get("E-name"));
+            emp.seteMail(requestData.get("E-mail"));
+            emp.setDesignation(requestData.get("E-desg"));
+            emp.setOnboard(requestData.get("onborad"));
+            emp.setE_Role(requestData.get("E-role"));
+            if(requestData.get("E-role").equalsIgnoreCase("Admin")) {
+            	emp.setAdditionalRole("Employee");
+            }
+            else if(requestData.get("E-role").equalsIgnoreCase("Employee")) {
+            	emp.setAdditionalRole("-");
+            }
+
+            EmpRepo.save(emp);
+            try {
+            	updateemployeeemail(emp);
+            } catch (MessagingException e) {  
+                e.printStackTrace();
+                return "Failed to send email.";
+            }
+            return "Employee updated successfully!";
+        } else {
+            return "Employee not found!";
+        }
+    }
+
+    
+    private void updateemployeeemail(Employeedao EmpData) throws MessagingException, IOException {
+
+
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+
+        helper.setFrom("timex@tidyds.com", "Tidy Digital Solutions");
+        helper.setTo(EmpData.geteMail());
+        helper.setSubject("Updated Profile Details");
+        
+        String emailContent = "<html><body>"
+        	     + "<h2>Hello " + EmpData.geteName() + ",</h2>"
+        	     + "<p>Your employee profile on <strong>Tidy Timesheet</strong> has been successfully updated with the following details:</p>"
+        	     + "<p><strong>Email:</strong> " + EmpData.geteMail() + "</p>"
+        	     + "<p><strong>Password:</strong>  " + EmpData.getePassword() + " (unchanged) — Your existing password remains the same.</p>"
+        	     + "<p><strong>Designation:</strong> " + EmpData.getDesignation() + "</p>"
+        	     + "<p><strong>Role:</strong> " + EmpData.getE_Role() + "</p>"
+        	     + "<br>"
+        	     + "<p>You can access the Tidy Timesheet portal using the link below:</p>"
+        	     + "<p><a href=\"https://timex.tidyds.com\">https://timex.tidyds.com</a></p>"
+        	     + "<h3>Need Help?</h3>"
+        	     + "<p>If you notice any incorrect details or experience issues accessing your account, please contact our support team immediately.</p>"
+        	     + "<br>"
+        	     + "<img src='cid:logoImage' width='200' alt='Company logo' />"
+        	     + "<p>Best Regards,<br><b>Tidy Digital Solutions Team</b></p>"
+        	     + "</body></html>";
+
+
+
+        helper.setText(emailContent, true); 
+
+        ClassPathResource image = new ClassPathResource("static/img/logo.png");
+        helper.addInline("logoImage", image);
+         
+        // Send the email
+        mailSender.send(message);
+    }
+    
     
 //    @PostMapping("/updateEmployee")
 //    public ResponseEntity<String> updateEmployee(@RequestBody Map<String, String> requestData) throws UnsupportedEncodingException {
