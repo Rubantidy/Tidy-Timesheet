@@ -125,7 +125,7 @@ function showContent(section) {
 
 		    <div class="card text-center bg-danger text-white" style="cursor: pointer;" onclick="showSection('issue')">
 		        <div class="card-body">
-		            <h5 class="card-title">Issue</h5>
+		            <h5 class="card-title">Rejected</h5>
 		            <h3 id="issueCount">0</h3>
 		        </div>
 		    </div>
@@ -277,6 +277,21 @@ function showContent(section) {
 		   		  </table>
 		   		   
 		    `,
+			"holiday": `<button class="btn btn-info mb-3" id="addHolidayBtn">Add Holiday</button><div id="form-container"></div>
+					     <div id="form-container"></div>
+					         
+					           <table class="table table-striped">
+					               <thead>
+					                   <tr>
+										   <th>Date</th>
+										   <th>Name</th>
+										   <th>Year</th>
+					                       <th>Action</th>	
+					                   </tr>
+					               </thead>
+					               <tbody id="holiday-table-body"></tbody>
+					           </table>
+					   `,
 			"payroll": `
 				<h1> Payroll </h1>
 			 `
@@ -296,6 +311,9 @@ function showContent(section) {
 	else if(section === "expense-code") {
 
 		fetchExpense();
+	}
+	else if(section === "holiday") {
+		fetchHoliday();
 	}
 	else if(section === "delegates") {
 		fetchDelegator();
@@ -505,16 +523,16 @@ function showContent(section) {
 							        row.innerHTML = `
 							            <td>${entry.username}</td>
 							            <td><b>${entry.period}</b></td>    
-							            <td id="hours-${entry.username}-${entry.period}">Loading...</td>
-							            <td id="absences-${entry.username}-${entry.period}">Loading...</td>
-										<td id="paid-${entry.username}-${entry.period}">Loading...</td>
-							            <td id="charge-${entry.username}-${entry.period}">Loading...</td>
+							            <td id="hours-${entry.username}-${entry.period}">Fetching...</td>
+							            <td id="absences-${entry.username}-${entry.period}">Fetching...</td>
+										<td id="paid-${entry.username}-${entry.period}">Fetching...</td>
+							            <td id="charge-${entry.username}-${entry.period}">Fetching...</td>
 							            ${status === "Pending" ? `
-							                <td>
-							                    <div class="actionbutton-container">
-							                        <button class="btn btn-success btn-sm" onclick="handleApproval('${entry.username}', '${entry.period}')">Approve</button>
-							                        <button class="btn btn-danger btn-sm" onclick="handleIssue('${entry.username}', '${entry.period}')">Issue</button>
-							                    </div>
+							                <td style="display: flex; gap: 10px;">
+					
+							                        <button class="btn btn-success btn-sm" onclick="handleApproval('${entry.username}', '${entry.period}')"><i class="bi bi-check2-square"></i></button>
+							                        <button class="btn btn-danger btn-sm" onclick="handleIssue('${entry.username}', '${entry.period}')"><i class="bi bi-file-x"></i></button>
+							     
 							                </td>
 							            ` : ""}
 							        `;
@@ -553,7 +571,7 @@ function showContent(section) {
 							            }
 
 							            document.getElementById(`hours-${username}-${period}`).textContent = summary.totalHours - summary.totalAbsences || "0";
-							            document.getElementById(`absences-${username}-${period}`).textContent = summary.totalAbsences || "0";
+							            document.getElementById(`absences-${username}-${period}`).textContent = summary.totalAbsences || "0";					
 										document.getElementById(`paid-${username}-${period}`).textContent = summary.paidLeaveDays || "0";
 
 							            // ✅ Format Charge Codes inside a single cell using a flex container
@@ -677,6 +695,7 @@ function attachFormListeners() {
     document.getElementById("addDelegateBtn")?.addEventListener("click", () => showForm("delegates"));
     document.getElementById("addChargeCodeBtn")?.addEventListener("click", showDropdown);
 	document.getElementById("addExpenseCodeBtn")?.addEventListener("click", () => showForm("Expense-code"));
+	document.getElementById("addHolidayBtn")?.addEventListener("click", () => showForm("Holiday"));
 	
 }
 
@@ -734,6 +753,7 @@ function handleFormSubmit(event) {
 		fetchCodeDatas();
 		fetchDelegator();
 		fetchExpense();
+		fetchHoliday();
 		
     })
     .catch(error => {
@@ -1209,8 +1229,8 @@ function fetchExpense() {
 				    <td>${ExCode["Ex-code"]}</td>  <!-- Use correct JSON key -->
 				     <td>${ExCode["Ex-type"]}</td>  <!-- Use correct JSON key -->
 				      <td>
-				      <button class="btn btn-success btn-sm" onclick="editExpense('${ExCode.id}')">Edit</button>
-					  <button class="btn btn-danger btn-sm" onclick="DeleteExpense('${ExCode.id}')">Delete</button>
+				      <button class="btn btn-success btn-sm" onclick="editExpense('${ExCode.id}')"><i class="bi bi-pencil-square"></i></button>
+					  <button class="btn btn-danger btn-sm" onclick="DeleteExpense('${ExCode.id}')"><i class="bi bi-trash3"></i></button>
 				   </td>
 				                 
                 `;
@@ -1310,7 +1330,7 @@ function fetchDelegator() {
 				    <td>${Delegator["D-name"]}</td>  <!-- Use correct JSON key -->
 				     <td>${Delegator["SA-email"]}</td>  <!-- Use correct JSON key -->
 				      <td>
-				      <button class="btn btn-success btn-sm" onclick="editExpense('${Delegator.id}')">Edit</button>
+				      <button class="btn btn-success btn-sm" onclick="editDelegatores('${Delegator.id}')"><i class="bi bi-pencil-square"></i></button>
 				   </td>
 				                 
                 `;
@@ -1319,6 +1339,108 @@ function fetchDelegator() {
         .catch(error => console.error("Error fetching Delegator Details:", error));
 }
 
+
+
+function fetchHoliday() {
+    fetch("/getHolidays") 
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById("holiday-table-body");
+            tableBody.innerHTML = ""; 
+            data.forEach(leave => {
+                tableBody.innerHTML += `
+				<tr>
+				    
+				    <td>${leave["holidayname"]}</td>  <!-- Use correct JSON key -->
+				     <td>${leave["holidaydate"]}</td>
+					 <td>${leave.year}  </td>
+				      <td>
+				      <button class="btn btn-success btn-sm" onclick="editholiday('${leave.id}' )"><i class="bi bi-pencil-square"></i></button>
+					  <button class="btn btn-danger btn-sm" onclick="Deleteholiday('${leave.id}')"><i class="bi bi-trash3"></i></button>
+				   </td>
+				                 
+                `;
+            });
+        })
+        .catch(error => console.error("Error fetching Expense Details:", error));
+}
+
+function Deleteholiday(ExpId) {
+
+    holidaydelete = ExpId; 
+    const deleteModal = new bootstrap.Modal(document.getElementById('holidaymodal'));
+    deleteModal.show();
+}
+
+
+document.getElementById("confirmHolidayDeleteBtn").addEventListener("click", function () {
+    if (holidaydelete) {
+        fetch(`/deleteholiday/${holidaydelete}`, {
+            method: "DELETE",
+        })
+        .then(response => response.text())
+        .then(message => {
+            showAlert(message, "success");
+            fetchHoliday();	
+        })
+        .catch(error => console.error("Error deleting holiday:", error))
+        .finally(() => {
+            expesetoDelete = null;
+            const modal = bootstrap.Modal.getInstance(document.getElementById('holidaymodal'));
+            modal.hide();
+        });
+    }
+});
+function editholiday(Id) {
+    fetch(`/getholidaybyid/${Id}`)
+        .then(response => response.json())
+		.then(data => {
+		    const originalDate = data["holidaydate"]; // e.g., "01/04/2025"
+		    let dateParts = originalDate.split("/"); // [ "01", "04", "2025" ]
+		    let formattedDateForInput = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`; // "2025-04-01"
+
+		    const editFormHTML = `               
+		        <div class="card p-3 mb-3">
+		            <h4>Edit Holiday</h4>
+		             <form onsubmit="SubmitUpdatedHoliday(event, '${data.id}')">
+		                ${inputField("Holiday Name", "text", "holidayname", "", data["holidayname"])}
+		                ${inputField("Date", "date", "holidaydate", "", formattedDateForInput)}
+		                ${formButtons()}
+		            </form>
+		        </div>
+		    `;
+		    document.getElementById("form-container").innerHTML = editFormHTML;
+		})
+        .catch(error => console.error("Error fetching employee for edit:", error));
+}
+
+function SubmitUpdatedHoliday(event, id) {
+    event.preventDefault();
+    showLoader(); 
+
+    const updatedData = {
+        id: id,
+        "holidayname": document.getElementById("holidayname").value,
+        "holidaydate": document.getElementById("holidaydate").value,
+    };
+
+    fetch("/updateHoliday", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updatedData),
+    })
+    .then(response => response.text())
+    .then(message => {
+        hideLoader(); 
+        hideForm();
+        showAlert(message, "success");
+       fetchHoliday();
+    })
+    .catch(error => {
+        hideLoader(); 
+        console.error("Error updating employee:", error);
+    });
+}
 
 /*Form creation for all the options*/
 function createForm(type) {
@@ -1394,7 +1516,17 @@ function createForm(type) {
 		            ${formButtons()}
 		        </form>
 		   </div>
-		`
+		`,
+		"Holiday": `
+				   <div class="card p-3 mb-3">
+				        <h4>Add Holiday</h4>
+				        <form action="/addHoliday" method="POST">
+				            ${inputField("Holiday Name", "text", "holidayname")}
+							${inputField("Date", "date", "holidaydate")}
+				            ${formButtons()}
+				        </form>
+				   </div>
+				`
     };
 	setTimeout(fetchEmfordeg, 0);
 

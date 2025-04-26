@@ -260,6 +260,7 @@
 	            <th>Description</th>
 				<th>Amount</th>
 				<th>Receipt</th>
+				<th>Action</th>
 	        </tr>
 	    </thead>
 	    <tbody>
@@ -1247,6 +1248,7 @@
 							       });
 
 							       populateDropdowns();
+								   fetchHolidays();
 							   }
 
 
@@ -1266,24 +1268,71 @@
 				  				       });
 				  		}
 
+						// Fetch holidays from the backend
+						let holidaysList = [];
+
+						async function fetchHolidays() {
+						    try {
+						        const response = await fetch('/holidaysforUI');
+						        if (!response.ok) {  // Check if the response is successful
+						            throw new Error('Network response was not ok');
+						        }
+						        holidaysList = await response.json();
+						        console.log(holidaysList); // Check what holidays are fetched
+						    } catch (error) {
+						        console.error("Error fetching holidays: ", error);
+						    }
+						}
+
+
+
+						// Helper function to check if a date is a holiday
+						function isHoliday(date) {
+						    const day = String(date.getDate()).padStart(2, '0');
+						    const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+						    const year = date.getFullYear();
+						    const formattedDate = `${day}/${month}/${year}`; // Format: dd/MM/yyyy
+
+						    return holidaysList.some(holiday => holiday.holidaydate === formattedDate);
+						}
+
+						function getHolidayName(date) {
+						    const day = String(date.getDate()).padStart(2, '0');
+						    const month = String(date.getMonth() + 1).padStart(2, '0');
+						    const year = date.getFullYear();
+						    const formattedDate = `${day}/${month}/${year}`;
+
+						    const holiday = holidaysList.find(h => h.holidaydate === formattedDate);
+						    return holiday ? holiday.holidayname : null;
+						}
+
+						
+						// Helper function to check if a date is a holiday
+						function isHoliday(date) {
+						    const day = String(date.getDate()).padStart(2, '0');
+						    const month = String(date.getMonth() + 1).padStart(2, '0'); // Month is 0-indexed
+						    const year = date.getFullYear();
+						    const formattedDate = `${day}/${month}/${year}`; // Format: dd/MM/yyyy
+
+						    return holidaysList.some(holiday => holiday.holidaydate === formattedDate);
+						}
+
+						// Function to update the table with disabled Sundays and holidays
 						function updateTable() {
 						    const selectedPeriod = periods[currentPeriodIndex];
-						    document.getElementById('selectedPeriod').textContent = ``;
-
 						    const [startDay, startMonth, startYear] = selectedPeriod.start.split('/');
-						    const [endDay, endMonth, endYear] = selectedPeriod.end.split('/');
 
 						    const tableHeaders = document.getElementById('tableHeaders');
 						    tableHeaders.innerHTML = '<tr><th style="width: 400px;">Charge Code</th></tr>';
 						    const tableRows = document.getElementById('tableBody');
 						    tableRows.innerHTML = '';
 
-						    let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
-						    const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
+						    const startDate = new Date(`${startYear}-${startMonth}-${startDay}`);
+						    const endDate = new Date(selectedPeriod.end.split('/').reverse().join('-'));
 
-						    let sundayIndexes = []; // Store Sunday indexes
+						    let sundayIndexes = []; // Store Sunday column indexes
 
-						    // Add date headers with day names
+						    let currentDate = new Date(startDate);
 						    let colIndex = 1;
 						    while (currentDate <= endDate) {
 						        const day = currentDate.getDate();
@@ -1294,7 +1343,6 @@
 
 						        if (dayName === "Sun") {
 						            sundayIndexes.push(colIndex);
-						             // Grey out Sunday headers
 						        }
 
 						        tableHeaders.querySelector('tr').appendChild(headerCell);
@@ -1307,49 +1355,70 @@
 						    totalHeader.textContent = "Total";
 						    tableHeaders.querySelector('tr').appendChild(totalHeader);
 
-						    // **Add static rows**
+						    // Add static rows
 						    addStaticRows();
 
-						    // **Add 3 default dynamic rows**
+						    // Add default dynamic rows
 						    for (let i = 0; i < 1; i++) {
 						        addRow();
 						    }
 
-						    // ✅ Fix: Fully grey out the entire Sunday column
+						    // After table created, disable Sundays and Holidays
 						    setTimeout(() => {
-						        document.querySelectorAll("#tableBody tr").forEach(row => {
-						            sundayIndexes.forEach(index => {
-						                let cell = row.cells[index]; // Target Sunday column
-						                if (cell) {
-						                    let input = cell.querySelector("input");
+						        const allRows = document.querySelectorAll("#tableBody tr");
+						        const startParts = selectedPeriod.start.split('/');
+						        const periodStartDate = new Date(startParts[2], startParts[1] - 1, startParts[0]); // (yyyy, mm, dd)
+
+						        allRows.forEach(row => {
+						            for (let colIndex = 1; colIndex < row.cells.length - 1; colIndex++) {
+						                const cell = row.cells[colIndex];
+
+						                const cellDate = new Date(periodStartDate);
+						                cellDate.setDate(periodStartDate.getDate() + colIndex - 1); // Move days based on column
+
+						                const dayName = cellDate.toLocaleDateString('en-US', { weekday: 'short' });
+
+						                if (dayName === "Sun" || isHoliday(cellDate)) {
+						                    const input = cell.querySelector("input");
 						                    if (input) {
-						                        input.disabled = true; // Disable input on Sundays
-						                        input.style.backgroundColor = "#d3d3d3"; // Grey background
+						                        input.disabled = true;
+						                        input.style.backgroundColor = "#d3d3d3"; // Grey input
+												
+												const holidayName = getHolidayName(cellDate);
+
+												if (dayName === "Sun" && holidayName) {
+												    input.setAttribute("title", `Sunday + ${holidayName} - Not Editable`);
+												} else if (dayName === "Sun") {
+												    input.setAttribute("title", "Sunday - Not Editable");
+												} else if (holidayName) {
+												    input.setAttribute("title", `${holidayName} - Not Editable`);
+												}
+
 						                    }
-						                    cell.style.backgroundColor = "#d3d3d3"; // Ensure entire Sunday column is grey
+						                    cell.style.backgroundColor = "#d3d3d3"; // Grey full cell
 						                }
-						            });
+						            }
 						        });
 						    }, 100);
 
-						    // Update footer for totals
+						    // Update footer totals
 						    updateFooter(sundayIndexes);
 						}
 
 
+						
 						function updateFooter(sundayIndexes) {
 						    const period = periods[currentPeriodIndex];
 						    const [startDay, startMonth, startYear] = period.start.split('/');
 						    const [endDay, endMonth, endYear] = period.end.split('/');
+
 						    let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
 						    const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
 
 						    const footerRow = document.getElementById('tableFooter').querySelector('tr');
-
-						    // ✅ Fix: Clear footer properly and ensure correct column count
 						    footerRow.innerHTML = ''; // Reset footer row
 
-						    // ✅ Fix: Add Charge Code column first to prevent misalignment
+						    // Add "Charge Code" cell
 						    const chargeCodeCell = document.createElement('td');
 						    chargeCodeCell.textContent = 'Total Hours';
 						    footerRow.appendChild(chargeCodeCell);
@@ -1358,11 +1427,14 @@
 						    while (currentDate <= endDate) {
 						        const totalCell = document.createElement('td');
 
-						        if (sundayIndexes.includes(colIndex)) {
-						            totalCell.textContent = ""; // Remove 0.00 from Sundays
-						            totalCell.style.backgroundColor = "#d3d3d3"; // Grey out Sunday footer cells
+						        const isSunday = sundayIndexes.includes(colIndex);
+						        const isHolidayDate = isHoliday(currentDate);
+
+						        if (isSunday || isHolidayDate) {
+						            totalCell.textContent = ""; // Keep blank
+						            totalCell.style.backgroundColor = "#d3d3d3"; // Grey out Sundays + Holidays in Footer too
 						        } else {
-						            totalCell.textContent = ''; // Initialize totals
+						            totalCell.textContent = ''; // Empty, waiting for totals
 						        }
 
 						        footerRow.appendChild(totalCell);
@@ -1370,92 +1442,74 @@
 						        colIndex++;
 						    }
 
-						    // ✅ Ensure total column in the footer remains aligned
+						    // Add final "Grand Total" column
 						    const totalColumnFooter = document.createElement('td');
 						    totalColumnFooter.textContent = '';
 						    totalColumnFooter.id = 'grandTotal';
 						    footerRow.appendChild(totalColumnFooter);
 
-						    // ✅ Ensure event listeners are correctly attached
+						    // Rebind event listeners properly
 						    const inputs = document.querySelectorAll('input[type="text"]');
 						    inputs.forEach(input => {
-						        input.removeEventListener('input', calculateTotals); // Avoid duplicate bindings
+						        input.removeEventListener('input', calculateTotals); // Prevent duplicate
 						        input.addEventListener('input', calculateTotals);
 						    });
-							
-							
 						}
 
 
 
+						function addRow() {
+						    const row = document.createElement("tr");
 
-		  // Function to add a new row with dropdown
-		  function addRow() {
-		      const row = document.createElement("tr");
+						    const projectCell = document.createElement("td");
+						    projectCell.appendChild(createDropdown()); // Dropdown for charge code
+						    row.appendChild(projectCell);
 
-		      const projectCell = document.createElement("td");
-		      projectCell.appendChild(createDropdown()); // Dropdown for charge code
-		      row.appendChild(projectCell);
+						    // Get selected period
+						    const period = periods[currentPeriodIndex];
+						    const [startDay, startMonth, startYear] = period.start.split("/");
+						    const [endDay, endMonth, endYear] = period.end.split("/");
 
-		      // Get selected period
-		      const period = periods[currentPeriodIndex];
-		      const [startDay, startMonth, startYear] = period.start.split("/");
-		      const [endDay, endMonth, endYear] = period.end.split("/");
-		      
-		      let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
-		      const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
+						    let currentDate = new Date(`${startYear}-${startMonth}-${startDay}`);
+						    const endDate = new Date(`${endYear}-${endMonth}-${endDay}`);
 
-		      let colIndex = 1;
-		      let sundayIndexes = []; // Store Sunday indexes
+						    let colIndex = 1;
 
-		      while (currentDate <= endDate) {
-		          const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'short' });
+						    while (currentDate <= endDate) {
+						        const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'short' });
 
-		          const cell = document.createElement("td");
-		          const input = document.createElement("input");
-		          input.type = "text";
-		          input.style.border = "0px";
-		          input.style.width = "50px";
-		          input.style.outline = "none";
+						        const cell = document.createElement("td");
+						        const input = document.createElement("input");
+						        input.type = "text";
+						        input.style.border = "0px";
+						        input.style.width = "50px";
+						        input.style.outline = "none";
 
-		          if (dayName === "Sun") {
-		              input.disabled = true; // Disable input on Sundays
-		              input.style.backgroundColor = "#d3d3d3"; // Grey background
-		              cell.style.backgroundColor = "#d3d3d3"; // Ensure entire Sunday column is grey
-		              sundayIndexes.push(colIndex); // Store Sunday index
-		          }
+						        // ✅ Disable if Sunday or Holiday
+						        if (dayName === "Sun" || isHoliday(currentDate)) {
+						            input.disabled = true;
+						            input.style.backgroundColor = "#d3d3d3";
+						            cell.style.backgroundColor = "#d3d3d3";
+						        }
 
-		          cell.appendChild(input);
-		          row.appendChild(cell);
+						        cell.appendChild(input);
+						        row.appendChild(cell);
 
-		          input.addEventListener("input", calculateTotals);
-		          currentDate.setDate(currentDate.getDate() + 1);
-		          colIndex++;
-		      }
+						        input.addEventListener("input", calculateTotals);
 
-		      // Add total column
-		      const totalCell = document.createElement("td");
-		      totalCell.textContent = "";
-		      totalCell.classList.add("row-total");
-		      row.appendChild(totalCell);
+						        currentDate.setDate(currentDate.getDate() + 1);
+						        colIndex++;
+						    }
 
-		      document.getElementById("tableBody").appendChild(row);
+						    // Add total column
+						    const totalCell = document.createElement("td");
+						    totalCell.textContent = "";
+						    totalCell.classList.add("row-total");
+						    row.appendChild(totalCell);
 
-		      // ✅ Apply Sunday disabling logic for new rows
-		      setTimeout(() => {
-		          sundayIndexes.forEach(index => {
-		              let cell = row.cells[index];
-		              if (cell) {
-		                  let input = cell.querySelector("input");
-		                  if (input) {
-		                      input.disabled = true;
-		                      input.style.backgroundColor = "#d3d3d3";
-		                  }
-		                  cell.style.backgroundColor = "#d3d3d3";
-		              }
-		          });
-		      }, 100);
-		  }
+						    document.getElementById("tableBody").appendChild(row);
+						}
+
 
 
 		  	  // Attach event listener to "Add Row" button
@@ -1555,6 +1609,7 @@
 		                  currentPeriodIndex--;
 		                  updateDropdown();
 		                  updateTable();
+						  
 						  
 		              }
 		          });

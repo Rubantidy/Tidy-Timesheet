@@ -274,15 +274,6 @@
   }
 
 
-  .sunday-column {
-      background-color: #d9e2f3 !important; 
-      color: #333;
-  }
-  .sunday-column input {
-      background-color: #cfd9e8 !important;
-      pointer-events: none;
-      border: none;
-  }
 
 
   .button-container button {

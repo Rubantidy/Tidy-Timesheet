@@ -214,19 +214,16 @@ document.addEventListener("DOMContentLoaded", function () {
 
 	function saveTimesheetData() {
 	    const selectedPeriod = getSelectedPeriod();
-	    
-	    
+
 	    document.getElementById("saveTimesheetMessage").innerText = 
 	        `⚠ Are you sure you want to save the timesheet for "${selectedPeriod}"?`;
-	    
+
 	    let saveModal = new bootstrap.Modal(document.getElementById("saveTimesheetModal"));
 	    saveModal.show();
 
-	    
 	    document.getElementById("confirmSaveTimesheet").onclick = function () {
-	        saveModal.hide();  // Close the modal before saving
+	        saveModal.hide();  // Close modal
 
-	 
 	        const rows = document.querySelectorAll("#tableBody tr");
 	        let timesheetEntries = [];
 	        let columnFilled = {};
@@ -241,22 +238,22 @@ document.addEventListener("DOMContentLoaded", function () {
 	        let startDate = parseDate(startDateStr);
 	        let endDate = parseDate(endDateStr);
 
-	        let sundayColumns = [];
+	        let skipColumns = []; // ✅ Sundays + Holidays
 	        let currentDate = new Date(startDate);
 	        let columnIndex = 1;
 
 	        while (currentDate <= endDate) {
-	            if (currentDate.getDay() === 0) {
-	                sundayColumns.push(columnIndex);
+	            const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'short' });
+	            if (dayName === "Sun" || isHoliday(currentDate)) {
+	                skipColumns.push(columnIndex);
 	            }
 	            currentDate.setDate(currentDate.getDate() + 1);
 	            columnIndex++;
 	        }
 
-	     
 	        document.querySelectorAll("#tableBody tr td input").forEach(input => {
 	            input.style.backgroundColor = "";
-	            input.removeAttribute("title"); 
+	            input.removeAttribute("title");
 	        });
 
 	        rows.forEach((row, rowIndex) => {
@@ -268,8 +265,6 @@ document.addEventListener("DOMContentLoaded", function () {
 	            chargeCode = chargeCode.replace(/✖.*/, "").trim();
 	            if (!chargeCode) return;
 
-
-
 	            let isStaticRow = chargeCode.toLowerCase().includes("work location") || chargeCode.toLowerCase().includes("company code");
 	            let rowHasValue = false;
 	            const inputs = row.querySelectorAll("td input:not(.dropdown-search)");
@@ -278,9 +273,8 @@ document.addEventListener("DOMContentLoaded", function () {
 	                let actualColIndex = colIndex + 1;
 	                let cellIndex = `${rowIndex}_${actualColIndex}`;
 
-	                if (sundayColumns.includes(actualColIndex)) return;
+	                if (skipColumns.includes(actualColIndex)) return; // ✅ Skip Sunday + Holiday columns
 
-	          
 	                if (!input.hasAttribute("data-prev")) {
 	                    input.setAttribute("data-prev", input.value.trim());
 	                }
@@ -302,11 +296,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 	                    input.setAttribute("data-prev", currentValue); 
 	                } 
-	                
 	                else if (previousValue !== "" && currentValue === "") {
-
-
-
 	                    timesheetEntries.push({
 	                        username: sessionStorage.getItem("userName"),
 	                        period: selectedPeriod,
@@ -326,7 +316,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	        let emptyColumns = [];
 
 	        for (let col = 1; col <= totalColumns; col++) {
-	            if (sundayColumns.includes(col)) continue;
+	            if (skipColumns.includes(col)) continue; // ✅ Ignore Sunday + Holiday columns
 	            if (!columnFilled[col]) emptyColumns.push(col);
 	        }
 
@@ -334,7 +324,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	            emptyColumns.forEach(colIndex => {
 	                document.querySelectorAll(`#tableBody tr:not(.static-row) td:nth-child(${colIndex + 1}) input`).forEach(input => {
 	                    input.style.border = "1px solid red";
-	                    input.setAttribute("title", "⚠ Field is required!"); 
+	                    
 	                });
 	            });
 	            return;
@@ -346,9 +336,6 @@ document.addEventListener("DOMContentLoaded", function () {
 	        }
 
 	        try {
-
-
-
 	            fetch("/saveTimesheet", {
 	                method: "POST",
 	                headers: { "Content-Type": "application/json" },
@@ -358,13 +345,14 @@ document.addEventListener("DOMContentLoaded", function () {
 	            .then(result => {
 	                showAlert(result, "success");
 	                fetchTimesheetData();
-	            })
-	         
+	            });
 	        } catch (e) {
 	            showAlert("❌ JSON Formatting Error:", "danger");
 	        }
 	    };
 	}
+
+
 
 
 
@@ -376,6 +364,7 @@ document.addEventListener("DOMContentLoaded", function () {
     fetchTimesheetData(); // Load data on page load
 	
 });
+
 
 
 
@@ -592,10 +581,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	    let username = sessionStorage.getItem("userName");  // Get username
 	    let period = getSelectedPeriod();  // Get selected period
 
-	    if (!username || !period) {
-	        alert("Please select a period!");
-	        return;
-	    }
+	 
 
 	    fetch(`/getEmpExpenses?username=${encodeURIComponent(username)}&period=${encodeURIComponent(period)}`)
 	        .then(response => response.json())
@@ -625,6 +611,10 @@ document.addEventListener("DOMContentLoaded", function () {
 						<td style="text-align: center;">
 						                       ${expense.receipt ? "✅" : "❌"}
 						                   </td>
+										   <td>
+										   <button class="btn btn-success btn-sm"><i class="bi bi-pencil-square"></i></button>
+										   	<button class="btn btn-danger btn-sm"><i class="bi bi-trash3"></i></button>
+														  </td>
 	                `;
 
 	                tableBody.appendChild(row);
@@ -778,12 +768,13 @@ function calculateStandardAllocatedHours(selectedPeriod) {
 
     let totalWorkingDays = 0;
 
-    while (startDate <= endDate) {
-        if (startDate.getDay() !== 0) { // Exclude Sundays (0 = Sunday)
-            totalWorkingDays++;
-        }
-        startDate.setDate(startDate.getDate() + 1); // Move to next day
-    }
+	while (startDate <= endDate) {
+	    if (startDate.getDay() !== 0 && !isHoliday(startDate)) { // Exclude Sundays + Holidays
+	        totalWorkingDays++;
+	    }
+	    startDate.setDate(startDate.getDate() + 1);
+	}
+
 
 
 
