@@ -10,7 +10,7 @@
 	<script src="/Employee/script.js"></script>
 	<script src="/js/sockjs.min.js"></script>
 	<script src="/js/stomp.min.js"></script>
-	<script src="/notifications.js"></script>
+
 	
 	<link rel="stylesheet" href="/Employee/style.css">
     <link rel="stylesheet" href="/css/bootstrap.min.css">
@@ -1278,7 +1278,7 @@
 						            throw new Error('Network response was not ok');
 						        }
 						        holidaysList = await response.json();
-						        console.log(holidaysList); // Check what holidays are fetched
+						        
 						    } catch (error) {
 						        console.error("Error fetching holidays: ", error);
 						    }
@@ -1661,6 +1661,8 @@
 				      function connectWebSocket() {
 				          const socket = new SockJS('/ws');
 				          stompClient = Stomp.over(socket);
+						  
+						  stompClient.debug = null;  // Disable debug logs
 
 				          stompClient.connect({}, function () {
 				    

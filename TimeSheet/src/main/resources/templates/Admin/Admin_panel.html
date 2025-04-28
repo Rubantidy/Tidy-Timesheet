@@ -29,7 +29,7 @@
 
 			</h2>
             <ul class="nav flex-column">
-                <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('dashboard')"><i class="bi bi-house me-2"></i> Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('dashboard'); return false;"><i class="bi bi-house me-2"></i> Dashboard</a></li>
                 <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('manage-user')"><i class="bi bi-people me-2"></i> Manage Users</a></li>
                <!--  <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('delegates')"><i class="bi bi-person-check me-2"></i> Delegates</a></li> -->
                 <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('charge-code')"><i class="bi bi-credit-card me-2"></i> Code Manage</a></li>
@@ -381,7 +381,7 @@
 	<script src="/js/sockjs.min.js"></script>
 	<script src="/js/stomp.min.js"></script>
 
-	<script src="/notifications.js"></script>
+
 
     <script>
 		
@@ -403,7 +403,7 @@
 		
 		document.addEventListener("DOMContentLoaded", function() {
 		          const userName = sessionStorage.getItem('userName');
-		          console.log(userName); // Debugging: Check if the value is correct
+
 
 		          if (userName) {
 		              const userNameElement = document.getElementById('userName');
@@ -578,7 +578,7 @@
 		            document.getElementById('resendOtpBtn').style.display = 'none';
 		            document.getElementById('sendOtpBtn').style.display = 'inline-block';
 		        } else {
-		            console.log("Error response:", result); // Debug log to check the response from backend
+		   
 		            showAlert("Failed to change the password. Please try again.", "danger");
 		        }
 		    })
@@ -648,9 +648,10 @@
 			   		      function connectWebSocket() {
 			   		          const socket = new SockJS('/ws');
 			   		          stompClient = Stomp.over(socket);
+							  
+							  stompClient.debug = null;  // Disable debug logs
 
 			   		          stompClient.connect({}, function () {
-			   		              console.log("✅ Connected to WebSocket");
 
 			   		              // ✅ Admin notifications
 			   		              stompClient.subscribe('/topic/adminNotifications', function (notification) {
@@ -673,7 +674,7 @@
 			   		      }
  
 			   		      function retryConnection() {
-			   		          console.log("🔄 Retrying WebSocket Connection in 3s...");
+
 			   		          setTimeout(connectWebSocket, 3000);
 			   		      }
 

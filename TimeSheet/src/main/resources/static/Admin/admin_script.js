@@ -72,10 +72,16 @@ document.getElementById('logout').addEventListener('click', function(event) {
    
 function showContent(section) {
 	
+
+	if (!section) {
+	      
+	      return;
+	  }
 	
     const title = document.getElementById("content-title");
     const contentBox = document.getElementById("content-box");
 	const summery = document.getElementById("summery");
+	
 
     const sections = {
         "dashboard": `
@@ -146,7 +152,7 @@ function showContent(section) {
 		                <tr>
 		                    <th>Employee</th>
 		                    <th>Period</th>
-		                    <th>Total Hours</th>
+		                    <th>Total Working Days</th>
 		                    <th>Total Absences</th>
 							<th>Loss of Pay</th>
 		                    <th>Charge Code Details</th>
@@ -173,7 +179,7 @@ function showContent(section) {
 		                <tr>
 		                    <th>Employee</th>
 		                    <th>Period</th>
-		                    <th>Total Hours</th>
+		                   <th>Total Working Days</th>
 		                    <th>Total Absences</th>
 							<th>Loss of Pay</th>
 		                    <th>Charge Code Details</th>
@@ -324,7 +330,7 @@ function showContent(section) {
 	            fetch("/getEmployeesCount").then(res => res.json()),
 	            fetch("/getChargecodesCount").then(res => res.json()),
 	            fetch("/getExpensecodesCount").then(res => res.json()),
-	            fetch("/getDelegatorsCount").then(res => res.json())
+	            //fetch("/getDelegatorsCount").then(res => res.json())
 	        ])
 	        .then(([totalEmployees, totalChargeCodes, totalExpenseCodes, totalDelegators]) => {
 	            // Replace the static values with the dynamic values fetched from the backend
@@ -502,7 +508,7 @@ function showContent(section) {
 							}
 
 							function populateTable(tableId, data, status) {
-								const searchInput = document.getElementById("searchEEmployee");
+						
 							    let tableBody = document.getElementById(tableId);
 
 							    if (!tableBody) {
@@ -519,10 +525,11 @@ function showContent(section) {
 
 							    data.forEach(entry => {
 							        let row = document.createElement("tr");
+								
 
 							        row.innerHTML = `
 							            <td>${entry.username}</td>
-							            <td><b>${entry.period}</b></td>    
+										<td><b id="period-${entry.username}-${entry.period}">${entry.period}</b></td> 							
 							            <td id="hours-${entry.username}-${entry.period}">Fetching...</td>
 							            <td id="absences-${entry.username}-${entry.period}">Fetching...</td>
 										<td id="paid-${entry.username}-${entry.period}">Fetching...</td>
@@ -546,15 +553,20 @@ function showContent(section) {
 							    });
 								
 								// ✅ Search Functionality
-												    searchInput.addEventListener("keyup", function () {
-												        const filter = searchInput.value.toLowerCase();
-												        const rows = employeeTableBody.getElementsByTagName("tr");
+								const searchInput = document.getElementById("searchEEmployee");
 
-												        Array.from(rows).forEach(row => {
-												            const text = row.textContent.toLowerCase();
-												            row.style.display = text.includes(filter) ? "" : "none";
-												        });
-												    });
+								if (searchInput) {
+									searchInput.addEventListener("keyup", function () {
+										const filter = searchInput.value.toLowerCase();
+										const rows = employeeTableBody.getElementsByTagName("tr");
+
+										Array.from(rows).forEach(row => {
+											const text = row.textContent.toLowerCase();
+											row.style.display = text.includes(filter) ? "" : "none";
+										});
+									});
+								} 
+
 							}
 
 							function fetchEmployeeSummary(username, period, status) {
@@ -570,9 +582,14 @@ function showContent(section) {
 							                return;
 							            }
 
-							            document.getElementById(`hours-${username}-${period}`).textContent = summary.totalHours - summary.totalAbsences || "0";
-							            document.getElementById(`absences-${username}-${period}`).textContent = summary.totalAbsences || "0";					
+										const totalDays = (summary.totalHours / 9);
+									
+
+									document.getElementById(`period-${username}-${period}`).textContent += ` (${totalDays})`;
+							            document.getElementById(`hours-${username}-${period}`).textContent = (summary.totalHours - summary.totalAbsences)/9   || "0";
+							            document.getElementById(`absences-${username}-${period}`).textContent = summary.totalAbsences/9 || "0";					
 										document.getElementById(`paid-${username}-${period}`).textContent = summary.paidLeaveDays || "0";
+										
 
 							            // ✅ Format Charge Codes inside a single cell using a flex container
 							            let chargeCell = document.getElementById(`charge-${username}-${period}`);

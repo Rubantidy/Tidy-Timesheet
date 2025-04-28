@@ -1070,17 +1070,14 @@ function fetchPreferences() {
     function getSelectedPeriod() {
         return periodDropdown.options[periodDropdown.selectedIndex]?.text || null;
     }
-
     const selectedPeriod = getSelectedPeriod();
     const loggedInUser = sessionStorage.getItem("userName"); // ✅ Get logged-in username
-
+	
     if (!selectedPeriod || !loggedInUser) {
 
         resetPreferences(); // Clear fields if no period is selected
         return;
     }
-
-
 
     fetch(`/getPreferences?period=${selectedPeriod}&employeename=${encodeURIComponent(loggedInUser)}`)
         .then(response => {
@@ -1095,8 +1092,6 @@ function fetchPreferences() {
             if (!data) return;
             
 
-
-
             function formatEmails(emails) {
                 return (emails || "").split(",").map(email => email.trim()).join("\n");
             }
@@ -1107,7 +1102,6 @@ function fetchPreferences() {
         })
 
 }
-
 
 
 // Wait for the DOM to load before adding event listeners
