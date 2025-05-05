@@ -23,9 +23,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import timesheet.admin.dao.AllowedLeaves;
 import timesheet.admin.dao.Codedao;
 import timesheet.admin.dao.Delegatedao;
 import timesheet.admin.dao.Employeedao;
+import timesheet.admin.repo.AllowedLeavesRepository;
 import timesheet.admin.repo.DelegateRepo;
 import timesheet.admin.repo.EmployeeRepo;
 
@@ -37,6 +39,9 @@ public class EmpController {
     
     @Autowired
     private DelegateRepo Delrepo;
+    
+    @Autowired
+    private AllowedLeavesRepository allowedLeaveRepo;
  
     @Autowired
     private JavaMailSender mailSender;  
@@ -55,19 +60,38 @@ public class EmpController {
 
     @PostMapping("/addEmployee")
     public ResponseEntity<String> addEmployee(@RequestBody Employeedao EmpData) throws IOException {
-        
-        EmpRepo.save(EmpData);
 
+        EmpRepo.save(EmpData);
 
         try {
             sendEmployeeEmail(EmpData);
-        } catch (MessagingException e) {  
+        } catch (MessagingException e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Failed to send email.");
         }
 
-        return ResponseEntity.ok("Employee saved successfully and email sent!");
+        String username = EmpData.geteName(); // or use email
+        int currentYear = LocalDate.now().getYear();
+
+        // ✅ 1. Add current year's leave record for new user
+        if (!allowedLeaveRepo.existsByUsernameAndYear(username, currentYear)) {
+            AllowedLeaves leave = new AllowedLeaves(username, currentYear);
+            allowedLeaveRepo.save(leave);
+        }
+
+        // ✅ 2. Add current year record for all existing users (if missing)
+        List<Employeedao> allEmployees = EmpRepo.findAll();
+
+        for (Employeedao emp : allEmployees) {
+            String name = emp.geteName();
+            if (!allowedLeaveRepo.existsByUsernameAndYear(name, currentYear)) {
+                allowedLeaveRepo.save(new AllowedLeaves(name, currentYear));
+            }
+        }
+
+        return ResponseEntity.ok("Employee saved successfully, yearly leaves initialized, and email sent!");
     }
+
 
     private void sendEmployeeEmail(Employeedao EmpData) throws MessagingException, IOException {
 
@@ -112,7 +136,6 @@ public class EmpController {
     @GetMapping("/getEmployeeById/{id}")
     public ResponseEntity<?> getEmployeeByid(@PathVariable int id) {
         Optional<Employeedao> optionalCode = EmpRepo.findById(id);
-        System.out.println(optionalCode);
         if (optionalCode.isPresent()) {
             return ResponseEntity.ok(optionalCode.get());
         } else {
@@ -129,32 +152,47 @@ public class EmpController {
 
         if (optionalEmp.isPresent()) {
             Employeedao emp = optionalEmp.get();
-            
-            // Update with new values from request
-            emp.seteName(requestData.get("E-name"));
+
+            // Save old name before changing it
+            String oldName = emp.geteName();
+            String newName = requestData.get("E-name");
+
+            // Update employee fields
+            emp.seteName(newName);
             emp.seteMail(requestData.get("E-mail"));
             emp.setDesignation(requestData.get("E-desg"));
             emp.setOnboard(requestData.get("onborad"));
             emp.setE_Role(requestData.get("E-role"));
-            if(requestData.get("E-role").equalsIgnoreCase("Admin")) {
-            	emp.setAdditionalRole("Employee");
-            }
-            else if(requestData.get("E-role").equalsIgnoreCase("Employee")) {
-            	emp.setAdditionalRole("-");
+
+            if ("Admin".equalsIgnoreCase(emp.getE_Role())) {
+                emp.setAdditionalRole("Employee");
+            } else {
+                emp.setAdditionalRole("-");
             }
 
             EmpRepo.save(emp);
+
+            // ✅ Update leaves_entity table
+            int year = LocalDate.now().getYear();
+            AllowedLeaves leaves = allowedLeaveRepo.findByUsernameAndYear(oldName, year);
+            if (leaves != null) {
+                leaves.setUsername(newName);
+                allowedLeaveRepo.save(leaves);
+            }
+
             try {
-            	updateemployeeemail(emp);
-            } catch (MessagingException e) {  
+                updateemployeeemail(emp);
+            } catch (MessagingException e) {
                 e.printStackTrace();
                 return "Failed to send email.";
             }
+
             return "Employee updated successfully!";
         } else {
             return "Employee not found!";
         }
     }
+
 
     
     private void updateemployeeemail(Employeedao EmpData) throws MessagingException, IOException {
