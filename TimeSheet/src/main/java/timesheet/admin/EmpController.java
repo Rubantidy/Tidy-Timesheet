@@ -1,6 +1,7 @@
 package timesheet.admin;
 
 import java.io.IOException;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,6 +43,7 @@ public class EmpController {
     
     @Autowired
     private AllowedLeavesRepository allowedLeaveRepo;
+    
  
     @Autowired
     private JavaMailSender mailSender;  
@@ -91,6 +93,8 @@ public class EmpController {
 
         return ResponseEntity.ok("Employee saved successfully, yearly leaves initialized, and email sent!");
     }
+
+
 
 
     private void sendEmployeeEmail(Employeedao EmpData) throws MessagingException, IOException {

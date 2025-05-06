@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,7 +29,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.google.gson.Gson;
 
+import timesheet.admin.dao.AllowedLeaves;
 import timesheet.admin.dao.Assignment;
+import timesheet.admin.repo.AllowedLeavesRepository;
 import timesheet.admin.repo.AssignmentRepository;
 import timesheet.employee.dao.EmpExpensedao;
 import timesheet.employee.dao.Preference;
@@ -59,6 +62,9 @@ public class TimesheetController {
     
     @Autowired
     private AssignmentRepository assignrepo;
+    
+    @Autowired
+    private AllowedLeavesRepository allowedleaverepo;
 
   
 
@@ -95,14 +101,110 @@ public class TimesheetController {
 
         return ResponseEntity.ok(entries);
     }
+//    
+//    @PostMapping("/saveTimesheet")
+//    public ResponseEntity<String> saveTimesheet(@RequestBody List<TimesheetEntry> timesheetEntries) {
+//
+//        timesheetService.saveOrUpdateTimesheet(timesheetEntries);
+//
+//        return ResponseEntity.ok("Timesheet saved successfully");
+//    }
+    
+    
+    @GetMapping("/checkLeaveBalance")
+    public ResponseEntity<Boolean> checkLeaveBalance(
+        @RequestParam String username,
+        @RequestParam String type // "Sick Leave" or "Optional Leave"
+    ) {
+        int year = LocalDate.now().getYear();
+        AllowedLeaves leave = allowedleaverepo.findByUsernameAndYear(username, year);
+
+        if (leave == null) return ResponseEntity.ok(false);
+
+        if (type.endsWith("Sick Leave")) {
+            return ResponseEntity.ok(leave.getSickTaken() < leave.getSickAllowed());
+        }
+
+        if (type.endsWith("Optional Leave")) {
+            return ResponseEntity.ok(leave.getFloatingTaken() < leave.getFloatingAllowed());
+        }
+
+        return ResponseEntity.ok(true); // Other types like normal work code — always allowed
+    }
+
     
     @PostMapping("/saveTimesheet")
-    public ResponseEntity<String> saveTimesheet(@RequestBody List<TimesheetEntry> timesheetEntries) {
+    public ResponseEntity<String> saveTimesheet(@RequestBody List<TimesheetEntry> newEntries) {
+        if (newEntries.isEmpty()) {
+            return ResponseEntity.badRequest().body("No timesheet data provided");
+        }
 
-        timesheetService.saveOrUpdateTimesheet(timesheetEntries);
+        String username = newEntries.get(0).getUsername();
+        String period = newEntries.get(0).getPeriod();
+
+        // ✅ Extract year from the period string "01/05/2025 - 15/05/2025"
+        String[] split = period.split(" - ");
+        String startDate = split[0]; // "01/05/2025"
+        int currentYear = Integer.parseInt(startDate.split("/")[2]);
+
+        // ✅ Fetch leave record
+        AllowedLeaves leave = allowedleaverepo.findByUsernameAndYear(username, currentYear);
+        if (leave == null) {
+            return ResponseEntity.status(400).body("Leave record not found for user.");
+        }
+
+        // ✅ Step 1: Save or update timesheet entries first
+        timesheetService.saveOrUpdateTimesheet(newEntries);
+
+        // ✅ Step 2: Re-fetch all entries for this user
+        List<TimesheetEntry> allUserEntries = timesheetRepository.findByUsername(username);
+
+        // ✅ Step 3: Filter entries by year using period parsing
+        int totalSL = 0;
+        int totalFL = 0;
+        int totalCL = 0;
+
+        for (TimesheetEntry entry : allUserEntries) {
+            String entryPeriod = entry.getPeriod();
+            if (entryPeriod == null || !entryPeriod.contains(" - ")) continue;
+
+            String entryStartDate = entryPeriod.split(" - ")[0]; // "01/05/2025"
+            int entryYear = Integer.parseInt(entryStartDate.split("/")[2]);
+
+            if (entryYear == currentYear) {
+                String code = entry.getChargeCode();
+                if (code == null) continue;
+
+                if (code.endsWith("Sick Leave")) totalSL++;
+                if (code.endsWith("Optional Leave")) totalFL++;
+                if (code.endsWith("Casual Leave")) totalCL++;
+            }
+        }
+
+
+        if (totalSL > leave.getSickAllowed()) {
+            return ResponseEntity.badRequest().body("⚠ You are exceeding your Sick Leave limit. Please choose another leave or mark as Loss of Pay.");
+        }
+
+        if (totalFL > leave.getFloatingAllowed()) {
+            return ResponseEntity.badRequest().body("⚠ You are exceeding your Floating Leave limit. Please choose another leave or mark as Loss of Pay.");
+        }
+        if (totalCL > leave.getCasualAllowed()) {
+            return ResponseEntity.badRequest().body("⚠ You are exceeding your Casual Leave limit. Please choose another leave or mark as Loss of Pay.");
+        }
+
+
+        leave.setCasualTaken(totalCL);
+        leave.setSickTaken(totalSL);
+        leave.setFloatingTaken(totalFL);
+        allowedleaverepo.save(leave);
 
         return ResponseEntity.ok("Timesheet saved successfully");
     }
+
+
+
+
     
     @DeleteMapping("/deleteRow")
     public ResponseEntity<?> deleteRow(@RequestParam String chargeCode, @RequestParam String period) {

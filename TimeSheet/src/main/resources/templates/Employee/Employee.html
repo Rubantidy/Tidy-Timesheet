@@ -373,10 +373,10 @@
  
 	
 	<div id="contributionSummary">
-	    <h3 id="contributionPercent">Contribution %: 0%</h3>
-	    <p id="casualLeave">Casual Leave Taken: 0 (Max: 1 per month)</p>
-	    <p id="sickLeave">Sick Leave Taken: 0 (Max: 6 per year)</p>
-	    <p id="paidLeave">Loss of Pay: 0</p>
+	    <h3 id="contributionPercent"></h3>
+	    <p id="casualLeave"></p>
+	    <p id="sickLeave"></p>
+	    <p id="paidLeave"></p>
 	</div>
 
 	
@@ -1047,7 +1047,6 @@
 				  			  })
 				  		.catch(error => console.error("Error fetching Charge codes:", error));
 				   }
-
 				   function createDropdown(isDynamicRow = false) {
 				       const container = document.createElement("div");
 				       container.classList.add("dropdown-container");
@@ -1097,12 +1096,13 @@
 				       searchInput.classList.add("dropdown-search");
 				       panel.appendChild(searchInput);
 
-
 				       const sortedCodes = [...chargeCodes].sort((a, b) => {
 				           const aIsTLS = a.code.trim().toUpperCase().startsWith("TLS");
 				           const bIsTLS = b.code.trim().toUpperCase().startsWith("TLS");
 				           return aIsTLS === bIsTLS ? 0 : aIsTLS ? 1 : -1;
 				       });
+
+				       const leaveCache = {}; // Caches leave validation result per type
 
 				       sortedCodes.forEach(code => {
 				           const option = document.createElement("div");
@@ -1111,11 +1111,49 @@
 				           option.dataset.value = code.code;
 
 				           option.addEventListener("click", function () {
-				               button.textContent = option.textContent;
-				               button.appendChild(clearButton);
-				               panel.style.display = "none";
-				               clearButton.style.display = "inline";
-				               arrowIcon.style.display = "inline";
+				               const selectedText = option.textContent;
+				               const username = sessionStorage.getItem("userName");
+
+				               const isSickLeave = selectedText.endsWith("Sick Leave");
+				               const isOptionalLeave = selectedText.endsWith("Optional Leave");
+
+				               if (isSickLeave || isOptionalLeave) {
+				                   const leaveType = isSickLeave ? "Sick Leave" : "Optional Leave";
+
+				                   const validateAndApply = (isAllowed) => {
+				                       if (!isAllowed) {
+				                           showAlert(`⚠ You have no ${leaveType} remaining. Please choose another leave or mark as Loss of Pay.`, "danger");
+				                           panel.style.display = "none";
+				                       } else {
+				                           button.textContent = option.textContent;
+				                           button.dataset.value = option.dataset.value;
+				                           button.appendChild(clearButton);
+				                           panel.style.display = "none";
+				                           clearButton.style.display = "inline";
+				                           arrowIcon.style.display = "inline";
+				                       }
+				                   };
+
+				                   // 🔁 Check from cache first
+				                   if (leaveCache[leaveType] !== undefined) {
+				                       validateAndApply(leaveCache[leaveType]);
+				                   } else {
+				                       fetch(`/checkLeaveBalance?username=${encodeURIComponent(username)}&type=${encodeURIComponent(leaveType)}`)
+				                           .then(response => response.json())
+				                           .then(isAllowed => {
+				                               leaveCache[leaveType] = isAllowed;
+				                               validateAndApply(isAllowed);
+				                           });
+				                   }
+				               } else {
+				                   // ✅ Normal charge code
+				                   button.textContent = option.textContent;
+				                   button.dataset.value = option.dataset.value;
+				                   button.appendChild(clearButton);
+				                   panel.style.display = "none";
+				                   clearButton.style.display = "inline";
+				                   arrowIcon.style.display = "inline";
+				               }
 				           });
 
 				           panel.appendChild(option);
@@ -1124,6 +1162,7 @@
 				       clearButton.addEventListener("click", function (event) {
 				           event.stopPropagation();
 				           button.textContent = "Select Charge Code";
+				           button.dataset.value = "";
 				           clearButton.style.display = "none";
 				           arrowIcon.style.display = isDynamicRow ? "inline" : "none";
 				       });
@@ -1138,7 +1177,7 @@
 
 				       button.addEventListener("click", function () {
 				           panel.style.display = panel.style.display === "block" ? "none" : "block";
-				           addRow();
+				           addRow(); // Optional: only if you want row add on open
 				       });
 
 				       document.addEventListener("click", function (event) {
