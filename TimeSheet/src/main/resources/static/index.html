@@ -190,11 +190,13 @@
 		                    window.location.href = "/Employee_Dashboard";
 		                }
 		            } else {
-		                alert("You are no longer an Employee of Tidy Digital Solutions");
+						errorMessage.style.display = 'block';
+		                errorMessage.innerHTML ="You are no longer an Employee of Tidy Digital Solutions";
 		            }
 		        } else {
 		            errorMessage.style.display = 'block';
 		            errorMessage.innerHTML = "Invalid email or password. Please try again.";
+					
 		        }
 		    })
 		    .catch(error => {

@@ -2,6 +2,7 @@ package timesheet.admin;
 
 import java.io.IOException;
 
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -44,6 +45,8 @@ public class EmpController {
     @Autowired
     private AllowedLeavesRepository allowedLeaveRepo;
     
+
+    
  
     @Autowired
     private JavaMailSender mailSender;  
@@ -72,27 +75,27 @@ public class EmpController {
             return ResponseEntity.status(500).body("Failed to send email.");
         }
 
-        String username = EmpData.geteName(); // or use email
-        int currentYear = LocalDate.now().getYear();
+        String username = EmpData.geteName();
+        LocalDate onboardDate = LocalDate.parse(EmpData.getOnboard()); // Format: yyyy-MM-dd
+        int onboardYear = onboardDate.getYear();
+        int onboardMonth = onboardDate.getMonthValue();
 
-        // ✅ 1. Add current year's leave record for new user
-        if (!allowedLeaveRepo.existsByUsernameAndYear(username, currentYear)) {
-            AllowedLeaves leave = new AllowedLeaves(username, currentYear);
-            allowedLeaveRepo.save(leave);
+        // ✅ 1. Allowed leaves (keep existing logic)
+        if (!allowedLeaveRepo.existsByUsernameAndYear(username, onboardYear)) {
+            allowedLeaveRepo.save(new AllowedLeaves(username, onboardYear));
         }
 
-        // ✅ 2. Add current year record for all existing users (if missing)
-        List<Employeedao> allEmployees = EmpRepo.findAll();
-
-        for (Employeedao emp : allEmployees) {
-            String name = emp.geteName();
-            if (!allowedLeaveRepo.existsByUsernameAndYear(name, currentYear)) {
-                allowedLeaveRepo.save(new AllowedLeaves(name, currentYear));
-            }
+        // ✅ 2. Update AllowedLeaves.casualTaken (based on onboard month - 1)
+        AllowedLeaves allowed = allowedLeaveRepo.findByUsernameAndYear(username, onboardYear);
+        if (allowed != null) {
+            int casualTakenCount = onboardMonth - 1;
+            allowed.setBaseCasualTaken(Math.max(casualTakenCount, 0));
+            allowedLeaveRepo.save(allowed);
         }
 
-        return ResponseEntity.ok("Employee saved successfully, yearly leaves initialized, and email sent!");
+        return ResponseEntity.ok("Employee Onboarded successfully..!");
     }
+
 
 
 

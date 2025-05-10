@@ -121,6 +121,7 @@
             <li class="nav-item"><a class="nav-link" data-target="chargecodesSection" href="#">Charge Codes</a></li>
             <li class="nav-item"><a class="nav-link" data-target="summarySection" href="#">Summary</a></li>
             <li class="nav-item"><a class="nav-link" data-target="preferenceSection" href="#">Preference</a></li>
+			<li class="nav-item"><a class="nav-link" data-target="payslip" href="#">PaySlip</a></li>
         </ul>
     
         <!-- Date Controls -->
@@ -172,7 +173,7 @@
         </div>
     </div>
 
-    <p id="selectedPeriod">Selected Period:</p>
+    <p id="selectedPeriod" style="font: bold; font-weight: 600;">Selected Period:</p>
     <div id="timeSection" class="content-section">
         <table class="table table-bordered" style="padding: 0px !important;">
             <thead id="tableHeaders" style="padding: 0px !important;">
@@ -459,6 +460,7 @@
 	    </div>
 	</div>
 
+	
 
 	
 	<div id="customAlert" class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1050;">
@@ -470,6 +472,12 @@
 	            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
 	        </div>
 	    </div>
+	</div>
+	
+	<!-- Section for Location -->
+	<div id="payslip" class="content-section" style="display: none;">
+	    <h3>PaySlip Section</h3>
+	    <p>This is where payslip details will go.</p>
 	</div>
 	
 	
@@ -590,8 +598,32 @@
 
 <script>
 	
+	document.addEventListener("DOMContentLoaded", function () {
+	    const calender = document.getElementById('calendarPicker');
+	    const preview = document.getElementById('prevPeriod');
+	    const nextpre = document.getElementById('nextPeriod');
+	    const periodDropdown = document.getElementById("periodDropdown");
+	    const selectedPeriodElement = document.getElementById("selectedPeriod");
 
-	
+	    function getSelectedPeriod() {
+	        return periodDropdown.options[periodDropdown.selectedIndex].text;
+	    }
+
+	    function updateSelectedPeriod() {
+	        selectedPeriodElement.textContent = "Selected Period: " + getSelectedPeriod();
+	    }
+
+	    // Initial load
+	    updateSelectedPeriod();
+
+	    // Event listeners that trigger the update
+	    periodDropdown.addEventListener("change", updateSelectedPeriod);
+	    calender.addEventListener("change", updateSelectedPeriod);
+	    preview.addEventListener("click", updateSelectedPeriod);
+	    nextpre.addEventListener("click", updateSelectedPeriod);
+	});
+
+
 	document.addEventListener("DOMContentLoaded", function () {
 	    const navLinks = document.querySelectorAll(".nav-link");
 

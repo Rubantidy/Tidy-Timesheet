@@ -131,8 +131,9 @@ public class TimesheetController {
 
         return ResponseEntity.ok(true); // Other types like normal work code — always allowed
     }
-
     
+    
+
     @PostMapping("/saveTimesheet")
     public ResponseEntity<String> saveTimesheet(@RequestBody List<TimesheetEntry> newEntries) {
         if (newEntries.isEmpty()) {
@@ -142,10 +143,11 @@ public class TimesheetController {
         String username = newEntries.get(0).getUsername();
         String period = newEntries.get(0).getPeriod();
 
-        // ✅ Extract year from the period string "01/05/2025 - 15/05/2025"
+        // ✅ Extract year and month from period string: "01/05/2025 - 15/05/2025"
         String[] split = period.split(" - ");
         String startDate = split[0]; // "01/05/2025"
         int currentYear = Integer.parseInt(startDate.split("/")[2]);
+        int currentMonth = Integer.parseInt(startDate.split("/")[1]);
 
         // ✅ Fetch leave record
         AllowedLeaves leave = allowedleaverepo.findByUsernameAndYear(username, currentYear);
@@ -153,55 +155,57 @@ public class TimesheetController {
             return ResponseEntity.status(400).body("Leave record not found for user.");
         }
 
-        // ✅ Step 1: Save or update timesheet entries first
+        // ✅ Step 1: Save or update timesheet entries
         timesheetService.saveOrUpdateTimesheet(newEntries);
 
         // ✅ Step 2: Re-fetch all entries for this user
         List<TimesheetEntry> allUserEntries = timesheetRepository.findByUsername(username);
 
-        // ✅ Step 3: Filter entries by year using period parsing
+        // ✅ Step 3: Count leave types for the current year
         int totalSL = 0;
         int totalFL = 0;
-        int totalCL = 0;
+        int clFromTimesheet = 0;
 
         for (TimesheetEntry entry : allUserEntries) {
             String entryPeriod = entry.getPeriod();
             if (entryPeriod == null || !entryPeriod.contains(" - ")) continue;
 
-            String entryStartDate = entryPeriod.split(" - ")[0]; // "01/05/2025"
-            int entryYear = Integer.parseInt(entryStartDate.split("/")[2]);
+            int entryYear = Integer.parseInt(entryPeriod.split(" - ")[0].split("/")[2]);
+            if (entryYear != currentYear) continue;
 
-            if (entryYear == currentYear) {
-                String code = entry.getChargeCode();
-                if (code == null) continue;
+            String code = entry.getChargeCode();
+            if (code == null) continue;
 
-                if (code.endsWith("Sick Leave")) totalSL++;
-                if (code.endsWith("Optional Leave")) totalFL++;
-                if (code.endsWith("Casual Leave")) totalCL++;
-            }
+            if (code.endsWith("Sick Leave")) totalSL++;
+            else if (code.endsWith("Optional Leave")) totalFL++;
+            else if (code.endsWith("Casual Leave")) clFromTimesheet++;
         }
 
+        // ✅ Combine base CL (from onboarding) + CL taken in timesheet
+        int totalCL = leave.getBaseCasualTaken() + clFromTimesheet;
 
+        // ✅ Leave limit validations
         if (totalSL > leave.getSickAllowed()) {
             return ResponseEntity.badRequest().body("⚠ You are exceeding your Sick Leave limit. Please choose another leave or mark as Loss of Pay.");
         }
-
         if (totalFL > leave.getFloatingAllowed()) {
             return ResponseEntity.badRequest().body("⚠ You are exceeding your Floating Leave limit. Please choose another leave or mark as Loss of Pay.");
         }
         if (totalCL > leave.getCasualAllowed()) {
-            return ResponseEntity.badRequest().body("⚠ You are exceeding your Casual Leave limit. Please choose another leave or mark as Loss of Pay.");
+            return ResponseEntity.badRequest().body("⚠ You are exceeding your Casual leave limit. Please choose another leave or mark as Loss of Pay.");
         }
 
-
-        leave.setCasualTaken(totalCL);
+        // ✅ Save the updated leave usage
         leave.setSickTaken(totalSL);
         leave.setFloatingTaken(totalFL);
+        leave.setCasualTaken(totalCL); // total = base + taken via timesheet
         allowedleaverepo.save(leave);
 
         return ResponseEntity.ok("Timesheet saved successfully");
     }
 
+    
+   
 
 
 
@@ -351,7 +355,7 @@ public class TimesheetController {
         }
     }
 
-    
+
     
     @GetMapping("/getAllSummaries")
     public ResponseEntity<List<Map<String, Object>>> getAllSummaries() {

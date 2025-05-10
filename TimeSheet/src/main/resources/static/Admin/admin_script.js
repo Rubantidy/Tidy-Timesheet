@@ -218,7 +218,7 @@ function showContent(section) {
 		    </div>
 		</div>
 		       `,
-		"manage-user": `<button class="btn btn-info mb-3" id="addEmployeeBtn">Add Users</button><div id="form-container"></div>
+		"manage-user": `<button class="btn btn-info mb-3" id="addEmployeeBtn">Add Employee</button><div id="form-container"></div>
 		     <div id="form-container"></div>
 		         
 		           <table class="table table-striped">
@@ -298,7 +298,7 @@ function showContent(section) {
 					               <tbody id="holiday-table-body"></tbody>
 					           </table>
 					   `,
-			"payroll": `
+			"salary-process": `
 				<h1> Payroll </h1>
 			 `
     };
@@ -1471,7 +1471,7 @@ function createForm(type) {
 					${inputField("Password", "password", "E-pass")}
 					${inputField("Onboard date", "date", "onborad")}
 					${inputField("Designation", "text", "E-desg")}
-                    ${selectField("Role", "E-role", ["Admin","Employee"])}
+                    ${selectField("Role", "E-role", ["Select Role","Admin","Employee"])}
                     ${formButtons()}
                 </form>
             </div>

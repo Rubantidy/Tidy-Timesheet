@@ -8,7 +8,7 @@ import jakarta.persistence.Id;
 @Entity
 public class AllowedLeaves {
 
-	@Id
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
@@ -16,6 +16,8 @@ public class AllowedLeaves {
 
     private int casualTaken = 0;
     private int casualAllowed = 12;
+
+    private int baseCasualTaken = 0; // ✅ New field
 
     private int sickTaken = 0;
     private int sickAllowed = 6;
@@ -106,12 +108,24 @@ public class AllowedLeaves {
 		this.year = year;
 	}
 
+	public int getBaseCasualTaken() {
+		return baseCasualTaken;
+	}
+
+	public void setBaseCasualTaken(int baseCasualTaken) {
+		this.baseCasualTaken = baseCasualTaken;
+	}
+
 	@Override
 	public String toString() {
 		return "AllowedLeaves [id=" + id + ", username=" + username + ", casualTaken=" + casualTaken
-				+ ", casualAllowed=" + casualAllowed + ", sickTaken=" + sickTaken + ", sickAllowed=" + sickAllowed
-				+ ", floatingTaken=" + floatingTaken + ", floatingAllowed=" + floatingAllowed + ", year=" + year + "]";
+				+ ", casualAllowed=" + casualAllowed + ", baseCasualTaken=" + baseCasualTaken + ", sickTaken="
+				+ sickTaken + ", sickAllowed=" + sickAllowed + ", floatingTaken=" + floatingTaken + ", floatingAllowed="
+				+ floatingAllowed + ", year=" + year + "]";
 	}
+
+
+	
     
     
 	

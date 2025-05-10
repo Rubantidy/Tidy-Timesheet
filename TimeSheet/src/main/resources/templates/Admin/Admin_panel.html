@@ -30,14 +30,23 @@
 			</h2>
             <ul class="nav flex-column">
                 <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('dashboard'); return false;"><i class="bi bi-house me-2"></i> Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('manage-user')"><i class="bi bi-people me-2"></i> Manage Users</a></li>
+                <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('manage-user')"><i class="bi bi-people me-2"></i> Manage Employee's</a></li>
                <!--  <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('delegates')"><i class="bi bi-person-check me-2"></i> Delegates</a></li> -->
                 <li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('charge-code')"><i class="bi bi-credit-card me-2"></i> Code Manage</a></li>
 				<li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('expense-code')"><i class="bi bi-credit-card-2-front-fill"></i> Expense Code</a></li>
 				<li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('holiday')"><img  src="img/leave2.png"> &nbsp Holiday's Manage</a></li>
 				<hr>
 				<li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('approval')"><i class="bi bi-app-indicator"></i>Time Approvals</a></li>
-				<li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('payroll')"><i class="bi bi-paypal"></i></i>Payroll</a></li>
+				<li class="nav-item dropdown">
+				        <a class="nav-link text-white dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+				            <i class="bi bi-paypal"></i> Payroll
+				        </a>
+				        <ul class="dropdown-menu bg-dark border-0 shadow" style="margin-left: 10px;">
+				            <li><a class="nav-link text-white" href="#" onclick="showContent('payroll-summary')">Payroll Summary</a></li>
+				            <li><a class="nav-link text-white" href="#" onclick="showContent('salary-process')">Salary Process</a></li>
+				            <li><a class="nav-link text-white" href="#" onclick="showContent('payslip')">Payslip</a></li>
+				        </ul>
+				    </li>
 			</ul>
         </nav>
         

@@ -13,6 +13,8 @@ public interface SummaryRepository extends JpaRepository<SummaryEntry, Long> {
     
     List<SummaryEntry> findByStatusIn(List<String> statuses);
 
-	Integer countByStatus(String string); 
+	Integer countByStatus(String string);
+
+	List<SummaryEntry> findByUsername(String username); 
 }
 
