@@ -32,6 +32,8 @@ import timesheet.admin.dao.Employeedao;
 import timesheet.admin.repo.AllowedLeavesRepository;
 import timesheet.admin.repo.DelegateRepo;
 import timesheet.admin.repo.EmployeeRepo;
+import timesheet.emails.EmailServiceController;
+
 
 @org.springframework.stereotype.Controller
 public class EmpController {
@@ -45,12 +47,13 @@ public class EmpController {
     @Autowired
     private AllowedLeavesRepository allowedLeaveRepo;
     
-
-    
+    @Autowired
+    private EmailServiceController emailservice;
  
     @Autowired
-    private JavaMailSender mailSender;  
-
+    private JavaMailSender mailSender;
+    
+    
     @GetMapping("/Admin_Dashboard") 
     public String M1() {
         return "Admin/Admin_panel";
@@ -69,7 +72,7 @@ public class EmpController {
         EmpRepo.save(EmpData);
 
         try {
-            sendEmployeeEmail(EmpData);
+        	emailservice.sendEmployeeEmail(EmpData);
         } catch (MessagingException e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Failed to send email.");
@@ -100,45 +103,7 @@ public class EmpController {
 
 
 
-    private void sendEmployeeEmail(Employeedao EmpData) throws MessagingException, IOException {
-
-
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-
-
-        helper.setFrom("timex@tidyds.com", "Tidy Digital Solutions");
-        helper.setTo(EmpData.geteMail());
-        helper.setSubject("Welcome to the Tidy Digital Solutions");
-        
-        String emailContent = "<html><body>"
-        		 + "<h2>Welcome to Tidy Digital Solutions, " + EmpData.geteName() + "!</h2>"
-                 + "<p>We are delighted to have you on board. Below are your temporary login credentials for accessing the Tidy Timesheet system:</p>"
-                 + "<p><strong>Email:</strong> " + EmpData.geteMail() + "</p>"
-                 + "<p><strong>Temporary Password:</strong> " + EmpData.getePassword() + "</p>"
-                 + "<p><strong>Designation:</strong> " + EmpData.getDesignation() + "</p>"
-                 + "<p><strong>Role:</strong> " + EmpData.getE_Role() + "</p>"
-                 + "<br>"
-                 + "<p><strong>Access your Timesheet here:</strong> <a href=\"https://timex.tidyds.com\">Tidy Timesheet Portal</a></p>"
-                 + "<h3>Important Information</h3>"
-                 + "<p><strong>Note:</strong> Upon your first login, please update your user details to ensure accuracy.</p>"
-                 + "<p>If you encounter any issues while logging in, feel free to contact our support team for assistance.</p>"
-                 + "<br>"
-                 + "<p>We look forward to working with you and wish you great success in your role.</p>"
-                 + "<br>"
-                 + "<img src='cid:logoImage' width='200' alt='Company logo' />"
-                 + "<p>Best Regards,<br><b>Tidy Digital Solutions Team</b></p>"
-                 + "</body></html>";
-
-
-        helper.setText(emailContent, true); 
-
-        ClassPathResource image = new ClassPathResource("static/img/logo.png");
-        helper.addInline("logoImage", image);
-         
-        // Send the email
-        mailSender.send(message);
-    }
+   
     
     @GetMapping("/getEmployeeById/{id}")
     public ResponseEntity<?> getEmployeeByid(@PathVariable int id) {
@@ -188,7 +153,7 @@ public class EmpController {
             }
 
             try {
-                updateemployeeemail(emp);
+                emailservice.updateemployeeemail(emp);
             } catch (MessagingException e) {
                 e.printStackTrace();
                 return "Failed to send email.";
@@ -202,45 +167,7 @@ public class EmpController {
 
 
     
-    private void updateemployeeemail(Employeedao EmpData) throws MessagingException, IOException {
-
-
-        MimeMessage message = mailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-
-
-        helper.setFrom("timex@tidyds.com", "Tidy Digital Solutions");
-        helper.setTo(EmpData.geteMail());
-        helper.setSubject("Updated Profile Details");
-        
-        String emailContent = "<html><body>"
-        	     + "<h2>Hello " + EmpData.geteName() + ",</h2>"
-        	     + "<p>Your employee profile on <strong>Tidy Timesheet</strong> has been successfully updated with the following details:</p>"
-        	     + "<p><strong>Email:</strong> " + EmpData.geteMail() + "</p>"
-        	     + "<p><strong>Password:</strong>  " + EmpData.getePassword() + " (unchanged) — Your existing password remains the same.</p>"
-        	     + "<p><strong>Designation:</strong> " + EmpData.getDesignation() + "</p>"
-        	     + "<p><strong>Role:</strong> " + EmpData.getE_Role() + "</p>"
-        	     + "<br>"
-        	     + "<p>You can access the Tidy Timesheet portal using the link below:</p>"
-        	     + "<p><a href=\"https://timex.tidyds.com\">https://timex.tidyds.com</a></p>"
-        	     + "<h3>Need Help?</h3>"
-        	     + "<p>If you notice any incorrect details or experience issues accessing your account, please contact our support team immediately.</p>"
-        	     + "<br>"
-        	     + "<img src='cid:logoImage' width='200' alt='Company logo' />"
-        	     + "<p>Best Regards,<br><b>Tidy Digital Solutions Team</b></p>"
-        	     + "</body></html>";
-
-
-
-        helper.setText(emailContent, true); 
-
-        ClassPathResource image = new ClassPathResource("static/img/logo.png");
-        helper.addInline("logoImage", image);
-         
-        // Send the email
-        mailSender.send(message);
-    }
-    
+  
     
 //    @PostMapping("/updateEmployee")
 //    public ResponseEntity<String> updateEmployee(@RequestBody Map<String, String> requestData) throws UnsupportedEncodingException {

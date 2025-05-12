@@ -298,9 +298,24 @@ function showContent(section) {
 					               <tbody id="holiday-table-body"></tbody>
 					           </table>
 					   `,
-			"salary-process": `
-				<h1> Payroll </h1>
-			 `
+					   "salary-process": `<button class="btn btn-info mb-3" id="addSalarybtn">Add Salary </button><div id="form-container"></div>
+					   	      <div id="form-container"></div>
+					   					   		         
+					   				<table class="table table-striped">
+					   					   <thead>
+					   					    <tr>
+					   					           <th>ID</th>
+					   					   		     <th>Employee Name</th>
+					   					   		       <th>DOJ</th>
+					   					                <th>Basic Salary</th>
+														<th>Annual Salary</th>
+														<th>Bank Details</th>
+					   					   		        <th>Action</th>	
+					   					   	</tr>
+					   				</thead>
+					      <tbody id="Initialsalary-table-body"></tbody>
+					  </table>
+			         `
     };
 
     title.innerText = section.replace("-", " ").replace(/\b\w/g, l => l.toUpperCase());
@@ -360,6 +375,9 @@ function showContent(section) {
 						fetchApprovalslist();
 						fetchIssuelist();
 						fetchCounts();
+					}
+					else if(section === "salary-process"){
+						fetchinitialSalary();
 					}
 						
 				}
@@ -713,6 +731,7 @@ function attachFormListeners() {
     document.getElementById("addChargeCodeBtn")?.addEventListener("click", showDropdown);
 	document.getElementById("addExpenseCodeBtn")?.addEventListener("click", () => showForm("Expense-code"));
 	document.getElementById("addHolidayBtn")?.addEventListener("click", () => showForm("Holiday"));
+	document.getElementById("addSalarybtn")?.addEventListener("click", () => showForm("addSalary"));
 	
 }
 
@@ -743,13 +762,20 @@ function showForm(type) {
     const formContainer = document.getElementById("form-container");
     formContainer.innerHTML = createForm(type);
 	
+			setTimeout(() => {
+		        if (type === "addSalary") {
+		            fetchEmployeesForSalaryForm();
+		        }
+		    }, 50);
+	
 	document.querySelector("#form-container form").addEventListener("submit", handleFormSubmit);
 }
 
 /*Function for sending data into backend (Java) */
 function handleFormSubmit(event) {
     event.preventDefault(); 
-	showLoader();
+    showLoader();
+
     const form = event.target;
     const formData = new FormData(form);
     const jsonData = Object.fromEntries(formData.entries());
@@ -764,19 +790,29 @@ function handleFormSubmit(event) {
     .then(response => response.text())
     .then(data => {
         showAlert(data, "success");
-		
         hideForm(); 
-		fetchEmployeeData();
-		fetchCodeDatas();
-		fetchDelegator();
-		fetchExpense();
-		fetchHoliday();
-		
+
+        // ✅ Refresh the right section
+        const action = form.getAttribute("action");
+
+        if (action.includes("addEmployee")) {
+            fetchEmployeeData();
+        } else if (action.includes("addChargeCode")) {
+            fetchCodeDatas();
+        } else if (action.includes("addDelegate")) {
+            fetchDelegator();
+        } else if (action.includes("addExpense")) {
+            fetchExpense();
+        } else if (action.includes("addHoliday")) {
+            fetchHoliday();
+        } else if (action.includes("addSalary")) {
+            fetchinitialSalary();
+        }
     })
     .catch(error => {
         console.error("Error:", error);
     })
-	.finally(() => hideLoader());
+    .finally(() => hideLoader());
 }
 
 
@@ -916,27 +952,26 @@ function employeeAction(employeeId, currentStatus) {
     const confirmationModal = new bootstrap.Modal(document.getElementById('confirmationModal'));
     confirmationModal.show();
 
-    // When the user clicks "Yes", perform the action
-    confirmActionBtn.onclick = function() {
-        // Perform the employee status update based on the current status
-        fetch(`/updateEmployeeStatus/${employeeId}`, {
-            method: "PUT"
-        })
-        .then(response => {
-            if (response.ok) {
-                showAlert("Employee status updated successfully!", "success");
-                fetchEmployeeData();  // Refresh the table after update
-                confirmationModal.hide();  // Close the modal
-            } else {
-                showAlert("Failed to update employee status.", "danger");
-                confirmationModal.hide();  // Close the modal
-            }
-        })
-        .catch(error => {
-            console.error("Error updating employee status:", error);
-            confirmationModal.hide();  // Close the modal
-        });
-    };
+	confirmActionBtn.onclick = function() {
+	    fetch(`/updateEmployeeStatus/${employeeId}`, {
+	        method: "PUT"
+	    })
+	    .then(response => {
+	        if (response.ok) {
+	            showAlert("Employee status updated successfully!", "success");
+	            fetchEmployeeData();  // Refresh the table after update
+	        } else {
+	            showAlert("Failed to update employee status.", "danger");
+	        }
+	    })
+	    .catch(error => {
+	        console.error("Error updating employee status:", error);
+	    })
+	    .finally(() => {
+	        document.activeElement.blur();     // ✅ Fix the accessibility warning
+	        confirmationModal.hide();          // ✅ Now safe to hide the modal
+	    });
+	};
 }
 
 
@@ -1459,6 +1494,40 @@ function SubmitUpdatedHoliday(event, id) {
     });
 }
 
+
+
+function fetchinitialSalary() {
+    fetch("/getInitialSalary") 
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById("Initialsalary-table-body");
+            tableBody.innerHTML = ""; 
+            data.forEach(Salary => {
+                const bankStatus = Salary.bankaccount === "1" 
+                    ? '<span style="color:green;">&#10004;</span>'   // ✅
+                    : Salary.bankaccount === "0" 
+                        ? '<span style="color:red;">&#10060;</span>' // ❌
+                        : Salary.bankaccount; // fallback for any other value
+
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${Salary.id}</td>
+                        <td>${Salary['E-name']}</td> 
+                        <td>${Salary["doj"]}</td> 
+                        <td>${Salary["Salary_M"]}</td>
+                        <td>${Salary.yearsalary}</td>
+                        <td>${bankStatus}</td>							 
+                        <td>
+                            <button class="btn btn-success btn-sm"><i class="bi bi-pencil-square"></i></button>
+                            <button class="btn btn-danger btn-sm"><i class="bi bi-trash3"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        })
+        .catch(error => console.error("Error fetching Charge codes:", error));
+}
+
 /*Form creation for all the options*/
 function createForm(type) {
     const forms = {
@@ -1468,7 +1537,7 @@ function createForm(type) {
                 <form action="/addEmployee" method="POST" autocomplete="off">
                     ${inputField("Name", "text", "E-name")}
 					${inputField("Email", "email", "E-mail")}
-					${inputField("Password", "password", "E-pass")}
+					${inputField("Password", "password", "E-pass", "", "", true)}
 					${inputField("Onboard date", "date", "onborad")}
 					${inputField("Designation", "text", "E-desg")}
                     ${selectField("Role", "E-role", ["Select Role","Admin","Employee"])}
@@ -1543,7 +1612,24 @@ function createForm(type) {
 				            ${formButtons()}
 				        </form>
 				   </div>
-				`
+				`,
+
+				"addSalary": `
+					<div class="card p-3 mb-3">
+						<h4>Add Salary for Employee</h4>
+						    <form action="/addSalary" method="POST" autocomplete="off">
+								<div class="mb-3">
+								    <label class="form-label">Employee Name</label>
+								      <select class="form-control" name="E-name" id="salaryEmployeeSelect" onchange="updateDOJ()" required>
+								              <option value="">Select Employee</option>
+								        </select>
+								    </div>
+									${inputField("DOJ", "text", "doj", "", "", true)}  
+								${inputField("Salary(Month)", "number", "Salary_M")}
+								${formButtons()}
+							</form>
+						</div>
+					`
     };
 	setTimeout(fetchEmfordeg, 0);
 
@@ -1640,19 +1726,20 @@ function generatePassword(inputId) {
 }
 
 /*Input field function*/
-function inputField(label, type, name, formType = "", value = "") {
+function inputField(label, type, name, formType = "", value = "", readonly = false) {
     const isPasswordField = name === "E-pass" || name === "SA-pass";
     const isChargeCodeField = name === "code" && formType === "charge-code";
 
     return `
         <div class="mb-3">
             <label class="form-label">${label}</label>
-            <input type="${type}" class="form-control" name="${name}" id="${name}" value="${value || ""}" required>
+            <input type="${type}" class="form-control" name="${name}" id="${name}" value="${value || ""}" ${readonly ? "readonly" : ""} required>
             ${isPasswordField ? `<button class="btn btn-outline-primary" type="button" onclick="generatePassword('${name}')" style="margin-top: 10px;">Generate</button>` : ""}
             ${isChargeCodeField ? `<button class="btn btn-outline-primary" type="button" onclick="codeGenerate()" style="margin-top: 10px;">Generate Charge Code</button>` : ""}
         </div>
     `;
 }
+
 
 
 /*Select field function*/
