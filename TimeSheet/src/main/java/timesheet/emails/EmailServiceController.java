@@ -120,7 +120,7 @@ public class EmailServiceController {
 	            + "<p><strong>Salary Month:</strong>₹ " + salaryData.getMonthsalary() + "</p>"
 	            + "<p><strong>Salary Year:</strong>₹ " + salaryData.getYearsalary() + "</p>"
 	            + "<br>"
-	            + "<p><strong>Important:</strong> To ensure timely salary processing, kindly update your bank account details on the Timesheet portal at your earliest convenience.</p>"
+	            + "<p><strong>Important:</strong> To ensure timely salary processing, kindly update your bank account details on the Timesheet portal in Payslip section at your earliest convenience.</p>"
 	            + "<p><strong>Access your Timesheet here:</strong> <a href=\"https://timex.tidyds.com\">Tidy Timesheet Portal</a></p>"
 	            + "<p>If you have any questions or need assistance, please do not hesitate to reach out to us.</p>"
 	            + "<h3>Important Information</h3>"

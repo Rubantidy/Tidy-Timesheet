@@ -10,5 +10,7 @@ import timesheet.payroll.dao.AddSalary;
 @Repository
 public interface AddSalaryRepo extends JpaRepository<AddSalary, Integer> {
 
+	List<AddSalary> findByEmployeename(String employeename);
+
 
 }

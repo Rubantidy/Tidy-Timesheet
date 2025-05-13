@@ -10,6 +10,7 @@
 	<script src="/Employee/script.js"></script>
 	<script src="/js/sockjs.min.js"></script>
 	<script src="/js/stomp.min.js"></script>
+	<script src="/Payroll/SalaryLogic.js"></script>
 
 	
 	<link rel="stylesheet" href="/Employee/style.css">
@@ -474,14 +475,120 @@
 	    </div>
 	</div>
 	
-	<!-- Section for Location -->
-	<div id="payslip" class="content-section" style="display: none;">
-	    <h3>PaySlip Section</h3>
-	    <p>This is where payslip details will go.</p>
+	
+	
+	<!-- Section for PaySlip -->
+	<div id="payslip" class="content-section" style="display: none; padding: 20px;">
+	  <h3 class="text-primary">PaySlip Section</h3>
+
+	  <!-- Bank Details Table -->
+	  <div class="card p-3">
+	    <div class="d-flex justify-content-between align-items-center mb-3">
+	      <h5 class="mb-0">Bank Details</h5>
+	      <button class="btn btn-primary" onclick="openBankEditModal()">Update Bank Details</button>
+	    </div>
+
+	    <table class="table table-bordered w-100">
+	      <tbody>
+	        <tr>
+	          <th style="width: 200px;">Account Holder</th>
+	          <td id="bankAccountHolder">-</td>
+	        </tr>
+	        <tr>
+	          <th>Account Number</th>
+	          <td id="bankAccountNumber">-</td>
+	        </tr>
+	        <tr>
+	          <th>IFSC Code</th>
+	          <td id="bankIFSC">-</td>
+	        </tr>
+	        <tr>
+	          <th>Bank Name</th>
+	          <td id="bankName">-</td>
+	        </tr>
+	        <tr>
+	          <th>UPI ID</th>
+	          <td id="bankUpiId">-</td>
+	        </tr>
+	      </tbody>
+	    </table>
+	  </div>
 	</div>
 	
 	
 	<!-- Models -->
+		
+	<!-- Bank Edit Modal -->
+	<div class="modal fade" id="bankEditModal" tabindex="-1" aria-labelledby="bankEditModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title">Bank Details</h5>
+	        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	      </div>
+	      <div class="modal-body">
+	        <form id="bankEditForm">
+				<div class="mb-2">
+				  <label class="form-label">Account Holder</label>
+				  <input type="text" class="form-control" id="inputAccountHolder">
+				  <div class="text-danger small" id="errorAccountHolder"></div>
+				</div>
+
+				<div class="mb-2">
+				  <label class="form-label">Account Number</label>
+				  <input type="text" class="form-control" id="inputAccountNumber">
+				  <div class="text-danger small" id="errorAccountNumber"></div>
+				</div>
+
+				<div class="mb-2">
+				  <label class="form-label">IFSC Code</label>
+				  <input type="text" class="form-control" id="inputIFSC">
+				  <div class="text-danger small" id="errorIFSC"></div>
+				</div>
+
+				<div class="mb-2">
+				  <label class="form-label">Bank Name</label>
+				  <input type="text" class="form-control" id="inputBankName">
+				  <div class="text-danger small" id="errorBankName"></div>
+				</div>
+
+				<div class="mb-2">
+				  <label class="form-label">UPI ID</label>
+				  <input type="text" class="form-control" id="inputUpiId">
+				  <div class="text-danger small" id="errorUpiId"></div>
+				</div>
+	        </form>
+	      </div>
+	      <div class="modal-footer">
+	        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+	        <button class="btn btn-success" onclick="saveBankDetails()">Save</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+
+	
+	<!-- Confirmation Modal for Bank -->
+	<div class="modal fade" id="confirmBankModal" tabindex="-1" aria-labelledby="confirmBankModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title">Confirm Save</h5>
+	        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	      </div>
+	      <div class="modal-body">
+	        <p id="confirmBankText"></p>
+			<p id="bankWarningNote" class="text-danger small mb-0"></p>
+	      </div>
+	      <div class="modal-footer">
+	        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+	        <button class="btn btn-success" id="confirmSaveBank">Confirm</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+
+	
 	<!-- Delete Confirmation Modal (Unique ID & Class) -->
 	<div id="deleteRowModal" class="modal delete-row-modal" tabindex="-1" aria-labelledby="deleteRowModalLabel" aria-hidden="true">
 	    <div class="modal-dialog">
@@ -625,6 +732,7 @@
 
 
 	document.addEventListener("DOMContentLoaded", function () {
+		fetchBankDetails();
 	    const navLinks = document.querySelectorAll(".nav-link");
 
 	    navLinks.forEach(link => {

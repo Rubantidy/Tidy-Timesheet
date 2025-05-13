@@ -16,7 +16,7 @@ public class AddSalary {
 
 	
 	@JsonProperty("E-name")
-	private String Employeename;
+	private String employeename;
 	
 	@JsonProperty("doj")
 	private String DOJ;
@@ -27,17 +27,20 @@ public class AddSalary {
 	
 	private String Yearsalary;
 	private String Bankaccount;
+	
+	
 	public int getId() {
 		return id;
 	}
 	public void setId(int id) {
 		this.id = id;
 	}
+	
 	public String getEmployeename() {
-		return Employeename;
+		return employeename;
 	}
 	public void setEmployeename(String employeename) {
-		Employeename = employeename;
+		this.employeename = employeename;
 	}
 	public String getDOJ() {
 		return DOJ;
@@ -65,9 +68,13 @@ public class AddSalary {
 	}
 	@Override
 	public String toString() {
-		return "AddSalary [id=" + id + ", Employeename=" + Employeename + ", DOJ=" + DOJ + ", Monthsalary="
+		return "AddSalary [id=" + id + ", employeename=" + employeename + ", DOJ=" + DOJ + ", Monthsalary="
 				+ Monthsalary + ", Yearsalary=" + Yearsalary + ", Bankaccount=" + Bankaccount + "]";
 	}
+	
+	
+	
+	
 	
 	
 	

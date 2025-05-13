@@ -1,22 +1,26 @@
 package timesheet.payroll;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.mail.MessagingException;
-import timesheet.admin.dao.Codedao;
 import timesheet.admin.dao.Employeedao;
 import timesheet.admin.repo.EmployeeRepo;
 import timesheet.emails.EmailServiceController;
 import timesheet.payroll.dao.AddSalary;
+import timesheet.payroll.dao.Bankdetails;
 import timesheet.payroll.repo.AddSalaryRepo;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import timesheet.payroll.repo.BankDetailsRepo;
 
 
 @RestController
@@ -28,6 +32,9 @@ public class SalaryController {
 	@Autowired
 	private AddSalaryRepo addSalaryRepo;
 	
+	@Autowired
+	private BankDetailsRepo bankDetailsrepo;
+
 	@Autowired
 	private EmailServiceController emailservice;
 	
@@ -85,7 +92,71 @@ public class SalaryController {
 	        List<AddSalary> Salary = addSalaryRepo.findAll();
 	        return ResponseEntity.ok(Salary);
 	    }
+	 
 	
+	 
+	 @PostMapping("/saveBankDetails")
+	 public ResponseEntity<?> saveBankDetails(
+	         @RequestParam("Employeename") String employeename,
+	         @RequestParam("accountHolder") String accountHolder,
+	         @RequestParam("accountNumber") String accountNumber,
+	         @RequestParam("ifsc") String ifsc,
+	         @RequestParam("bankName") String bankName,
+	         @RequestParam("upiId") String upiId) {
+
+	     try {
+	         // ✅ Check if bank details already exist
+	         Optional<Bankdetails> existingDetailsOpt = bankDetailsrepo.findTopByEmployeenameOrderByIdDesc(employeename);
+
+	         Bankdetails bankDetails;
+	         if (existingDetailsOpt.isPresent()) {
+	             // ✅ Update existing
+	             bankDetails = existingDetailsOpt.get();
+	         } else {
+	             // ✅ Insert new
+	             bankDetails = new Bankdetails();
+	             bankDetails.setEmployeename(employeename);
+	         }
+
+	         // Set/Update fields
+	         bankDetails.setAccountHolder(accountHolder);
+	         bankDetails.setAccountNumber(accountNumber);
+	         bankDetails.setIfsc(ifsc);
+	         bankDetails.setBankName(bankName);
+	         bankDetails.setUpiId(upiId);
+
+	         bankDetailsrepo.save(bankDetails); // Save updated or new
+
+	         // ✅ Update Bankaccount flag in AddSalary
+	         List<AddSalary> salaryRecords = addSalaryRepo.findByEmployeename(employeename);
+	         for (AddSalary record : salaryRecords) {
+	             record.setBankaccount("1");
+	         }
+	         addSalaryRepo.saveAll(salaryRecords);
+
+	         return ResponseEntity.ok(Map.of("message", "Bank details saved/updated and salary status updated!"));
+
+	     } catch (Exception e) {
+	         e.printStackTrace();
+	         return ResponseEntity.status(500).body(Map.of("message", "Error saving bank details: " + e.getMessage()));
+	     }
+	 }
+
+	 
+	 @GetMapping("/getBankDetails")
+	 public ResponseEntity<?> getBankDetails(@RequestParam("Employeename") String employeename) {
+	     try {
+	         Optional<Bankdetails> bankDetails = bankDetailsrepo.findTopByEmployeenameOrderByIdDesc(employeename);
+	         if (bankDetails.isPresent()) {
+	             return ResponseEntity.ok(bankDetails.get());
+	         } else {
+	             return ResponseEntity.status(404).body(Map.of("message", "Bank details not found"));
+	         }
+	     } catch (Exception e) {
+	         e.printStackTrace();
+	         return ResponseEntity.status(500).body(Map.of("message", "Error fetching bank details: " + e.getMessage()));
+	     }
+	 }
 
 }
 	
