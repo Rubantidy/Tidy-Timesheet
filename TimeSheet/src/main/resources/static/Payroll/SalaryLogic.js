@@ -31,6 +31,8 @@ function updateDOJ() {
 }
 
 
+//Employee
+
 function openBankEditModal() {
   document.getElementById('inputAccountHolder').value = document.getElementById('bankAccountHolder').textContent;
   document.getElementById('inputAccountNumber').value = document.getElementById('bankAccountNumber').textContent;
@@ -167,6 +169,9 @@ function fetchBankDetails() {
             showAlert("Unable to load bank details", "danger");
         });
 }
+
+
+
 
 
 

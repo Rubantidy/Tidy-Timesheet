@@ -1,7 +1,6 @@
 package timesheet.employee;
 
 import java.io.IOException;
-
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -38,12 +37,12 @@ import timesheet.employee.dao.Preference;
 import timesheet.employee.dao.SummaryEntry;
 import timesheet.employee.dao.TimesheetEntry;
 import timesheet.employee.repo.EmpExpenseRepository;
-
 import timesheet.employee.repo.PreferenceRepository;
 import timesheet.employee.repo.SummaryRepository;
 import timesheet.employee.repo.TimesheetRepository;
 import timesheet.employee.service.TimesheetService;
 import timesheet.notification.NotificationService;
+import timesheet.payroll.MonthlySummaryService;
 
 @RestController
 public class TimesheetController {
@@ -65,6 +64,9 @@ public class TimesheetController {
     
     @Autowired
     private AllowedLeavesRepository allowedleaverepo;
+    
+    @Autowired
+    private MonthlySummaryService monthlySummaryService;
 
   
 
@@ -325,35 +327,57 @@ public class TimesheetController {
                     .body(Map.of("success", false, "message", "Failed to generate summary"));
         }
 
-        // ✅ Save summary to the database with given status
+ 
         saveSummary(username, period, summary, status);
 
-        // ✅ Send notifications based on status
+
         if (status.equals("Pending")) {
             notificationService.sendAdminNotification(username + " is waiting for Timesheet approval on this Period: " + period);
         } else if (status.equals("Approved")) {
             notificationService.sendNotification(username, "Your timesheet for " + period + " has been Submited.");
         }
 
+
+        if (isSecondPeriod(period)) {
+            String month = extractMonthFromPeriod(period);
+            try {
+                monthlySummaryService.generateMonthlySummary(username, month); 
+            } catch (Exception e) {
+                System.err.println("Monthly summary skipped: " + e.getMessage());
+            }
+        }
+
         return ResponseEntity.ok(Map.of("success", true));
     }
 
 
+    private boolean isSecondPeriod(String period) {
+        return period.startsWith("16/"); 
+    }
+
+
+    private String extractMonthFromPeriod(String period) {
+        String[] parts = period.split(" ")[0].split("/"); 
+        return parts[2] + "-" + parts[1]; // 2025-05
+    }
+
+
     public void saveSummary(String username, String period, Map<String, Object> summaryData, String status) {
-        // ✅ Check if an existing entry is present
+  
         SummaryEntry existingEntry = summaryRepository.findByUsernameAndPeriod(username, period);
 
         if (existingEntry != null) {
-            // ✅ Update existing record
+        
             existingEntry.setSummaryData(new Gson().toJson(summaryData));
             existingEntry.setStatus(status);
-            summaryRepository.save(existingEntry); // ✅ Save updated record
+            summaryRepository.save(existingEntry);
         } else {
-            // ✅ Create a new entry if no existing record
+     
             SummaryEntry newEntry = new SummaryEntry(username, period, summaryData, status);
             summaryRepository.save(newEntry);
         }
     }
+
 
 
     
@@ -449,13 +473,23 @@ public class TimesheetController {
         boolean success = timesheetService.approveTimesheet(username, period);
 
         if (success) {
-        	  notificationService.sendNotification(username, "Your timesheet has been approved on this Period: " + period);
+            notificationService.sendNotification(username, "Your timesheet has been approved on this Period: " + period);
+
+            // ✅ ADD THIS: Try generating the monthly summary only if both periods are approved now
+            String month = extractMonthFromPeriod(period); // You need to implement this helper
+            try {
+                monthlySummaryService.generateMonthlySummary(username, month);
+            } catch (Exception e) {
+                // Optional: log or ignore if not both approved yet
+            }
+
             return ResponseEntity.ok(Collections.singletonMap("message", "Timesheet approved successfully."));
-        } 
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(Collections.singletonMap("message", "Timesheet entry not found."));     
-		
+        }
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Collections.singletonMap("message", "Timesheet entry not found."));
     }
+
     
     
     @GetMapping("/getApprovalStatus")

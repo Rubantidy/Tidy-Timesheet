@@ -1,5 +1,6 @@
 package timesheet.employee.dao;
 
+import java.lang.reflect.Type;
 import java.util.Map;
 
 import com.google.gson.Gson;
@@ -35,7 +36,8 @@ public class SummaryEntry {
     }
 
     public Map<String, Object> getSummaryData() {
-        return new Gson().fromJson(this.summaryData, new TypeToken<Map<String, Object>>() {}.getType());
+        Type mapType = new TypeToken<Map<String, Object>>() {}.getType();
+        return new Gson().fromJson(this.summaryData, mapType); // Correct usage
     }
 
 	public Long getId() {
