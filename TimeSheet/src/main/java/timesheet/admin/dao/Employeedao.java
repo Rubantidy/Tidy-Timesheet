@@ -135,6 +135,11 @@ public class Employeedao {
 				+ ", additionalRole=" + additionalRole + ", status=" + status + "]";
 	}
 
+	public Employeedao get() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 
 	

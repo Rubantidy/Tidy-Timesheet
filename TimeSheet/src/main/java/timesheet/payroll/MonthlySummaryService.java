@@ -4,12 +4,14 @@ import java.time.YearMonth;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import timesheet.employee.dao.SummaryEntry;
 import timesheet.employee.repo.SummaryRepository;
 import timesheet.payroll.dao.MonthlySummary;
 import timesheet.payroll.repo.MonthlySummaryRepository;
+
 
 @Service
 public class MonthlySummaryService {
@@ -19,8 +21,9 @@ public class MonthlySummaryService {
 
     @Autowired
     private MonthlySummaryRepository monthlySummaryRepository;
+    
 
-    public MonthlySummary generateMonthlySummary(String username, String month) {
+    public ResponseEntity<String> generateMonthlySummary(String username, String month) {
         String period1 = getPeriod1(month);
         String period2 = getPeriod2(month);
 
@@ -28,11 +31,11 @@ public class MonthlySummaryService {
         SummaryEntry s2 = summaryRepository.findByUsernameAndPeriod(username, period2);
 
         if (s1 == null || s2 == null) {
-           
+        	 return ResponseEntity.ok("Pending submission of one or both periods.");
         }
 
         if (!"Approved".equalsIgnoreCase(s1.getStatus()) || !"Approved".equalsIgnoreCase(s2.getStatus())) {
-            
+        	 return ResponseEntity.ok("One or both periods are not yet approved.");
         }
 
         Map<String, Object> data1 = s1.getSummaryData();
@@ -46,7 +49,7 @@ public class MonthlySummaryService {
 
         double lop = calculateLOP(cl, pl);
 
-        double totalWorkingDays = (totalHours / 9.0) - lop;
+        double totalWorkingDays = (totalHours / 9.0);
 
         MonthlySummary summary = monthlySummaryRepository
                 .findByUsernameAndMonth(username, month)
@@ -60,8 +63,11 @@ public class MonthlySummaryService {
         summary.setTotalLOPDays(lop);
         summary.setTotalWorkingDays(totalWorkingDays);
 
-        return monthlySummaryRepository.save(summary);
+         monthlySummaryRepository.save(summary);
+         
+         return ResponseEntity.ok("Ready for summary generation.");
     }
+    
 
     private String getPeriod1(String month) {
 
@@ -92,5 +98,9 @@ public class MonthlySummaryService {
         double extraCL = cl > 1 ? (cl - 1) : 0;
         return pl + extraCL;
     }
+    
+    
+    
+
 
 }

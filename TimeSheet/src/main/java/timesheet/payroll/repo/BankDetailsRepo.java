@@ -12,4 +12,6 @@ public interface BankDetailsRepo extends JpaRepository<Bankdetails, Long> {
 
 	Optional<Bankdetails> findTopByEmployeenameOrderByIdDesc(String employeename);
 
+	Bankdetails findByEmployeenameIgnoreCase(String username);
+
 }

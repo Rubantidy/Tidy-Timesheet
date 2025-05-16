@@ -18,6 +18,7 @@ public class Bankdetails {
     private String ifsc;
     private String bankName;
     private String upiId;
+    
 	public Long getId() {
 		return id;
 	}

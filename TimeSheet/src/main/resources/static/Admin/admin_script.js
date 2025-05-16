@@ -1,5 +1,5 @@
 
-
+ 
 document.addEventListener("DOMContentLoaded", function() {
 	    const userName = sessionStorage.getItem("userName");
 
@@ -318,53 +318,48 @@ function showContent(section) {
 					  </table>
 			         `,
 					   "payslip": `
-					 			<h1>Payslip section</h1>	
-								<div class="container mt-4">
-								  <h2 class="mb-4">Generate & Approve Payslip</h2>
+					   <h1>Payslip section</h1>	
+					   <div class="container mt-4">
+					     <h2 class="mb-4">Generate & Approve Payslip</h2>
 
-								  <div class="row g-3 mb-4">
-								    <div class="col-md-4">
-								      <label class="form-label">Select Month</label>
-								      <select class="form-select">
-								        <option>May 2025</option>
-								        <option>April 2025</option>
-								      </select>
-								    </div>
-								    <div class="col-md-4">
-								      <label class="form-label">Select Employee</label>
-								      <select class="form-select">
-								        <option>John Doe (EMP001)</option>
-								        <option>Arun Kumar (EMP002)</option>
-								      </select>
-								    </div>
-								    <div class="col-md-4 d-flex align-items-end">
-								      <button class="btn btn-primary me-2">Generate Payslip</button>
-								      <button class="btn btn-success">Approve</button>
-								    </div>
-								  </div>
+					     <div class="row g-3 mb-4">
+					       <div class="col-md-4">
+					         <label class="form-label">Select Month</label>
+					         <input type="month" class="form-control" id="monthPicker" onchange="loadEmployeesForMonth()" />
+					       </div>
+					       <div class="col-md-4">
+					         <label class="form-label">Select Employee</label>
+					         <select class="form-select" id="employeeSelect" onchange="loadPayslipDetails()" >
+					           <option value="">Select Employee</option>
+					         </select>
+					       </div>
+					       <div class="col-md-4 d-flex align-items-end">
+						   <button id="PayslipapproveBtn" class="btn btn-success" onclick="showPayslipApproveConfirmation()">Approve Payslip</button>
+					       </div>
+					     </div>
 
-								  <div class="card shadow-sm p-4 mb-4">
-								    <h4 class="mb-3">Payslip Preview – May 2025</h4>
-								    <table class="table table-bordered">
-								      <tbody>
-								        <tr><th>Name</th><td>John Doe</td></tr>
-								        <tr><th>Employee ID</th><td>EMP001</td></tr>
-								        <tr><th>Designation</th><td>Software Engineer</td></tr>
-								        <tr><th>Basic Salary</th><td>₹40,000</td></tr>
-								        <tr><th>HRA</th><td>₹10,000</td></tr>
-								        <tr><th>Allowances</th><td>₹5,000</td></tr>
-								        <tr><th>Deductions</th><td>₹2,000</td></tr>
-								        <tr class="table-success"><th>Net Pay</th><td><strong>₹53,000</strong></td></tr>
-								      </tbody>
-								    </table>
-
-								   
-
-								    <button class="btn btn-outline-primary mt-4">Download PDF</button>
-								  </div>
-								</div>
-	
-					         `
+					     <div id="payslip-preview-container">
+					       <!-- Dynamic payslip preview will be rendered here -->
+					       <div class="card shadow-sm p-4 mb-4">
+					         <h4 class="mb-3">Payslip Preview –  </h4>
+					         <table class="table table-bordered">
+					           <tbody>
+					             <tr><th>Employee Name</th><td>-</td></tr>
+					             <tr><th>Onboarded Date</th><td>-</td></tr>
+					             <tr><th>Designation</th><td>-</td></tr>
+								 <tr><th>STD Work days</th><td>-</td></tr>
+								 <tr><th>Total Leaves</th><td>-</td></tr>
+					             <tr><th>Total Working Days</th><td>-</td></tr>								 
+					             <tr><th>LOP</th><td>-</td></tr>
+					             <tr><th>Basic Salary</th><td>₹</td></tr>
+					             <tr><th>Deductions</th><td>₹</td></tr>
+					             <tr class="table-success"><th>Net Pay</th><td><strong>₹</strong></td></tr>
+					           </tbody>
+					         </table>
+					       </div>
+					     </div>
+					   </div>
+							 `
     };
 
     title.innerText = section.replace("-", " ").replace(/\b\w/g, l => l.toUpperCase());
@@ -430,7 +425,8 @@ function showContent(section) {
 					}
 						
 				}
-						
+					
+					
 				function listAssignedEmployees() {
 				    const searchInput = document.getElementById("searchAssignedEmployee");
 				    const employeeTableBody = document.getElementById("assignedEmployeeTableBody");
