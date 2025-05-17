@@ -255,7 +255,6 @@ async function loadPayslipDetails() {
                   <tr class="table-success"><th>Net Pay</th><td><strong>₹${parseFloat(data.netPay).toLocaleString()}</strong></td></tr>
                 </tbody>
               </table>
-              <button class="btn btn-outline-primary mt-4">Download PDF</button>
             </div>
         `;
 
@@ -372,6 +371,8 @@ async function appreovPaylisp() {
 			    // Optionally reset the selects too:
 			    document.getElementById("monthPicker").value = "";
 			    document.getElementById("employeeSelect").innerHTML = '<option value="">Select Employee</option>';
+				fetchPayslipData();
+				
 			}
 			
          else {
@@ -382,4 +383,93 @@ async function appreovPaylisp() {
         console.error("Error approving payslip:", error);
         showAlert("Error approving payslip. Check console for details.", "danger");
     }
+}
+
+
+
+function fetchPayslipData() {
+    fetch("/payslip/getPayslipdata")
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById("payslip-table-body");
+            tableBody.innerHTML = "";
+
+            data.forEach(payslip => {
+                const [year, month] = payslip.month.split("-");
+                const displayMonth = new Date(year, month - 1).toLocaleString('default', { month: 'long' }) + " - " + year;
+                const monthParam = `${year}-${month.padStart(2, '0')}`;
+
+
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${payslip.id}</td>
+                        <td>${payslip.username}</td> 
+                        <td>${payslip.designation}</td> 
+                        <td>${displayMonth}</td>
+                        <td>${payslip.stdWorkDays}</td>		
+                        <td>${payslip.totalWorkingDays}</td>	
+                        <td>${payslip.netPay}</td>	
+                        <td>${payslip.bankName}</td>
+                        <td>${payslip.salaryProcessAt}</td>	
+                        <td>
+                            <button class="btn btn-sm btn-primary" onclick="downloadPayslipAdmin('${payslip.username}', '${monthParam}')">
+                                View PDF
+                            </button>
+                        </td>				                       
+                    </tr>
+                `;
+            });
+        })
+        .catch(error => console.error("Error fetching Payslip data:", error));
+}
+
+function downloadPayslipAdmin(username, month) {
+    fetch(`/PayslipDownload?username=${encodeURIComponent(username)}&month=${encodeURIComponent(month)}`)
+        .then(response => {
+            if (!response.ok) throw new Error("Failed to download PDF");
+            return response.blob();
+        })
+        .then(blob => {
+            const url = URL.createObjectURL(blob);
+            window.open(url, '_blank'); // 👉 opens in new tab
+        })
+        .catch(err => {
+            console.error("Error downloading PDF:", err);
+            showAlert("Failed to open payslip.", "danger");
+        });
+}
+
+
+
+function downloadPayslip() {
+    const username = sessionStorage.getItem("userName");
+
+    function getSelectedPeriod() {
+        return periodDropdown.options[periodDropdown.selectedIndex].text; // "01/05/2025 - 15/05/2025"
+    }
+
+    const extractedPeriod = getSelectedPeriod();
+
+    // Extract "2025-05" from "01/05/2025 - 15/05/2025"
+    const dateParts = extractedPeriod.split(" - ")[0].split("/"); // ["01", "05", "2025"]
+    const formattedMonth = `${dateParts[2]}-${dateParts[1]}`;       // "2025-05"
+
+    fetch(`/PayslipDownload?username=${encodeURIComponent(username)}&month=${formattedMonth}`)
+        .then(response => {
+            if (!response.ok) throw new Error("Failed to download PDF");
+            return response.blob();
+        })
+        .then(blob => {
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = `Payslip-${username}-${formattedMonth}.pdf`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        })
+        .catch(err => {
+            console.error("Error downloading PDF:", err);
+            showAlert("Your Timesheet Didn't Approve on This Month.", "danger");
+        });
 }

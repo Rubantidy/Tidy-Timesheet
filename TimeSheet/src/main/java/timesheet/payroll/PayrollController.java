@@ -36,8 +36,8 @@ import timesheet.payroll.repo.MonthlySummaryRepository;
 @RequestMapping("/payslip")
 public class PayrollController {
 
-	@Autowired
-	private EmployeeRepo EmpRepo;
+		@Autowired
+		private EmployeeRepo EmpRepo;
 	
 	    @Autowired
 	    private MonthlySummaryRepository monthlySummaryRepository;
@@ -178,5 +178,144 @@ public class PayrollController {
 	        return ResponseEntity.ok(Map.of("message", "Payslip approved and saved successfully"));
 	    }
 	    
+	    
+	    @GetMapping("/getPayslipdata")
+	    public ResponseEntity<List<ApprovedPayslip>> getExpense() {
+	        List<ApprovedPayslip> Payslip = approvedPayslip.findAll();
 
+	        return ResponseEntity.ok(Payslip);
+	    }
+
+	    
+	    
+//	    @GetMapping("/PayslipDownload")
+//	    public ResponseEntity<byte[]> downloadPayslip(
+//	            @RequestParam String username,
+//	            @RequestParam String month) throws IOException, DocumentException {
+//	    	
+//	    	username = username.trim();
+//	        month = month.trim();
+//
+//	        ApprovedPayslip approvedPaysliprepo = approvedPayslip
+//	                .findByUsernameAndMonth(username, month);
+//
+//	        if (approvedPaysliprepo == null) {
+//	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+//	        }
+//
+//	        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//	        Document document = new Document();
+//	        PdfWriter.getInstance(document, baos);
+//	        document.open();
+//
+//	        // Fonts
+//	        Font titleFont = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD);
+//	        Font labelFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
+//	        Font normalFont = new Font(Font.FontFamily.HELVETICA, 12);
+//	        Font smallFont = new Font(Font.FontFamily.HELVETICA, 10);
+//
+//	        // --- Logo (correct way from resources) ---
+//	        try {
+//	            ClassPathResource imageResource = new ClassPathResource("static/img/logo.png"); // src/main/resources/logo.png
+//	            InputStream logoStream = imageResource.getInputStream();
+//	            byte[] logoBytes = logoStream.readAllBytes();
+//	            Image logo = Image.getInstance(logoBytes);
+//	            logo.scaleToFit(100, 50);
+//	            logo.setAlignment(Element.ALIGN_CENTER);
+//	            document.add(logo);
+//	        } catch (Exception e) {
+//	            e.printStackTrace(); // Optional log
+//	        }
+//
+//	        // Header
+//	        Paragraph payslipTitle = new Paragraph("PAYSLIP", titleFont);
+//	        payslipTitle.setAlignment(Element.ALIGN_CENTER);
+//	        document.add(payslipTitle);
+//	        
+//
+//	        document.add(Chunk.NEWLINE);
+//
+//	        Paragraph company = new Paragraph("Tidy Digital Solution", labelFont);
+//	        company.setAlignment(Element.ALIGN_CENTER);
+//	        document.add(company);
+//
+//	        Paragraph monthPara = new Paragraph("Payslip for " + approvedPaysliprepo.getMonth().toUpperCase(), labelFont);
+//	        monthPara.setAlignment(Element.ALIGN_CENTER);
+//	        document.add(monthPara);
+//
+//	        document.add(Chunk.NEWLINE);
+//
+//	        // Employee Info Table
+//	        PdfPTable empTable = new PdfPTable(2);
+//	        empTable.setWidthPercentage(100);
+//	        empTable.setSpacingBefore(10f);
+//	        empTable.setSpacingAfter(10f);
+//
+//	        empTable.addCell("Name: " + approvedPaysliprepo.getUsername());
+//	        empTable.addCell("Bank: " + approvedPaysliprepo.getBankName());
+//
+//	        empTable.addCell("DOJ: " + approvedPaysliprepo.getOnboardDate());
+//	        empTable.addCell("A/c No: " + approvedPaysliprepo.getAccountNumber());
+//
+//	        empTable.addCell("LOP Days: " + approvedPaysliprepo.getLop().intValue());
+//	        empTable.addCell("Worked Days: " + approvedPaysliprepo.getTotalWorkingDays());
+//
+//	        empTable.addCell("STD Days: " + approvedPaysliprepo.getStdWorkDays());
+//	        empTable.addCell("");
+//
+//	        empTable.addCell("Designation: " + approvedPaysliprepo.getDesignation());
+//	        empTable.addCell("Total Leaves: " + approvedPaysliprepo.getTotalLeaves());
+//
+//	        empTable.addCell("Location: " + approvedPaysliprepo.getLocation());
+//	        empTable.addCell("");
+//
+//	        document.add(empTable);
+//
+//	        document.add(Chunk.NEWLINE);
+//
+//	        // Salary Table
+//	        PdfPTable salaryTable = new PdfPTable(2);
+//	        salaryTable.setWidthPercentage(100);
+//	        salaryTable.setSpacingBefore(10f);
+//
+//	        salaryTable.addCell("Earnings & Deductions");
+//	        salaryTable.addCell("Amount in ₹");
+//
+//	        salaryTable.addCell("Basic Salary");
+//	        salaryTable.addCell(String.format("₹%,.2f", approvedPaysliprepo.getBasicSalary()));
+//
+//	        salaryTable.addCell("Deduction");
+//	        salaryTable.addCell(String.format("₹%,.2f", approvedPaysliprepo.getDeductions()));
+//
+//	        PdfPCell netPayLabel = new PdfPCell(new Phrase("Net Pay", labelFont));
+//	        PdfPCell netPayValue = new PdfPCell(new Phrase(String.format("₹%,.2f", approvedPaysliprepo.getNetPay()), labelFont));
+//	        salaryTable.addCell(netPayLabel);
+//	        salaryTable.addCell(netPayValue);
+//
+//	        document.add(salaryTable);
+//
+//	        document.add(Chunk.NEWLINE);
+//
+//	        // Optional Footer
+//	        Paragraph footer = new Paragraph("Salary processed at: " + approvedPaysliprepo.getSalaryProcessAt()
+//	                + " | Approved at: " + approvedPaysliprepo.getApprovedAt(), smallFont);
+//	        footer.setAlignment(Element.ALIGN_CENTER);
+//	        document.add(footer);
+//	        
+//	        document.add(Chunk.NEWLINE);
+//	        
+//	        Paragraph note = new Paragraph("** This is a computer generated payslip and does not require signature and stamp.", smallFont);
+//	        note.setAlignment(Element.ALIGN_CENTER);
+//	        document.add(note);
+//
+//	        document.close();
+//
+//	        byte[] pdfBytes = baos.toByteArray();
+//
+//	        HttpHeaders headers = new HttpHeaders();
+//	        headers.setContentType(MediaType.APPLICATION_PDF);
+//	        headers.setContentDispositionFormData("attachment", "Payslip-" + username + "-" + month + ".pdf");
+//
+//	        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
+//	    }
 }

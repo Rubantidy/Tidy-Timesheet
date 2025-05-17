@@ -359,6 +359,27 @@ function showContent(section) {
 					       </div>
 					     </div>
 					   </div>
+					   
+					   <div id="form-container"></div>
+					   	         
+					   	           <table class="table table-striped">
+					   	               <thead>
+					   	                   <tr>
+					   					   	  <th>ID</th>
+					   	                       <th>Employee</th>
+					   						   <th>Designation</th>
+					   						   <th>Month</th>
+					   	                       <th>STD Days</th>
+											   <th>Worked Days</th>	
+											   <th>Net Pay</th>	
+											   <th>Bank</th>
+											   <th>Salary Processed At</th>
+											   <th>Payslip</th>
+					   	                   </tr>
+					   	               </thead>
+					   	               <tbody id="payslip-table-body"></tbody>
+					   	           </table>
+					   	   
 							 `
     };
 
@@ -422,6 +443,9 @@ function showContent(section) {
 					}
 					else if(section === "salary-process"){
 						fetchinitialSalary();
+					}
+					else if(section === "payslip") {
+						fetchPayslipData();
 					}
 						
 				}
@@ -869,6 +893,7 @@ function hideForm() {
 
 
 /*Funtion for fetching Data form backend (Java)*/
+		
 
 /* Fetch Employee Data */
 function fetchEmployeeData() {

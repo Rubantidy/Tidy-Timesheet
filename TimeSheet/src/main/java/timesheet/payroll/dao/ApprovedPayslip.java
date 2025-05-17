@@ -150,6 +150,7 @@ public class ApprovedPayslip {
 				+ ", bankName=" + bankName + ", accountNumber=" + accountNumber + ", location=" + location
 				+ ", SalaryProcessAt=" + SalaryProcessAt + ", ApprovedAt=" + ApprovedAt + "]";
 	}
+	
 
 	
 

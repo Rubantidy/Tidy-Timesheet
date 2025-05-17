@@ -7,4 +7,6 @@ import timesheet.payroll.dao.ApprovedPayslip;
 
 @Repository
 public interface ApprovedPayslipRepo extends JpaRepository<ApprovedPayslip, Long> {
+	
+	ApprovedPayslip findByUsernameAndMonth(String username, String month);
 }
