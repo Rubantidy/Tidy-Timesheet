@@ -31,7 +31,7 @@ public class Employeedao {
 	        } else {
 	            this.additionalRole = "-";
 	        }
-	        this.status = "active"; // Set status to "active"
+	        this.status = "active"; 
 	    }
 
 	    @JsonProperty("E-name")

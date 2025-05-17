@@ -24,7 +24,7 @@ public class AssigmentEmailService {
 
     public void sendAssignmentEmail(String employeeName, String chargeCode, String description) throws MessagingException, UnsupportedEncodingException {
     
-        String recipientEmail = getEmailForEmployee(employeeName); // This should retrieve the employee's email address from your database
+        String recipientEmail = getEmailForEmployee(employeeName); 
 
 
 
@@ -58,7 +58,7 @@ public class AssigmentEmailService {
 
         helper.setText(emailContent, true); 
 
-        helper.setFrom("timex@tidyds.com", "Tidy Digital Solutions"); // Replace with your company’s no-reply email
+        helper.setFrom("timex@tidyds.com", "Tidy Digital Solutions"); 
         helper.setTo(recipientEmail);
         helper.setSubject("Tidyds - Charge code Assignment");
 
@@ -69,15 +69,15 @@ public class AssigmentEmailService {
     }
 
     public String getEmailForEmployee(String employeeName) {
-        // Fetch employee by name
+       
         Employeedao employee = erepo.findByeName(employeeName);
        
         if (employee != null) {
-            // Return employee's email if found
+           
             return employee.geteMail();
             
         } else
-			// Handle case where employee is not found (optional)
+			
             return "No email found for employee " + employeeName;
     }
 }

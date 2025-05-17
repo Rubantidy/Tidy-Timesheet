@@ -55,14 +55,14 @@ public class PayrollController {
 	    @GetMapping("/EmployePayslip/{month}")
 	    public ResponseEntity<List<Map<String, String>>> getUsersForMonth(@PathVariable String month) {
 	        
-	        // Get summaries for that month where payslip is NOT generated
+
 	        List<MonthlySummary> summaries = monthlySummaryRepository.findByMonthAndIsPayslipGeneratedFalse(month);
 
 	        Set<String> uniqueUsernames = new HashSet<>();
 	        List<Map<String, String>> result = new ArrayList<>();
 
 	        for (MonthlySummary summary : summaries) {
-	            String username = summary.getUsername(); // e.g., "Ruban M"
+	            String username = summary.getUsername(); 
 	            if (uniqueUsernames.add(username)) {
 	                
 	                Employeedao emp = EmpRepo.findByeName(username);
@@ -70,8 +70,8 @@ public class PayrollController {
 	                    String displayName = emp.geteName() + " - " + emp.getDesignation();
 
 	                    Map<String, String> map = new HashMap<>();
-	                    map.put("username", username); // e.g., "Ruban M"
-	                    map.put("display", displayName); // e.g., "Ruban M - Software Developer"
+	                    map.put("username", username); 
+	                    map.put("display", displayName); 
 	                    result.add(map);
 	                }
 	            }
@@ -86,14 +86,14 @@ public class PayrollController {
 	            @RequestParam String username,
 	            @RequestParam String month) {
 
-	        // Trim inputs to prevent issues from trailing/leading spaces
+	       
 	        username = username.trim();
 	        month = month.trim();
 
 
 	        Map<String, Object> result = new HashMap<>();
 
-	        // Find Monthly Summary
+	       
 	        Optional<MonthlySummary> summaryOpt = monthlySummaryRepository.findByUsernameAndMonth(username, month);
 	        if (summaryOpt.isEmpty()) {
 	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Summary not found"));
@@ -105,7 +105,7 @@ public class PayrollController {
 	        result.put("totalleaves", summary.getTotalAbsences());
 	        result.put("lop", summary.getTotalLOPDays());
 
-	        // Find Salary details
+	      
 	        List<AddSalary> salaryList = addSalaryrepo.findByEmployeename(username);
 	        if (salaryList.isEmpty()) {
 	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Salary details not found"));
@@ -114,7 +114,7 @@ public class PayrollController {
 	        double basicSalary = Double.parseDouble(salary.getMonthsalary());
 	        result.put("basicSalary", basicSalary);
 
-	        // Find Employee details
+	   
 	        Employeedao employee = EmpRepo.findByeName(username);
 	        if (employee == null) {
 	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Employee details not found"));
@@ -124,7 +124,7 @@ public class PayrollController {
 	        result.put("onboardDate", employee.getOnboard());
 	        result.put("designation", employee.getDesignation());
 
-	        // Calculate deductions based on LOP
+	       
 	        double lopDays = summary.getTotalLOPDays() != null ? summary.getTotalLOPDays() : 0.0;
 	        double deductionPerLop = basicSalary / 30;
 	        double deductions = deductionPerLop * lopDays;
@@ -143,20 +143,20 @@ public class PayrollController {
 
 	        String username = payslipData.getUsername().trim();
 
-	        // Fetch bank details for employee
+	       
 	        Bankdetails bankDetails = bankdetailsrepo.findByEmployeenameIgnoreCase(username);
 	        if (bankDetails == null) {
 	            return ResponseEntity.status(HttpStatus.NOT_FOUND)
 	                    .body(Map.of("error", "Bank details not found for employee: " + username));
 	        }
 
-	        // Set bank info & location on payslip entity
+	      
 	        payslipData.setAccountHolder(bankDetails.getAccountHolder());
 	        payslipData.setBankName(bankDetails.getBankName());
 	        payslipData.setAccountNumber(bankDetails.getAccountNumber());
-	        payslipData.setLocation("Salem");  // default location
-
-	        // Set local date and time in "yyyy-MM-dd: HH:mm" format
+	        payslipData.setLocation("Salem"); 
+	        
+	       
 	        LocalDateTime now = LocalDateTime.now();
 	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd: HH:mm");
 
@@ -164,10 +164,10 @@ public class PayrollController {
 	        payslipData.setSalaryProcessAt(formattedDateTime);
 	        payslipData.setApprovedAt(formattedDateTime);
 
-	        // Save approved payslip
+	       
 	        approvedPayslip.save(payslipData);
 
-	        // Set PayslipGenerated = true in MonthlySummary
+	       
 	        Optional<MonthlySummary> summaryOpt = monthlySummaryRepository.findByUsernameAndMonth(username, payslipData.getMonth());
 	        if (summaryOpt.isPresent()) {
 	            MonthlySummary summary = summaryOpt.get();
@@ -188,134 +188,4 @@ public class PayrollController {
 
 	    
 	    
-//	    @GetMapping("/PayslipDownload")
-//	    public ResponseEntity<byte[]> downloadPayslip(
-//	            @RequestParam String username,
-//	            @RequestParam String month) throws IOException, DocumentException {
-//	    	
-//	    	username = username.trim();
-//	        month = month.trim();
-//
-//	        ApprovedPayslip approvedPaysliprepo = approvedPayslip
-//	                .findByUsernameAndMonth(username, month);
-//
-//	        if (approvedPaysliprepo == null) {
-//	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
-//	        }
-//
-//	        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-//	        Document document = new Document();
-//	        PdfWriter.getInstance(document, baos);
-//	        document.open();
-//
-//	        // Fonts
-//	        Font titleFont = new Font(Font.FontFamily.HELVETICA, 16, Font.BOLD);
-//	        Font labelFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD);
-//	        Font normalFont = new Font(Font.FontFamily.HELVETICA, 12);
-//	        Font smallFont = new Font(Font.FontFamily.HELVETICA, 10);
-//
-//	        // --- Logo (correct way from resources) ---
-//	        try {
-//	            ClassPathResource imageResource = new ClassPathResource("static/img/logo.png"); // src/main/resources/logo.png
-//	            InputStream logoStream = imageResource.getInputStream();
-//	            byte[] logoBytes = logoStream.readAllBytes();
-//	            Image logo = Image.getInstance(logoBytes);
-//	            logo.scaleToFit(100, 50);
-//	            logo.setAlignment(Element.ALIGN_CENTER);
-//	            document.add(logo);
-//	        } catch (Exception e) {
-//	            e.printStackTrace(); // Optional log
-//	        }
-//
-//	        // Header
-//	        Paragraph payslipTitle = new Paragraph("PAYSLIP", titleFont);
-//	        payslipTitle.setAlignment(Element.ALIGN_CENTER);
-//	        document.add(payslipTitle);
-//	        
-//
-//	        document.add(Chunk.NEWLINE);
-//
-//	        Paragraph company = new Paragraph("Tidy Digital Solution", labelFont);
-//	        company.setAlignment(Element.ALIGN_CENTER);
-//	        document.add(company);
-//
-//	        Paragraph monthPara = new Paragraph("Payslip for " + approvedPaysliprepo.getMonth().toUpperCase(), labelFont);
-//	        monthPara.setAlignment(Element.ALIGN_CENTER);
-//	        document.add(monthPara);
-//
-//	        document.add(Chunk.NEWLINE);
-//
-//	        // Employee Info Table
-//	        PdfPTable empTable = new PdfPTable(2);
-//	        empTable.setWidthPercentage(100);
-//	        empTable.setSpacingBefore(10f);
-//	        empTable.setSpacingAfter(10f);
-//
-//	        empTable.addCell("Name: " + approvedPaysliprepo.getUsername());
-//	        empTable.addCell("Bank: " + approvedPaysliprepo.getBankName());
-//
-//	        empTable.addCell("DOJ: " + approvedPaysliprepo.getOnboardDate());
-//	        empTable.addCell("A/c No: " + approvedPaysliprepo.getAccountNumber());
-//
-//	        empTable.addCell("LOP Days: " + approvedPaysliprepo.getLop().intValue());
-//	        empTable.addCell("Worked Days: " + approvedPaysliprepo.getTotalWorkingDays());
-//
-//	        empTable.addCell("STD Days: " + approvedPaysliprepo.getStdWorkDays());
-//	        empTable.addCell("");
-//
-//	        empTable.addCell("Designation: " + approvedPaysliprepo.getDesignation());
-//	        empTable.addCell("Total Leaves: " + approvedPaysliprepo.getTotalLeaves());
-//
-//	        empTable.addCell("Location: " + approvedPaysliprepo.getLocation());
-//	        empTable.addCell("");
-//
-//	        document.add(empTable);
-//
-//	        document.add(Chunk.NEWLINE);
-//
-//	        // Salary Table
-//	        PdfPTable salaryTable = new PdfPTable(2);
-//	        salaryTable.setWidthPercentage(100);
-//	        salaryTable.setSpacingBefore(10f);
-//
-//	        salaryTable.addCell("Earnings & Deductions");
-//	        salaryTable.addCell("Amount in ₹");
-//
-//	        salaryTable.addCell("Basic Salary");
-//	        salaryTable.addCell(String.format("₹%,.2f", approvedPaysliprepo.getBasicSalary()));
-//
-//	        salaryTable.addCell("Deduction");
-//	        salaryTable.addCell(String.format("₹%,.2f", approvedPaysliprepo.getDeductions()));
-//
-//	        PdfPCell netPayLabel = new PdfPCell(new Phrase("Net Pay", labelFont));
-//	        PdfPCell netPayValue = new PdfPCell(new Phrase(String.format("₹%,.2f", approvedPaysliprepo.getNetPay()), labelFont));
-//	        salaryTable.addCell(netPayLabel);
-//	        salaryTable.addCell(netPayValue);
-//
-//	        document.add(salaryTable);
-//
-//	        document.add(Chunk.NEWLINE);
-//
-//	        // Optional Footer
-//	        Paragraph footer = new Paragraph("Salary processed at: " + approvedPaysliprepo.getSalaryProcessAt()
-//	                + " | Approved at: " + approvedPaysliprepo.getApprovedAt(), smallFont);
-//	        footer.setAlignment(Element.ALIGN_CENTER);
-//	        document.add(footer);
-//	        
-//	        document.add(Chunk.NEWLINE);
-//	        
-//	        Paragraph note = new Paragraph("** This is a computer generated payslip and does not require signature and stamp.", smallFont);
-//	        note.setAlignment(Element.ALIGN_CENTER);
-//	        document.add(note);
-//
-//	        document.close();
-//
-//	        byte[] pdfBytes = baos.toByteArray();
-//
-//	        HttpHeaders headers = new HttpHeaders();
-//	        headers.setContentType(MediaType.APPLICATION_PDF);
-//	        headers.setContentDispositionFormData("attachment", "Payslip-" + username + "-" + month + ".pdf");
-//
-//	        return new ResponseEntity<>(pdfBytes, headers, HttpStatus.OK);
-//	    }
 }

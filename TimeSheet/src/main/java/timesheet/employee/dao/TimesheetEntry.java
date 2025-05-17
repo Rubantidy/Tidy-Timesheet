@@ -14,17 +14,17 @@ public class TimesheetEntry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String username; // Logged-in Employee
+    private String username; 
 
     private String period; // Example: "01/03/2024 - 15/03/2024"
 
-    private String chargeCode; // Charge Code OR Static Row Name
+    private String chargeCode;
 
-    private String cellIndex; // Row index + Column index (e.g., "2_4")
+    private String cellIndex;
 
-    private String hours; // Hours worked
+    private String hours; 
 
-    // Constructors
+  
     public TimesheetEntry() {}
 
     public TimesheetEntry(String username, String period, String chargeCode, String cellIndex, String hours) {

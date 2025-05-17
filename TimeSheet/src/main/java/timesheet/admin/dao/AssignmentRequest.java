@@ -7,7 +7,7 @@ public class AssignmentRequest {
     private String description;
     private List<String> employees;
 
-    // Getters and setters
+
     public String getChargeCode() {
         return chargeCode;
     }

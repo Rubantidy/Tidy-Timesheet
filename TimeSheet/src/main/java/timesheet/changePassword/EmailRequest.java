@@ -3,7 +3,7 @@ package timesheet.changePassword;
 public class EmailRequest {
     private String email;
 
-    // Constructor, Getter, and Setter
+
     public EmailRequest(String email) {
         this.email = email;
     }

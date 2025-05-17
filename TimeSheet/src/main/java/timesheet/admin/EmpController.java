@@ -1,8 +1,6 @@
 package timesheet.admin;
 
 import java.io.IOException;
-
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,11 +9,9 @@ import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -24,9 +20,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
 import timesheet.admin.dao.AllowedLeaves;
-import timesheet.admin.dao.Codedao;
 import timesheet.admin.dao.Delegatedao;
 import timesheet.admin.dao.Employeedao;
 import timesheet.admin.repo.AllowedLeavesRepository;
@@ -83,12 +77,12 @@ public class EmpController {
         int onboardYear = onboardDate.getYear();
         int onboardMonth = onboardDate.getMonthValue();
 
-        // ✅ 1. Allowed leaves (keep existing logic)
+    
         if (!allowedLeaveRepo.existsByUsernameAndYear(username, onboardYear)) {
             allowedLeaveRepo.save(new AllowedLeaves(username, onboardYear));
         }
 
-        // ✅ 2. Update AllowedLeaves.casualTaken (based on onboard month - 1)
+      
         AllowedLeaves allowed = allowedLeaveRepo.findByUsernameAndYear(username, onboardYear);
         if (allowed != null) {
             int casualTakenCount = onboardMonth - 1;
@@ -125,11 +119,11 @@ public class EmpController {
         if (optionalEmp.isPresent()) {
             Employeedao emp = optionalEmp.get();
 
-            // Save old name before changing it
+           
             String oldName = emp.geteName();
             String newName = requestData.get("E-name");
 
-            // Update employee fields
+          
             emp.seteName(newName);
             emp.seteMail(requestData.get("E-mail"));
             emp.setDesignation(requestData.get("E-desg"));
@@ -144,7 +138,7 @@ public class EmpController {
 
             EmpRepo.save(emp);
 
-            // ✅ Update leaves_entity table
+        
             int year = LocalDate.now().getYear();
             AllowedLeaves leaves = allowedLeaveRepo.findByUsernameAndYear(oldName, year);
             if (leaves != null) {
@@ -274,7 +268,7 @@ public class EmpController {
         return ResponseEntity.ok(employees);
     }
     
-    //Update Employee 
+   
     @PutMapping("/updateEmployeeStatus/{id}")
     public ResponseEntity<String> updateEmployeeStatus(@PathVariable int id) {
         Optional<Employeedao> employeeOptional = EmpRepo.findById(id);
@@ -293,20 +287,18 @@ public class EmpController {
     }
 
     
-    //Get Employee for display in the delegate form
+
     @GetMapping("/getEmployeedata")
     public ResponseEntity<List<Map<String, String>>> getEmployeeData() {
-        // Fetch only active employees from the database
-        List<Employeedao> employees = EmpRepo.findBystatus("active"); // Fetch active employees
-
+       
+        List<Employeedao> employees = EmpRepo.findBystatus("active"); 
         List<Map<String, String>> employeeList = new ArrayList<>();
-        
-        // Iterate through the list of employees and add them to employeeList
+   
         for (Employeedao emp : employees) {
             Map<String, String> map = new HashMap<>();
-            map.put("name", emp.geteName()); // Assuming `getEname()` returns employee name
-            map.put("email", emp.geteMail()); // Assuming `getEmail()` returns email
-            map.put("designation", emp.getDesignation()); // Assuming `getDesignation()` returns employee's designation
+            map.put("name", emp.geteName());
+            map.put("email", emp.geteMail()); 
+            map.put("designation", emp.getDesignation()); 
             employeeList.add(map);
         }
 

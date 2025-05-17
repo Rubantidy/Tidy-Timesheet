@@ -72,15 +72,14 @@ public class DashboardController {
 	        String email = request.get("email");
 	      
 
-	        // Fetch the employee details from the database based on the email
-	        Employeedao employee = EmpRepo.findByeMail(email); // Assuming you have a method to find employee by email
+	        Employeedao employee = EmpRepo.findByeMail(email); 
 
 	        // Prepare the response
 	        Map<String, Object> response = new HashMap<>();
 	        if (employee != null && "Employee".equals(employee.getAdditionalRole())) {
 	            response.put("success", true);
-	            response.put("eName", employee.geteName()); // Employee name
-	            response.put("additionalRole", employee.getAdditionalRole()); // Additional role
+	            response.put("eName", employee.geteName()); 
+	            response.put("additionalRole", employee.getAdditionalRole());
 	        } else {
 	            response.put("success", false);
 	        }
@@ -95,13 +94,13 @@ public class DashboardController {
 	        String email = request.get("email");
 
 
-	        // Fetch the employee details from the Employee table based on the email
-	        Employeedao employee = EmpRepo.findByeMail(email); // Assuming you have a method to find employee by email
+	       
+	        Employeedao employee = EmpRepo.findByeMail(email); 
 	        
 	
 //	        Delegatedao delegator = Delrepo.findBydEmail(email); 
 
-	        // Prepare the response
+	        
 	        Map<String, Object> response = new HashMap<>();
 	        
 	        // Case 1: If the employee is an Admin

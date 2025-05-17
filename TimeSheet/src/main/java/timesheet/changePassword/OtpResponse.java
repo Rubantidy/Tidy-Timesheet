@@ -5,13 +5,13 @@ public class OtpResponse {
     private boolean success;
     private String message;
 
-    // Constructor
+
     public OtpResponse(boolean success, String message) {
         this.success = success;
         this.message = message;
     }
 
-    // Getters and Setters
+
     public boolean isSuccess() {
         return success;
     }

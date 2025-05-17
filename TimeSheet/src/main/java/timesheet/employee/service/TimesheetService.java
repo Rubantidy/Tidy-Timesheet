@@ -36,18 +36,18 @@ public class TimesheetService {
 	                TimesheetEntry updateEntry = existingEntry.get();
 
 	                if (entry.getHours() == null || entry.getHours().trim().isEmpty()) {
-	                    // ✅ Delete the cleared cell entry from the database
+	                  
 	                  
 	                    timesheetRepository.delete(updateEntry);
 	                } else {
-	                    // ✅ Update charge code and hours if a value exists
+	                    
 	                    updateEntry.setChargeCode(entry.getChargeCode());
 	                    updateEntry.setHours(entry.getHours());
 	                    timesheetRepository.save(updateEntry);
 	                }
 	            } else {
 	                if (entry.getHours() != null && !entry.getHours().trim().isEmpty()) {
-	                    // ✅ Save new entry if it has a value
+	                    
 	                    timesheetRepository.save(entry);
 	                }
 	            }
@@ -55,38 +55,34 @@ public class TimesheetService {
 	    }
 
 	    public boolean approveTimesheet(String username, String period) {
-	        // Fetch the timesheet entry for the user and period
+	    
 	        SummaryEntry timesheet = summaryRepository.findByUsernameAndPeriod(username, period);
 	        
-	        if (timesheet != null) { // Check if entry exists
-	            timesheet.setStatus("Approved"); // ✅ Update status to Approved
-	            summaryRepository.save(timesheet); // ✅ Save the updated status
-	            return true; // ✅ Successfully updated
+	        if (timesheet != null) { 
+	            timesheet.setStatus("Approved"); 
+	            summaryRepository.save(timesheet); 
+	            return true; 
 	        }
 
-	        return false; // ❌ No entry found
+	        return false; 
 	    }
 
 	    public boolean raiseIssue(String username, String period, String issueMessage) {
 	    	
 	    	
-	        // Fetch the timesheet entry for the user and period
+	       
 	        SummaryEntry timesheet = summaryRepository.findByUsernameAndPeriod(username, period);
 
-	        if (timesheet != null) { // Entry exists
-	            // Log the issue in the database (but don't change status)
+	        if (timesheet != null) { 
+	           
 
-
-
-
-	         // ✅ Update status to "Issue"
 	            timesheet.setStatus("Issue");
 	            summaryRepository.save(timesheet); 
-	            // Here you can extend to notify the employee via email/notification if needed
+	           
 
 	            return true;
 	        }
-	        return false; // Entry not found
+	        return false; 
 	    }
 }
 

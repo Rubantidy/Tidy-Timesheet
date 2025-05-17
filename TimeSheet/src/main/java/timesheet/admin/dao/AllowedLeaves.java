@@ -17,7 +17,7 @@ public class AllowedLeaves {
     private int casualTaken = 0;
     private int casualAllowed = 12;
 
-    private int baseCasualTaken = 0; // ✅ New field
+    private int baseCasualTaken = 0; 
 
     private int sickTaken = 0;
     private int sickAllowed = 6;
@@ -25,8 +25,7 @@ public class AllowedLeaves {
     private int floatingTaken = 0;
     private int floatingAllowed = 2;
 
-    private int year; // e.g. 2025
-
+    private int year; 
     public AllowedLeaves() {}
 
     public AllowedLeaves(String username, int year) {

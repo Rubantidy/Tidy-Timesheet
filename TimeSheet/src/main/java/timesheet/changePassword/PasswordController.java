@@ -21,7 +21,7 @@ public class PasswordController {
     @Autowired
     private EmployeeRepo emrepo;
 
-    // Endpoint to send OTP
+
     @PostMapping("/send-otp")
     public ResponseEntity<OtpResponse> sendOtp(@RequestBody EmailRequest emailRequest) throws UnsupportedEncodingException {
     	
@@ -29,17 +29,17 @@ public class PasswordController {
 
         
 
-        // Generate 6-digit OTP
+      
         String otp = emailService.generateOtp();
 
-        // Send OTP email
+        
         emailService.sendOtp(email, otp);
 
-        // Return response
+        
         return ResponseEntity.ok(new OtpResponse(true, "OTP sent successfully to your email"));
     }
 
-    // Endpoint to verify OTP and change password
+
     @PostMapping("/change-password")
     public ResponseEntity<OtpResponse> changePassword(@RequestBody PasswordChangeRequest passwordChangeRequest) throws UnsupportedEncodingException {
         String email = passwordChangeRequest.getEmail();
@@ -49,9 +49,9 @@ public class PasswordController {
         Employeedao employee = emrepo.findByeName(email);
         String mail = employee.geteMail();
 
-        String enteredOtp = passwordChangeRequest.getOtp(); // Get the OTP entered by the user
+        String enteredOtp = passwordChangeRequest.getOtp(); 
 
-        // Validate OTP
+      
         boolean otpValid = emailService.validateOtp(mail, enteredOtp);
   
        
@@ -60,7 +60,7 @@ public class PasswordController {
                     .body(new OtpResponse(false, "Invalid or expired OTP"));
         }
 
-        // If OTP is valid, proceed with password update
+
         String newPassword = passwordChangeRequest.getNewPassword();
         boolean passwordUpdated = updatePasswordInDatabase(email, newPassword);
 
@@ -70,10 +70,10 @@ public class PasswordController {
                     .body(new OtpResponse(false, "Failed to update password"));
         }
 
-        // Send confirmation email
+   
         emailService.sendPasswordChangedConfirmation(email);
 
-        // Return success response
+     
         return ResponseEntity.ok(new OtpResponse(true, "Password changed successfully"));
     }
 
@@ -83,8 +83,8 @@ public class PasswordController {
 
         if (employee != null) {
            
-            employee.setePassword(newPassword); // Update the password
-            emrepo.save(employee); // Save the updated password
+            employee.setePassword(newPassword); 
+            emrepo.save(employee); 
 
 
             return true;

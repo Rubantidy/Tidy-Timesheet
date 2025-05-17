@@ -26,11 +26,10 @@ public class EmailService {
     @Autowired
     private JavaMailSender javaMailSender;
  
-    // Temporary map to store OTPs in memory
-    private Map<String, String> otpMap = new HashMap<>();
-    private Map<String, Long> otpTimestampMap = new HashMap<>(); // Track OTP expiration time
  
-    // Method to send OTP via email
+    private Map<String, String> otpMap = new HashMap<>();
+    private Map<String, Long> otpTimestampMap = new HashMap<>(); 
+
     public void sendOtp(String mail, String otp) throws UnsupportedEncodingException {
     	Employeedao employee = emrepo.findByeName(mail);
     	String email = employee.geteMail();
@@ -40,8 +39,8 @@ public class EmailService {
             MimeMessageHelper messageHelper = new MimeMessageHelper(mimeMessage, true);
  
             // Email content
-            messageHelper.setFrom("timex@tidyds.com", "Tidy Digital Solutions"); // Your email address
-            messageHelper.setTo(email); // Recipient's email address
+            messageHelper.setFrom("timex@tidyds.com", "Tidy Digital Solutions"); 
+            messageHelper.setTo(email); 
             messageHelper.setSubject("Your OTP for Password Change Request");
 
  
@@ -66,9 +65,9 @@ public class EmailService {
  
             javaMailSender.send(mimeMessage);
             
-            // Store OTP and current timestamp
+         
             otpMap.put(email, otp);
-            otpTimestampMap.put(email, System.currentTimeMillis());  // Store the timestamp
+            otpTimestampMap.put(email, System.currentTimeMillis());  
         } catch (MessagingException e) {
             e.printStackTrace();
 
@@ -76,34 +75,34 @@ public class EmailService {
         }
     }
  
-    // Method to generate a 6-digit OTP
+
     public String generateOtp() {
         Random random = new Random();
-        int otp = 100000 + random.nextInt(900000);  // Generate 6-digit OTP
+        int otp = 100000 + random.nextInt(900000);  
         return String.valueOf(otp);
     }
  
-    // Method to validate OTP
+
     public boolean validateOtp(String email, String otp) {
         String storedOtp = otpMap.get(email);
         Long timestamp = otpTimestampMap.get(email);
  
         if (storedOtp == null || timestamp == null) {
-            return false;  // OTP not found
+            return false;  
         }
  
-        // Check if OTP is expired (5 minutes expiration time)
+     
         if (System.currentTimeMillis() - timestamp > TimeUnit.MINUTES.toMillis(2)) {
-            otpMap.remove(email);  // Remove expired OTP
+            otpMap.remove(email);  
             otpTimestampMap.remove(email);
-            return false;  // OTP expired
+            return false;  
         }
  
-        // Compare the provided OTP with the stored OTP
+   
         return storedOtp.equals(otp);
     }
  
-    // Method to send password change confirmation email
+
     public void sendPasswordChangedConfirmation(String email) throws UnsupportedEncodingException {
     	Employeedao employee = emrepo.findByeName(email);
     	String mail = employee.geteMail();

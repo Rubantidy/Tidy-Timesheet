@@ -15,13 +15,13 @@ public class EmployeeService {
     private LoginRepository LoginRepository;
  
     public Employeedao authenticate(String email, String password) {
-        // Fetch the employee by email (you may want to add more checks here)
+       
         Employeedao employee = LoginRepository.findByeMail(email);
  
         if (employee != null && employee.getePassword().equals(password)) {
-            return employee; // Return employee if password matches
+            return employee; 
         }
-        return null; // Return null if authentication fails
+        return null; 
     }
 }
 

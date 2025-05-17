@@ -5,7 +5,7 @@ public class PasswordChangeRequest {
     private String otp;
     private String newPassword;
 
-    // Constructor, Getter, and Setter
+
     public PasswordChangeRequest(String email, String otp, String newPassword) {
         this.email = email;
         this.otp = otp;

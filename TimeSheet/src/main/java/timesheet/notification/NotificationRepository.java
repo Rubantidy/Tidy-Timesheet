@@ -7,6 +7,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface NotificationRepository extends JpaRepository<Notificationdao, Long> {
-    List<Notificationdao> findByUsernameAndReadedFalse(String username); // Fetch unread messages
+    List<Notificationdao> findByUsernameAndReadedFalse(String username); 
 }
 

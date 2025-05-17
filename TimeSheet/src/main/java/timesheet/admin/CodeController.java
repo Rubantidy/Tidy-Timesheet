@@ -86,20 +86,20 @@ public class CodeController {
 	    }
 	    
 	    @PutMapping("/completeChargeCode/{id}")
-	    @Transactional  // ✅ Add this annotation to handle delete queries
+	    @Transactional 
 	    public ResponseEntity<Map<String, Object>> completeChargeCode(@PathVariable int id) {
 	        Optional<Codedao> chargeCodeOpt = codeRepository.findById(id);
 
 	        if (chargeCodeOpt.isPresent()) {
 	            Codedao chargeCode = chargeCodeOpt.get();
 
-	            // Only allow completion if it's still in "Progress"
+	           
 	            if (!"Complete".equalsIgnoreCase(chargeCode.getStatus())) {
 	                
-	                // **Delete all assignments related to this charge code**
+	                
 	                assignmentRepository.deleteByChargeCode(chargeCode.getCode());
 
-	                // **Update charge code status to "Complete"**
+	              
 	                chargeCode.setStatus("Complete");
 	                codeRepository.save(chargeCode);
 
@@ -236,15 +236,15 @@ public class CodeController {
 	    @PostMapping("/addHoliday")
 	    public String addHoliday(@RequestBody Holidays holidays) {
 	        try {
-	            // incoming date will be yyyy-MM-dd
+	           
 	            String inputDate = holidays.getDate(); // example: 2025-04-01
 
-	            // Parse and format
+	            
 	            LocalDate localDate = LocalDate.parse(inputDate); // Parse yyyy-MM-dd
 	            String formattedDate = localDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 	            int year = localDate.getYear();
 
-	            // Set the formatted values back
+	           
 	            holidays.setDate(formattedDate);
 	            holidays.setYear(year);
 
@@ -290,12 +290,12 @@ public class CodeController {
 	        	
 	        	 String inputDate = requestData.get("holidaydate"); // example: 2025-04-01
 	        	 
-	        	 // Parse and format
-		            LocalDate localDate = LocalDate.parse(inputDate); // Parse yyyy-MM-dd
+	        	 
+		            LocalDate localDate = LocalDate.parse(inputDate); 
 		            String formattedDate = localDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 		            int year = localDate.getYear();
 		            
-		            // Set the formatted values back
+		           
 		            exp.setDate(formattedDate);
 		            exp.setYear(year);
 	        	

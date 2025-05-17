@@ -1,7 +1,6 @@
 package timesheet.notification;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,20 +28,20 @@ public class NotificationService {
 	        notification.setTimestamp(LocalDateTime.now());
 	        notificationRepository.save(notification);
 
-	        // ✅ Send Real-Time Notification via WebSocket
+	  
 	        messagingTemplate.convertAndSendToUser(username, "/topic/notifications", Map.of("message", message));
 	    }
 
 	    public void sendAdminNotification(String message) {
-	        // ✅ Store in Database
+	      
 	        Notificationdao notification = new Notificationdao();
-	        notification.setUsername("admin"); // or store for all admins
+	        notification.setUsername("admin"); 
 	        notification.setMessage(message);
 	        notification.setReaded(false);
 	        notification.setTimestamp(LocalDateTime.now());
 	        notificationRepository.save(notification);
 
-	        // ✅ Send Real-Time Notification via WebSocket
+	       
 	        messagingTemplate.convertAndSend("/topic/adminNotifications", Map.of("message", message));
 	    }
 }

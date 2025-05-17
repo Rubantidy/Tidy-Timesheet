@@ -18,12 +18,12 @@ public class EmpExpensedao {
 	    private int id;
 
 	    @JsonProperty("username")
-	    private String username;  // Stores logged-in employee name
+	    private String username;  
 
 	    @JsonProperty("period")
 	    private String period;
 
-	    @JsonProperty("expenseType") // Store full expense type in one column
+	    @JsonProperty("expenseType") 
 	    private String expenseType; 
 
 	    @JsonProperty("amount")
@@ -36,7 +36,7 @@ public class EmpExpensedao {
 	    private String gstNumber;
 
 	    @JsonProperty("receipt")
-	    private String receiptPath;  // Path where the receipt file is stored
+	    private String receiptPath; 
 
 	    @JsonProperty("description")
 	    private String description;

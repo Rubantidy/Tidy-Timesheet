@@ -11,9 +11,9 @@ public interface EmployeeRepo extends JpaRepository<Employeedao, Integer> {
 
 
     
-    Employeedao findByeName(String name); //for checking additional role for switching and admin
+    Employeedao findByeName(String name); 
     
-    Employeedao findByeMail(String email); //for checking  role  and mail for switching form employee
+    Employeedao findByeMail(String email); 
     
     List<Employeedao> findBystatus(String status);
     

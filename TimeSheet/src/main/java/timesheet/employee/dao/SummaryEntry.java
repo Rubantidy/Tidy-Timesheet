@@ -37,7 +37,7 @@ public class SummaryEntry {
 
     public Map<String, Object> getSummaryData() {
         Type mapType = new TypeToken<Map<String, Object>>() {}.getType();
-        return new Gson().fromJson(this.summaryData, mapType); // Correct usage
+        return new Gson().fromJson(this.summaryData, mapType); 
     }
 
 	public Long getId() {

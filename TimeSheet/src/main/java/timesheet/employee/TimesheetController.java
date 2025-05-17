@@ -116,7 +116,7 @@ public class TimesheetController {
     @GetMapping("/checkLeaveBalance")
     public ResponseEntity<Boolean> checkLeaveBalance(
         @RequestParam String username,
-        @RequestParam String type // "Sick Leave" or "Optional Leave"
+        @RequestParam String type 
     ) {
         int year = LocalDate.now().getYear();
         AllowedLeaves leave = allowedleaverepo.findByUsernameAndYear(username, year);
@@ -131,7 +131,7 @@ public class TimesheetController {
             return ResponseEntity.ok(leave.getFloatingTaken() < leave.getFloatingAllowed());
         }
 
-        return ResponseEntity.ok(true); // Other types like normal work code — always allowed
+        return ResponseEntity.ok(true); 
     }
     
     
@@ -145,25 +145,25 @@ public class TimesheetController {
         String username = newEntries.get(0).getUsername();
         String period = newEntries.get(0).getPeriod();
 
-        // ✅ Extract year and month from period string: "01/05/2025 - 15/05/2025"
+       
         String[] split = period.split(" - ");
-        String startDate = split[0]; // "01/05/2025"
+        String startDate = split[0]; 
         int currentYear = Integer.parseInt(startDate.split("/")[2]);
         int currentMonth = Integer.parseInt(startDate.split("/")[1]);
 
-        // ✅ Fetch leave record
+       
         AllowedLeaves leave = allowedleaverepo.findByUsernameAndYear(username, currentYear);
         if (leave == null) {
             return ResponseEntity.status(400).body("Leave record not found for user.");
         }
 
-        // ✅ Step 1: Save or update timesheet entries
+        
         timesheetService.saveOrUpdateTimesheet(newEntries);
 
-        // ✅ Step 2: Re-fetch all entries for this user
+   
         List<TimesheetEntry> allUserEntries = timesheetRepository.findByUsername(username);
 
-        // ✅ Step 3: Count leave types for the current year
+     
         int totalSL = 0;
         int totalFL = 0;
         int clFromTimesheet = 0;
@@ -183,10 +183,10 @@ public class TimesheetController {
             else if (code.endsWith("Casual Leave")) clFromTimesheet++;
         }
 
-        // ✅ Combine base CL (from onboarding) + CL taken in timesheet
+       
         int totalCL = leave.getBaseCasualTaken() + clFromTimesheet;
 
-        // ✅ Leave limit validations
+      
         if (totalSL > leave.getSickAllowed()) {
             return ResponseEntity.badRequest().body("⚠ You are exceeding your Sick Leave limit. Please choose another leave or mark as Loss of Pay.");
         }
@@ -197,10 +197,10 @@ public class TimesheetController {
             return ResponseEntity.badRequest().body("⚠ You are exceeding your Casual leave limit. Please choose another leave or mark as Loss of Pay.");
         }
 
-        // ✅ Save the updated leave usage
+   
         leave.setSickTaken(totalSL);
         leave.setFloatingTaken(totalFL);
-        leave.setCasualTaken(totalCL); // total = base + taken via timesheet
+        leave.setCasualTaken(totalCL); 
         allowedleaverepo.save(leave);
 
         return ResponseEntity.ok("Timesheet saved successfully");
@@ -218,7 +218,7 @@ public class TimesheetController {
             String trimmedChargeCode = chargeCode.trim();
         
 
-            // 🔥 Find only the entries matching the charge code AND the period
+           
             List<TimesheetEntry> rowsToDelete = timesheetRepository.findByChargeCodeAndPeriod(trimmedChargeCode, period);
 
             if (rowsToDelete.isEmpty()) {
@@ -226,7 +226,7 @@ public class TimesheetController {
                         .body(Collections.singletonMap("error", "Row not found for the selected period"));
             }
 
-            // 🔥 Delete only the matching row(s) for the selected period
+          
             timesheetRepository.deleteAll(rowsToDelete);
 
             return ResponseEntity.ok(Collections.singletonMap("success", true));
@@ -246,9 +246,9 @@ public class TimesheetController {
 
         float totalHours = 0;
         float totalAbsences = 0;
-        float totalExpense = 0; // New total expense variable
+        float totalExpense = 0;
 
-        // Store charge code totals in a Map to merge duplicates
+
         Map<String, Float> chargeCodeTotals = new HashMap<>();
 
         float casualLeaveThisMonth = 0;
@@ -267,7 +267,7 @@ public class TimesheetController {
             chargeCodeTotals.put(code, chargeCodeTotals.getOrDefault(code, 0f) + hours);
             totalHours += hours;
 
-            // Update leave counts based on charge codes
+        
             if (code.endsWith("Casual Leave")) { 
                 casualLeaveThisMonth += leaveDays;
             } else if (code.endsWith("Sick Leave")) { 
@@ -281,7 +281,7 @@ public class TimesheetController {
             }
         }
 
-        // Fetch total expense from database for the given user and period
+   
         List<EmpExpensedao> expenses = expenseRepository.findByUsernameAndPeriod(username, period);
         for (EmpExpensedao expense : expenses) {
             totalExpense += expense.getAmount();
@@ -301,7 +301,7 @@ public class TimesheetController {
         summaryData.put("casualLeaveDays", casualLeaveThisMonth);
         summaryData.put("sickLeaveDays", sickLeaveThisYear);
         summaryData.put("paidLeaveDays", paidLeave);
-        summaryData.put("totalExpense", totalExpense); // Send total expense to frontend
+        summaryData.put("totalExpense", totalExpense); 
         summaryData.put("entries", processedEntries);
 
         return ResponseEntity.ok(summaryData);
@@ -316,7 +316,7 @@ public class TimesheetController {
     public ResponseEntity<Map<String, Object>> sendForApproval(@RequestBody Map<String, String> request) {
         String username = request.get("username");
         String period = request.get("period");
-        String status = request.getOrDefault("status", "Pending"); // ✅ Get status from request
+        String status = request.getOrDefault("status", "Pending"); 
 
         // ✅ Fetch summary data
         ResponseEntity<Map<String, Object>> responseEntity = getSummary(username, period);
@@ -393,7 +393,7 @@ public class TimesheetController {
             summaryData.put("period", summary.getPeriod());
             summaryData.put("totalHours", summary.getSummaryData().get("totalHours"));
             summaryData.put("totalAbsences", summary.getSummaryData().get("totalAbsences"));
-            summaryData.put("entries", summary.getSummaryData().get("entries")); // Charge Code Data
+            summaryData.put("entries", summary.getSummaryData().get("entries")); 
             
             responseList.add(summaryData);
         }
@@ -403,8 +403,8 @@ public class TimesheetController {
 
     @GetMapping("/getPendingApprovals")
     public ResponseEntity<List<Map<String, String>>> getPendingApprovals() {
-        List<String> statuses = Arrays.asList("Pending"); // ✅ Define required statuses
-        List<SummaryEntry> pendingSummaries = summaryRepository.findByStatusIn(statuses); // ✅ Fetch entries with "Pending" or "Issue"
+        List<String> statuses = Arrays.asList("Pending"); 
+        List<SummaryEntry> pendingSummaries = summaryRepository.findByStatusIn(statuses); 
 
         List<Map<String, String>> responseList = pendingSummaries.stream().map(summary -> {
             Map<String, String> responseMap = new HashMap<>();
@@ -421,8 +421,8 @@ public class TimesheetController {
     
     @GetMapping("/getApprovalslist")
     public ResponseEntity<List<Map<String, String>>> getApprovalslist() {
-        List<String> statuses = Arrays.asList("Approved"); // ✅ Define required statuses
-        List<SummaryEntry> pendingSummaries = summaryRepository.findByStatusIn(statuses); // ✅ Fetch entries with "Pending" or "Issue"
+        List<String> statuses = Arrays.asList("Approved"); 
+        List<SummaryEntry> pendingSummaries = summaryRepository.findByStatusIn(statuses); 
 
         List<Map<String, String>> responseList = pendingSummaries.stream().map(summary -> {
             Map<String, String> responseMap = new HashMap<>();
@@ -438,8 +438,8 @@ public class TimesheetController {
     
     @GetMapping("/getIssuelist")
     public ResponseEntity<List<Map<String, String>>> getIssuelist() {
-        List<String> statuses = Arrays.asList("Issue"); // ✅ Define required statuses
-        List<SummaryEntry> pendingSummaries = summaryRepository.findByStatusIn(statuses); // ✅ Fetch entries with "Pending" or "Issue"
+        List<String> statuses = Arrays.asList("Issue"); 
+        List<SummaryEntry> pendingSummaries = summaryRepository.findByStatusIn(statuses); 
 
         List<Map<String, String>> responseList = pendingSummaries.stream().map(summary -> {
             Map<String, String> responseMap = new HashMap<>();
@@ -475,12 +475,12 @@ public class TimesheetController {
         if (success) {
             notificationService.sendNotification(username, "Your timesheet has been approved on this Period: " + period);
 
-            // ✅ ADD THIS: Try generating the monthly summary only if both periods are approved now
-            String month = extractMonthFromPeriod(period); // You need to implement this helper
+           
+            String month = extractMonthFromPeriod(period); 
             try {
                 monthlySummaryService.generateMonthlySummary(username, month);
             } catch (Exception e) {
-                // Optional: log or ignore if not both approved yet
+                
             }
 
             return ResponseEntity.ok(Collections.singletonMap("message", "Timesheet approved successfully."));
@@ -500,9 +500,9 @@ public class TimesheetController {
 
         Map<String, String> response = new HashMap<>();
         if (summaryEntry != null) {
-            response.put("status", summaryEntry.getStatus()); // Return actual status
+            response.put("status", summaryEntry.getStatus()); 
         } else {
-            response.put("status", "Not Found"); // No data exists
+            response.put("status", "Not Found"); 
         }
 
         return ResponseEntity.ok(response);
@@ -534,7 +534,7 @@ public class TimesheetController {
     @GetMapping("/assigned-employees")
     public List<Assignment> getAssignedEmployees() {
     	
-        return assignrepo.findAll(); // Directly fetching from the database
+        return assignrepo.findAll(); 
     }
     
     @PostMapping("/savePreferences")
@@ -545,7 +545,7 @@ public class TimesheetController {
         );
 
         if (existingPreference.isPresent()) {
-            // ✅ Update existing preference for the user & period
+          
             Preference updatedPreference = existingPreference.get();
             updatedPreference.setApprovers(preference.getApprovers());
             updatedPreference.setReviewers(preference.getReviewers());
@@ -555,7 +555,7 @@ public class TimesheetController {
 
 
         } else {
-            // ✅ Save new preference
+           
             preferenceRepository.save(preference);
 
 
@@ -566,7 +566,7 @@ public class TimesheetController {
 
 
 
-    // Fetch preferences for a specific period
+ 
     @GetMapping("/getPreferences")
     public ResponseEntity<Preference> getPreferences(@RequestParam String period, @RequestParam String employeename) {
         Optional<Preference> preference = preferenceRepository.findByEmployeenameAndPeriod(employeename, period);
@@ -574,19 +574,19 @@ public class TimesheetController {
         if (preference.isPresent()) {
             return ResponseEntity.ok(preference.get());
         } else {
-            return ResponseEntity.notFound().build(); // ✅ Return 404 if no preference found
+            return ResponseEntity.notFound().build(); 
         }
     }
 
     
     
     
-    // Save Expense API
+
     @PostMapping("/saveEmpExpense")
     public EmpExpensedao saveExpense(
             @RequestParam("username") String username,
             @RequestParam("period") String period,
-            @RequestParam("expenseType") String expenseType, // Full type stored here
+            @RequestParam("expenseType") String expenseType, 
             @RequestParam("amount") double amount,
             @RequestParam("invoice") String invoice,
             @RequestParam("gst") String gst,
@@ -596,13 +596,13 @@ public class TimesheetController {
     	EmpExpensedao expense = new EmpExpensedao();
         expense.setUsername(username);
         expense.setPeriod(period);
-        expense.setExpenseType(expenseType); // Store full type here
+        expense.setExpenseType(expenseType); 
         expense.setAmount(amount);
         expense.setInvoiceNumber(invoice);
         expense.setGstNumber(gst);
         expense.setDescription(description);
 
-        // Handle File Upload with Directory Check
+  
         if (receipt != null && !receipt.isEmpty()) {
             try {
                 String fileName = System.currentTimeMillis() + "_" + receipt.getOriginalFilename();
@@ -624,7 +624,7 @@ public class TimesheetController {
         return expenseRepository.save(expense);
     }
 
-    // Fetch Expenses for a Specific Employee and Period
+ 
     @GetMapping("/getEmpExpenses")
     public List<EmpExpensedao> getExpenses(
             @RequestParam("username") String username,

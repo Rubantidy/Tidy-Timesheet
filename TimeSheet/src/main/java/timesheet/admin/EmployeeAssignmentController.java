@@ -22,10 +22,10 @@ import timesheet.admin.service.AssigmentEmailService;
 public class EmployeeAssignmentController {
 
     @Autowired
-    private AssigmentEmailService emailService; // Service to send email
+    private AssigmentEmailService emailService;
 
     @Autowired
-    private AssignmentRepository assignmentRepository; // Repository to save the assignment
+    private AssignmentRepository assignmentRepository; 
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> assignEmployees(@RequestBody AssignmentRequest assignmentRequest) {

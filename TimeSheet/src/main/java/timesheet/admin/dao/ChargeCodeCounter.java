@@ -9,7 +9,7 @@ import jakarta.persistence.Table;
 public class ChargeCodeCounter {
 
     @Id
-    private int id = 1;  // We assume only one row to track the counter
+    private int id = 1;  
     
     private int lastIncrement;
 

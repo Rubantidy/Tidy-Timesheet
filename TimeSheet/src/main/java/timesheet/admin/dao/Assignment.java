@@ -18,7 +18,7 @@ public class Assignment {
     private String chargeCode;
     private String description;
 
-    // Getters and setters
+ 
     public Long getId() {
         return id;
     }

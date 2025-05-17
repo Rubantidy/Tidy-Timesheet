@@ -14,7 +14,7 @@ import timesheet.admin.dao.Assignment;
 public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
 
     @Modifying
-    @Transactional  // ✅ Add this to fix the issue
+    @Transactional 
     @Query("DELETE FROM Assignment a WHERE a.chargeCode = :chargeCode")
     void deleteByChargeCode(@Param("chargeCode") String chargeCode);
 }

@@ -58,18 +58,18 @@ public class SalaryController {
 	@PostMapping("/addSalary")
     public ResponseEntity<String> addSalary(@RequestBody AddSalary salaryData) {
         try {
-            // Parse and validate salaryMonth
+          
             int salaryMonthInt = Integer.parseInt(salaryData.getMonthsalary());
 
-            // Calculate SalaryYear = SalaryMonth * 12
+          
             int salaryYear = salaryMonthInt * 12;
 
-            // Set the calculated and default values
-            salaryData.setYearsalary(String.valueOf(salaryYear));  // Convert to String if needed
-            salaryData.setBankaccount("0");  // default bank account status
+        
+            salaryData.setYearsalary(String.valueOf(salaryYear));  
+            salaryData.setBankaccount("0"); 
 
             Employeedao empData = EmpRepo.findByeName(salaryData.getEmployeename());
-            // Save to DB
+        
             addSalaryRepo.save(salaryData);
             
             try {
@@ -106,29 +106,29 @@ public class SalaryController {
 	         @RequestParam("upiId") String upiId) {
 
 	     try {
-	         // ✅ Check if bank details already exist
+	     
 	         Optional<Bankdetails> existingDetailsOpt = bankDetailsrepo.findTopByEmployeenameOrderByIdDesc(employeename);
 
 	         Bankdetails bankDetails;
 	         if (existingDetailsOpt.isPresent()) {
-	             // ✅ Update existing
+	            
 	             bankDetails = existingDetailsOpt.get();
 	         } else {
-	             // ✅ Insert new
+	       
 	             bankDetails = new Bankdetails();
 	             bankDetails.setEmployeename(employeename);
 	         }
 
-	         // Set/Update fields
+	      
 	         bankDetails.setAccountHolder(accountHolder);
 	         bankDetails.setAccountNumber(accountNumber);
 	         bankDetails.setIfsc(ifsc);
 	         bankDetails.setBankName(bankName);
 	         bankDetails.setUpiId(upiId);
 
-	         bankDetailsrepo.save(bankDetails); // Save updated or new
+	         bankDetailsrepo.save(bankDetails); 
 
-	         // ✅ Update Bankaccount flag in AddSalary
+	   
 	         List<AddSalary> salaryRecords = addSalaryRepo.findByEmployeename(employeename);
 	         for (AddSalary record : salaryRecords) {
 	             record.setBankaccount("1");

@@ -17,13 +17,13 @@ public class NotificationController {
     @Autowired
     private NotificationRepository notificationRepository;
 
-    // ✅ Fetch Unread Notifications
+
     @GetMapping("/unread/{username}")
     public List<Notificationdao> getUnreadNotifications(@PathVariable String username) {
         return notificationRepository.findByUsernameAndReadedFalse(username);
     }
 
-    // ✅ Mark Notifications as Read
+
     @PostMapping("/markRead/{id}")
     public ResponseEntity<?> markAsRead(@PathVariable Long id) {
         Optional<Notificationdao> notification = notificationRepository.findById(id);

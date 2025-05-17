@@ -57,7 +57,7 @@ public class EmailServiceController {
 	        ClassPathResource image = new ClassPathResource("static/img/logo.png");
 	        helper.addInline("logoImage", image);
 	         
-	        // Send the email
+	     
 	        mailSender.send(message);
 	    }
 
@@ -109,7 +109,7 @@ public class EmailServiceController {
 	    MimeMessageHelper helper = new MimeMessageHelper(message, true);
 
 	    helper.setFrom("timex@tidyds.com", "Tidy Digital Solutions");
-	    helper.setTo(EmpData.geteMail());  // Get email from employee data object
+	    helper.setTo(EmpData.geteMail());  
 	    helper.setSubject("Your Initial Salary Details from Tidy Digital Solutions");
 
 	    String emailContent = "<html><body>"
@@ -133,9 +133,9 @@ public class EmailServiceController {
 
 
 
-	    helper.setText(emailContent, true); // This tells Spring to interpret HTML
+	    helper.setText(emailContent, true);
 
-	    // Add company logo to the email
+	  
 	    ClassPathResource image = new ClassPathResource("static/img/logo.png");
 	    helper.addInline("logoImage", image);
 
