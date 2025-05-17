@@ -26,11 +26,11 @@ function showAlert(message, type = 'success') {
     const alertToast = document.getElementById('alertToast');
     const alertMessage = document.getElementById('alertMessage');
     
-    // Set message and type (success/error)
+ 
     alertMessage.textContent = message;
     alertToast.className = `toast align-items-center text-white bg-${type} border-0`;
 
-    // Set a fixed dismiss duration for all toasts
+
     const toast = new bootstrap.Toast(alertToast, { delay: 3000 }); // 4 seconds for all
     toast.show();
 }
@@ -61,11 +61,10 @@ function closeSidebarOnMobile() {
 document.getElementById('logout').addEventListener('click', function(event) {
        event.preventDefault();
 
-       // Clear any session or sessionStorage data if needed
-       sessionStorage.removeItem('userName'); // Example of clearing the user name stored in sessionStorage
-
-       // Redirect to the login page
-       window.location.href = '/login'; // Redirect to the login page or wherever needed
+     
+       sessionStorage.removeItem('userName'); 
+       
+       window.location.href = '/login'; 
 	   showAlert("Logout Successfully..! ", "success");
    });
    
@@ -405,7 +404,7 @@ function showContent(section) {
 		fetchDelegator();
 	}
 	else if (section === "dashboard") {
-	        // Fetch the counts for Employees, Delegators, Charge Codes, and Expense Codes
+	      
 	        Promise.all([
 	            fetch("/getEmployeesCount").then(res => res.json()),
 	            fetch("/getChargecodesCount").then(res => res.json()),
@@ -413,7 +412,7 @@ function showContent(section) {
 	            //fetch("/getDelegatorsCount").then(res => res.json())
 	        ])
 	        .then(([totalEmployees, totalChargeCodes, totalExpenseCodes, totalDelegators]) => {
-	            // Replace the static values with the dynamic values fetched from the backend
+	          
 	            const dynamicDashboard = `
 	               <div class="dashboard-card-box">
 	                    ${createCard("bi-people", "Total Employees", totalEmployees)}
@@ -425,7 +424,6 @@ function showContent(section) {
 	            `;
 
 				
-	            // Update the content-box with the dynamically generated content
 	            contentBox.innerHTML = dynamicDashboard;
 				
 				
@@ -456,17 +454,17 @@ function showContent(section) {
 				    const employeeTableBody = document.getElementById("assignedEmployeeTableBody");
 				    const tableContainer = document.getElementById("assignedEmployeeTableContainer");
 
-				    // ✅ Toggle visibility on button click
+				
 				    if (tableContainer.style.display === "block") {
 				        searchInput.style.display = "none";
 				        tableContainer.style.display = "none";
 				        return; // ✅ Exit function if hiding the table
 				    }
 
-				    fetch("/assigned-employees") // ✅ Fetching assigned employees
+				    fetch("/assigned-employees") 
 				        .then(response => response.json())
 				        .then(data => {
-				            employeeTableBody.innerHTML = ""; // ✅ Clear previous table rows
+				            employeeTableBody.innerHTML = ""; 
 
 				            data.forEach(employee => {
 				                const row = document.createElement("tr");
@@ -480,13 +478,13 @@ function showContent(section) {
 				                employeeTableBody.appendChild(row);
 				            });
 
-				            // ✅ Show the search input and table container
+				        
 				            searchInput.style.display = "block";
 				            tableContainer.style.display = "block";
 				        })
 				        .catch(error => console.error("❌ Error fetching employees:", error));
 
-				    // ✅ Search Functionality
+				
 				    searchInput.addEventListener("keyup", function () {
 				        const filter = searchInput.value.toLowerCase();
 				        const rows = employeeTableBody.getElementsByTagName("tr");
@@ -504,12 +502,12 @@ function showContent(section) {
 				    let tableRows = document.querySelectorAll(`#${tableId} tr`);
 
 				    tableRows.forEach(row => {
-				        let username = row.cells[0].textContent.toLowerCase(); // Get the first column (Username)
+				        let username = row.cells[0].textContent.toLowerCase(); 
 
 				        if (username.includes(searchValue)) {
-				            row.style.display = ""; // Show matching rows
+				            row.style.display = ""; 
 				        } else {
-				            row.style.display = "none"; // Hide non-matching rows
+				            row.style.display = "none";
 				        }
 				    });
 				}
@@ -532,7 +530,7 @@ function showContent(section) {
 		document.addEventListener("DOMContentLoaded", function () {
 							
 							    
-				// Ensure the dropdowns exist before calling the functions
+				
 				if (
 				document.getElementById("issueCount") &&
 				document.getElementById("approvedCount") &&
@@ -560,7 +558,7 @@ function showContent(section) {
 						let issueCountElem = document.getElementById("issueCount");
 
 
-						 // Update values
+				
 						pendingCountElem.textContent = data.pending ?? 0;
 						 approvedCountElem.textContent = data.approved ?? 0;
 						issueCountElem.textContent = data.issue ?? 0;
@@ -570,7 +568,7 @@ function showContent(section) {
 
 							
 
-							// ✅ Fetch pending approvals and populate the table
+						
 							function fetchPendingApprovals() {
 							    fetch("/getPendingApprovals")
 							        .then(response => response.json())
@@ -578,7 +576,7 @@ function showContent(section) {
 							        .catch(error => console.error("Error fetching pending approvals:", error));
 							}
 
-							// ✅ Fetch approved list and populate the table
+						
 							function fetchApprovalslist() {
 							    fetch("/getApprovalslist")
 							        .then(response => response.json())
@@ -586,7 +584,7 @@ function showContent(section) {
 							        .catch(error => console.error("Error fetching approvals list:", error));
 							}
 
-							// ✅ Fetch issue list and populate the table
+							
 							function fetchIssuelist() {
 							    fetch("/getIssuelist")
 							        .then(response => response.json())
@@ -603,7 +601,7 @@ function showContent(section) {
 							        return;
 							    }
 
-							    tableBody.innerHTML = ""; // Clear previous data
+							    tableBody.innerHTML = ""; 
 
 							    if (!Array.isArray(data) || data.length === 0) {
 							        tableBody.innerHTML = `<tr><td colspan="6">No data available</td></tr>`;
@@ -635,11 +633,11 @@ function showContent(section) {
 									
 									
 
-							        // ✅ Fetch employee summary for this row
+							        
 							        fetchEmployeeSummary(entry.username, entry.period, status);
 							    });
 								
-								// ✅ Search Functionality
+								
 								const searchInput = document.getElementById("searchEEmployee");
 
 								if (searchInput) {
@@ -678,7 +676,7 @@ function showContent(section) {
 										document.getElementById(`paid-${username}-${period}`).textContent = summary.paidLeaveDays || "0";
 										
 
-							            // ✅ Format Charge Codes inside a single cell using a flex container
+							          
 							            let chargeCell = document.getElementById(`charge-${username}-${period}`);
 							            chargeCell.innerHTML = summary.entries.length > 0
 							                ? summary.entries.map(entry => `<div class="charge-code-item">${entry.chargeCode} - ${entry.hours} hrs</div>`).join("")
@@ -692,7 +690,7 @@ function showContent(section) {
 
 							
 
-							// ✅ Helper function to get the correct table body
+							
 							function getTableBodyByStatus(status) {
 							    if (status === "Approved") return document.getElementById("approvedSummaryBody");
 							    if (status === "Issue") return document.getElementById("issueSummaryBody");
@@ -700,7 +698,7 @@ function showContent(section) {
 							}
 
 
-							// ✅ Handle Approval Click
+						
 							function handleApproval(username, period) {
 							    selectedUsername = username;
 							    selectedPeriod = period;
@@ -712,7 +710,7 @@ function showContent(section) {
 							    approvalModal.show();
 							}
 
-							// ✅ Confirm Approval (Modal)
+							
 							document.getElementById("confirmApprovalBtn").addEventListener("click", function () {
 							    fetch("/approve", {
 							        method: "POST",
@@ -722,7 +720,7 @@ function showContent(section) {
 							    .then(response => response.json())
 							    .then(result => {
 							        showAlert(result.message, "success");
-							        fetchPendingApprovals(); // Refresh list
+							        fetchPendingApprovals();
 									fetchCounts();
 									fetchApprovalslist();
 							    })
@@ -732,7 +730,7 @@ function showContent(section) {
 							    approvalModal.hide();
 							});
 
-							// ✅ Handle Issue Click
+							
 							function handleIssue(username, period) {
 							    selectedUsername = username;
 							    selectedPeriod = period;
@@ -741,7 +739,7 @@ function showContent(section) {
 							    issueModal.show();
 							}
 
-							// ✅ Confirm Issue Submission (Modal)
+							
 							document.getElementById("confirmIssueBtn").addEventListener("click", function () {
 							    let issueMessage = document.getElementById("issueMessageInput").value.trim();
 
@@ -769,7 +767,7 @@ function showContent(section) {
 							    issueModal.hide();
 							});
 
-			// ✅ Function to update the button state dynamically
+			
 			function updateEmployeeButton(username, period, status) {
 			    sessionStorage.setItem(`approvalStatus_${username}_${period}`, status);
 			}
@@ -936,9 +934,9 @@ function fetchEmployeeData() {
  
 			// Populate Assign Employee Dropdown
 			const employeeListContainer = document.getElementById("employeeList");
-			employeeListContainer.innerHTML = ""; // Clear existing list
+			employeeListContainer.innerHTML = ""; 
 			data.forEach(employee => {
-			    // Only add active employees to the dropdown
+			   
 			    if (employee.status === 'active') {
 			        const li = document.createElement("li");
 			        li.innerHTML = `<a class="dropdown-item" href="#" onclick="addEmployeetofield('${employee['E-name']}', '${employee['E-desg']}')">${employee['E-name']} - ${employee['E-desg']}</a>`;
@@ -1039,8 +1037,8 @@ function employeeAction(employeeId, currentStatus) {
 	        console.error("Error updating employee status:", error);
 	    })
 	    .finally(() => {
-	        document.activeElement.blur();     // ✅ Fix the accessibility warning
-	        confirmationModal.hide();          // ✅ Now safe to hide the modal
+	        document.activeElement.blur();     
+	        confirmationModal.hide();          
 	    });
 	};
 }
@@ -1057,10 +1055,10 @@ function fetchCodeDatas() {
             tableBody.innerHTML = ""; 
             
             data.forEach(code => {
-                // Set row color for "Complete" status
+
                 let rowClass = code.status.toLowerCase() === "complete" ? 'class="table-success"' : '';
 
-                // Show dropdown only if it's a Charge Code & Status is "Progress"
+              
                 let dropdownMenu = (code.codeType.toLowerCase() === "charge code" && code.status.toLowerCase() === "progress") ? `
                     <div class="dropdown">
                         <button class="btn btn-success" type="button" id="dropdownMenu${code.id}" data-bs-toggle="dropdown" aria-expanded="false">
@@ -1164,7 +1162,7 @@ document.getElementById("confirmDeleteBtn").addEventListener("click", function (
         .then(response => response.text())
         .then(message => {
             showAlert(message, "success");
-            fetchCodeDatas(); // Refresh the table
+            fetchCodeDatas();
         })
         .catch(error => console.error("Error deleting charge code:", error))
         .finally(() => {
@@ -1176,13 +1174,13 @@ document.getElementById("confirmDeleteBtn").addEventListener("click", function (
 });
 
 
-let selectedChargeCodeId = null; // Store selected charge code ID
+let selectedChargeCodeId = null; 
 
 /* Function to show modal instead of confirm */
 function completeChargeCode(id) {
-    selectedChargeCodeId = id; // Store the ID for confirmation
+    selectedChargeCodeId = id; 
     var completeModal = new bootstrap.Modal(document.getElementById("completeModal"));
-    completeModal.show(); // Show the modal
+    completeModal.show(); 
 }
 
 /* Handle modal confirmation button click */
@@ -1195,7 +1193,7 @@ document.getElementById("confirmCompleteBtn").addEventListener("click", function
         .then(data => {
             if (data.success) {
                 showAlert("Charge Code marked as Complete!", "success");
-                fetchCodeDatas(); // Refresh table
+                fetchCodeDatas(); 
             } else {
                 showAlert("Error: " + data.message, "danger");
             }
@@ -1206,7 +1204,7 @@ document.getElementById("confirmCompleteBtn").addEventListener("click", function
         })
         .finally(() => {
             var completeModal = bootstrap.Modal.getInstance(document.getElementById("completeModal"));
-            completeModal.hide(); // Close modal after action
+            completeModal.hide();
         });
     }
 });
@@ -1215,16 +1213,16 @@ document.getElementById("confirmCompleteBtn").addEventListener("click", function
 
 let selectedEmployees = [];
 
-// Update openAssignModal to accept charge code and description
+
 function openAssignModal(codeId, chargeCode, description) {
     selectedEmployees = [];
     document.getElementById("selectedEmployeesContainer").innerHTML = "";
 
-    // Set Charge Code and Description in Modal
-    document.getElementById("chargeCodeDisplay").innerText = chargeCode;
-    document.getElementById("chargeCodeDescription").innerText = description;  // Make sure you add this in the modal's HTML
 
-    // Show Modal
+    document.getElementById("chargeCodeDisplay").innerText = chargeCode;
+    document.getElementById("chargeCodeDescription").innerText = description;  
+
+   
     const modal = new bootstrap.Modal(document.getElementById("assignModal"));
     modal.show();
 }
@@ -1240,7 +1238,7 @@ function filterEmployees() {
 }
 
 function addEmployeetofield(name, role) {
-    // Only use employee name, not the role
+
     if (!selectedEmployees.includes(name)) {
         selectedEmployees.push(name);
         updateSelectedEmployees();
@@ -1281,7 +1279,7 @@ function assignEmployees() {
     const chargeCode = document.getElementById("chargeCodeDisplay").innerText;
     const description = document.getElementById("chargeCodeDescription").innerText;
 
-    // Set the charge code and description inside the confirmation modal
+  
     document.getElementById("confirmationChargeCode").innerText = chargeCode;
     document.getElementById("confirmationDescription").innerText = description;
 
@@ -1296,12 +1294,12 @@ function assignEmployees() {
         const assignmentData = {
             chargeCode: chargeCode,
             description: description,
-            employees: selectedEmployees  // Send only names
+            employees: selectedEmployees  
 			
         };
 
 		
-        // Send data to Spring Boot backend
+     
         fetch("/assignEmployees", {
             method: "POST",
             headers: {
@@ -1323,13 +1321,13 @@ function assignEmployees() {
         })
 
 		.finally(() => {
-		           hideLoader(); // ✅ Hide loader when action completes
-		           confirmationModal.hide(); // Hide confirmation modal
-		           bootstrap.Modal.getInstance(document.getElementById("assignModal")).hide(); // Hide assign modal
+		           hideLoader(); 
+		           confirmationModal.hide(); 
+		           bootstrap.Modal.getInstance(document.getElementById("assignModal")).hide(); 
 		       });
     };
 
-    // If the user clicks "Cancel", just close the confirmation modal
+
     document.querySelector('.btn-secondary').onclick = function() {
         confirmationModal.hide();
     };
@@ -1575,10 +1573,10 @@ function fetchinitialSalary() {
             tableBody.innerHTML = ""; 
             data.forEach(Salary => {
                 const bankStatus = Salary.bankaccount === "1" 
-                    ? '<span style="color:green;">&#10004;</span>'   // ✅
+                    ? '<span style="color:green;">&#10004;</span>'   
                     : Salary.bankaccount === "0" 
-                        ? '<span style="color:red;">&#10060;</span>' // ❌
-                        : Salary.bankaccount; // fallback for any other value
+                        ? '<span style="color:red;">&#10060;</span>' 
+                        : Salary.bankaccount; 
 
                 tableBody.innerHTML += `
                     <tr>
@@ -1716,13 +1714,13 @@ function fetchEmfordeg() {
 	           const dropdown = document.getElementById("delegateName");
 	           if (!dropdown) return;
 
-	           dropdown.innerHTML = '<option value="">Select Employee</option>'; // Reset options
+	           dropdown.innerHTML = '<option value="">Select Employee</option>'; 
 
 	           data.forEach(employee => {
 	               let option = document.createElement("option");
-	               option.value = employee.name;  // Store the actual name
-	               option.textContent = employee.name; // Show name
-	               option.dataset.email = employee.email; // Store email in dataset
+	               option.value = employee.name;  
+	               option.textContent = employee.name; 
+	               option.dataset.email = employee.email; 
 	               dropdown.appendChild(option);
 	           });
 	       })
@@ -1733,8 +1731,8 @@ function updateDelegateEmail() {
 	    const dropdown = document.getElementById("delegateName");
 	    const emailField = document.getElementById("delegateEmail");
 
-	    const selectedOption = dropdown.options[dropdown.selectedIndex]; // Get selected option
-	    emailField.value = selectedOption.dataset.email || ""; // Set email dynamically
+	    const selectedOption = dropdown.options[dropdown.selectedIndex]; 
+	    emailField.value = selectedOption.dataset.email || "";
 	}
 
 	
@@ -1761,7 +1759,7 @@ function codeGenerate() {
 	        return;
 	    }
 	    
-	    // Get the next available last 3 digits from the backend
+
 	    getNextCodeIncrement(clientName, onboardDate, chargeCodeInput);
 	}
 
@@ -1856,15 +1854,10 @@ function closeSidebarOnMobile() {
     }
 }
 
-// Apply it when any menu item is clicked
+
 document.querySelectorAll(".nav-link").forEach(link => {
     link.addEventListener("click", function () {
         closeSidebarOnMobile();
     });
 });
-
-
-
-
-
 	

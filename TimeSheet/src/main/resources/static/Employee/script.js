@@ -12,7 +12,7 @@
 	
 
 document.addEventListener("DOMContentLoaded", function () {
-        // Get all nav links
+       
         const navLinks = document.querySelectorAll(".nav-link");
 
 
@@ -35,7 +35,7 @@ navLinks.forEach(link => {
         let sectionName = this.textContent.trim().toLowerCase().replace(/\s/g, ""); 
         let sectionId = sectionName + "Section";
 
-                // Switch to the corresponding section
+               
                 switchSection(sectionId);
             });
         });
@@ -61,17 +61,17 @@ navLinks.forEach(link => {
 	    const selectedFilter = document.getElementById("projectTypeFilter").value;
 	    let filteredData = selectedFilter === "All" ? data : data.filter(code => code.projectType === selectedFilter);
 
-	    // Force sorting: Move "Leave Code" to the end
+	
 	    filteredData = filteredData.sort((a, b) => {
-	        let aType = a.codeType.toLowerCase(); // Convert to lowercase to avoid case issues
+	        let aType = a.codeType.toLowerCase(); 
 	        let bType = b.codeType.toLowerCase();
 	        return aType === "leave code" ? 1 : bType === "leave code" ? -1 : 0;
 	    });
 
-	    // Clear existing table content
+	  
 	    employeeTableBody.innerHTML = "";
 
-	    // Render the sorted data
+	   
 	    filteredData.forEach(code => {
 	        let rowColor = code.status === "Complete" ? "style='background-color: #d9e2f3; font-weight: bold;'" : ""; 
 	        
@@ -122,9 +122,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 	    fetch(`/getTimesheet?username=${username}&period=${selectedPeriod}`)
 	        .then(response => response.json())
-	        .then(data => {
-	         
-	            // Call populateTable() only once.
+	        .then(data => {	         
 	            populateTable(data);
 	        })
 	    
@@ -139,42 +137,42 @@ document.addEventListener("DOMContentLoaded", function () {
 
 	        let tableRows = document.querySelectorAll("#tableBody tr");
 
-	        // 🔄 Ensure row exists before inserting data
+	       
 	        while (tableRows.length <= rowIndex + 1) {
-	            addRow(); // Dynamically add missing rows
+	            addRow();
 	            tableRows = document.querySelectorAll("#tableBody tr");
 	        }
 
 	        let row = tableRows[rowIndex];
 	        if (!row) return;
 
-	        let firstCell = row.cells[0]; // First column (Charge Code)
+	        let firstCell = row.cells[0]; 
 
-	        // ✅ Skip static rows (Work Location, Company Code)
+	        
 	        let firstCellText = firstCell.textContent.trim().toLowerCase();
 	        if (firstCellText === "work location" || firstCellText === "company code") {
 	            return;
 	        }
 
-	        // ✅ Show stored charge code as text, replace with dropdown when clicked
+	        
 	        if (firstCell) {
-	            firstCell.innerHTML = ""; // Clear existing content
+	            firstCell.innerHTML = ""; 
 
 	            let chargeCodeDisplay = document.createElement("div");
 	            chargeCodeDisplay.classList.add("stored-charge-code");
 	            chargeCodeDisplay.style.cursor = "pointer";
-	            chargeCodeDisplay.textContent = chargeCode ? chargeCode : "Select Charge Code"; // Show stored or default
+	            chargeCodeDisplay.textContent = chargeCode ? chargeCode : "Select Charge Code"; 
 
 	            firstCell.appendChild(chargeCodeDisplay);
 
-	            // 👉 On Click: Replace text with dropdown
+	            
 	            chargeCodeDisplay.addEventListener("click", function () {
-	                firstCell.innerHTML = ""; // Clear cell
+	                firstCell.innerHTML = ""; 
 	                let dropdownContainer = createDropdown();
 	                let button = dropdownContainer.querySelector(".dropdown-button");
-	                let clearButton = dropdownContainer.querySelector("span"); // Clear (✖) button
+	                let clearButton = dropdownContainer.querySelector("span"); 
 
-	                // ✅ If a stored charge code exists, update the dropdown button text
+	              
 	                if (chargeCode && chargeCode.trim() !== "") {
 	                    let matchingOption = chargeCodes.find(c => c.code === chargeCode);
 	                    if (matchingOption) {
@@ -188,7 +186,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	            });
 	        }
 
-	        // ✅ Insert Hours and Set `data-prev`
+	       
 	        let cell = row.cells[colIndex];
 	        if (cell) {
 	            let input = cell.querySelector("input");
@@ -196,19 +194,19 @@ document.addEventListener("DOMContentLoaded", function () {
 	                input = document.createElement("input");
 	                input.type = "number";
 	                input.classList.add("hourInput");
-	                cell.innerHTML = ''; // Clear previous content
+	                cell.innerHTML = ''; 
 	                cell.appendChild(input);
 	            }
-	            input.value = hours || ""; // ✅ Set value but allow editing
+	            input.value = hours || ""; 
 
-	            // ✅ Ensure `data-prev` is set correctly during population
+	          
 	            input.setAttribute("data-prev", hours || "");
 
 	           
 	        }
 	    });
 
-	    // ✅ Recalculate totals after populating
+	    
 	    calculateTotals();
 	}
 
@@ -318,7 +316,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	        let emptyColumns = [];
 
 	        for (let col = 1; col <= totalColumns; col++) {
-	            if (skipColumns.includes(col)) continue; // ✅ Ignore Sunday + Holiday columns
+	            if (skipColumns.includes(col)) continue; 
 	            if (!columnFilled[col]) emptyColumns.push(col);
 	        }
 
@@ -363,7 +361,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	calender.addEventListener("change", fetchTimesheetData);
 	preview.addEventListener("click", fetchTimesheetData);
 	nextpre.addEventListener("click", fetchTimesheetData);
-    fetchTimesheetData(); // Load data on page load
+    fetchTimesheetData(); 
 	
 });
 
@@ -372,19 +370,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
 /*icons funtions*/
 document.addEventListener("DOMContentLoaded", function () {
-    let selectedRow = null; // Store the selected row
+    let selectedRow = null; 
 
     // 🔥 Row Click Event Listener
     document.getElementById("tableBody").addEventListener("click", function (event) {
-        let clickedRow = event.target.closest("tr"); // Get the full row
+        let clickedRow = event.target.closest("tr"); 
         if (!clickedRow || isProtectedRow(clickedRow)) return;
 
         // Remove old selection
         if (selectedRow) selectedRow.classList.remove("selected-row");
-
-        // Select new row
+		
         selectedRow = clickedRow;
-        selectedRow.classList.add("selected-row"); // Highlight row
+        selectedRow.classList.add("selected-row"); 
     });
 
     // 🔥 Delete Row Function (With Custom Modal)
@@ -394,7 +391,7 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        let chargeCode = selectedRow.cells[0]?.innerText.trim(); // Get Charge Code
+        let chargeCode = selectedRow.cells[0]?.innerText.trim(); 
 
         // 🛑 Prevent deleting static rows
         if (isProtectedRow(selectedRow)) {
@@ -415,7 +412,7 @@ document.addEventListener("DOMContentLoaded", function () {
         };
     });
 
-    // 🔥 Send DELETE request (Unchanged Logic)
+
     function sendDeleteRequest(chargeCode) {
 		
 		function getSelectedPeriod() {
@@ -430,8 +427,8 @@ document.addEventListener("DOMContentLoaded", function () {
 		       .then(response => response.json())
 		       .then(data => {
 		           if (data.success) {
-		               selectedRow.remove(); // Remove row from UI
-		               selectedRow = null; // Reset selection
+		               selectedRow.remove(); 
+		               selectedRow = null; 
 		               showAlert("✅ Row deleted successfully!", "success");
 		               location.reload();
 		           } else {
@@ -443,7 +440,7 @@ document.addEventListener("DOMContentLoaded", function () {
 			   
 		   }
 
-    // 🔥 Function to Protect Certain Rows (Work Location & Company Code)
+   
     function isProtectedRow(row) {
         let firstCellText = row.cells[0]?.innerText.trim().toLowerCase();
         return firstCellText.includes("work location") || firstCellText.includes("company code");
@@ -493,11 +490,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Fetch Expense Types
     function fetchExpenseTypes() {
-        fetch("/getExpensecode") // API call
+        fetch("/getExpensecode") 
             .then(response => response.json())
             .then(data => {
                 const expenseTypeDropdown = document.getElementById("expenseType");
-                expenseTypeDropdown.innerHTML = `<option value="">Select Type</option>`; // Default option
+                expenseTypeDropdown.innerHTML = `<option value="">Select Type</option>`; 
 
                 data.forEach(expense => {
                     let exCode = expense["Ex-code"] || expense["Ex_code"] || expense["exCode"];
@@ -517,7 +514,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
-    fetchExpenseTypes(); // Load on page load
+    fetchExpenseTypes(); 
 	
 	document.getElementById("saveExpenseBtn").addEventListener("click", function () {
 	    const username = sessionStorage.getItem("userName");
@@ -570,7 +567,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	        })
 
 	        
-	        confirmModal.hide(); // Hide modal after saving
+	        confirmModal.hide(); 
 	    };
 	});
 
@@ -580,8 +577,8 @@ document.addEventListener("DOMContentLoaded", function () {
 	        return periodDropdown.options[periodDropdown.selectedIndex].text;
 	    }
 
-	    let username = sessionStorage.getItem("userName");  // Get username
-	    let period = getSelectedPeriod();  // Get selected period
+	    let username = sessionStorage.getItem("userName");  
+	    let period = getSelectedPeriod();  
 
 	 
 
@@ -591,9 +588,9 @@ document.addEventListener("DOMContentLoaded", function () {
 	       
 
 	            let tableBody = document.querySelector("#expenseTable tbody");
-	            tableBody.innerHTML = ""; // Clear previous data
+	            tableBody.innerHTML = ""; 
 
-	            let totalExpense = 0; // Initialize total expense
+	            let totalExpense = 0; 
 
 	            if (data.length === 0) {
 	                tableBody.innerHTML = `<tr><td colspan="7">No expenses found for this period</td></tr>`;
@@ -620,12 +617,10 @@ document.addEventListener("DOMContentLoaded", function () {
 	                `;
 
 	                tableBody.appendChild(row);
-
-	                // Add expense amount to total
+	              
 	                totalExpense += parseFloat(expense.amount) || 0;
 	            });
 
-	            // Append Total Expense Row
 	            let totalRow = document.createElement("tr");
 	            totalRow.innerHTML = `
 	                <td colspan="5"><strong>Total Expense:</strong></td>
@@ -683,12 +678,11 @@ document.addEventListener("DOMContentLoaded", function () {
         link.addEventListener("click", function (event) {
             let targetSection = this.getAttribute("data-target");
             if (targetSection === "summarySection") {
-                setTimeout(generateSummary, 100); // Small delay to ensure section is visible
+                setTimeout(generateSummary, 100); 
             }
         });
     });
 
-    // Call generateSummary once page loads (if needed)
     generateSummary();
 });
 
@@ -706,7 +700,7 @@ function generateSummary() {
 	    .then(response => response.json())
 	    .then(data => {
 	        let summaryBody = document.getElementById("summaryBody");
-	        summaryBody.innerHTML = ""; // Clear previous data
+	        summaryBody.innerHTML = ""; 
 
 	        let casualLeaveDays = data.casualLeaveDays;
 	        let sickLeaveDays = data.sickLeaveDays;
@@ -735,7 +729,7 @@ function generateSummary() {
 	        document.getElementById("locationTotalHours").textContent = totalWorkingHours;
 	        document.getElementById("totalworking").textContent = totalWorkingHours;
 	        document.getElementById("standardHours").textContent = standardHours;
-	        document.getElementById("totalExpense").textContent = data.totalExpense; // Update total expense
+	        document.getElementById("totalExpense").textContent = data.totalExpense; 
 
 	        // Update leave details
 	        document.getElementById("contributionPercent").textContent = 
@@ -754,10 +748,10 @@ function generateSummary() {
 function calculateStandardAllocatedHours(selectedPeriod) {
     let [startDateStr, endDateStr] = selectedPeriod.split(" - "); // Example: "01/03/2025 - 15/03/2025"
 
-    // Convert "DD/MM/YYYY" to "YYYY-MM-DD" for correct parsing
+
     function parseDate(dateStr) {
         let parts = dateStr.split("/");
-        return new Date(parts[2], parts[1] - 1, parts[0]); // YYYY, MM (0-based), DD
+        return new Date(parts[2], parts[1] - 1, parts[0]);
     }
 
     let startDate = parseDate(startDateStr);
@@ -765,13 +759,13 @@ function calculateStandardAllocatedHours(selectedPeriod) {
 
     if (isNaN(startDate) || isNaN(endDate)) {
     
-        return 0; // Return 0 if dates are invalid
+        return 0; 
     }
 
     let totalWorkingDays = 0;
 
 	while (startDate <= endDate) {
-	    if (startDate.getDay() !== 0 && !isHoliday(startDate)) { // Exclude Sundays + Holidays
+	    if (startDate.getDay() !== 0 && !isHoliday(startDate)) { 
 	        totalWorkingDays++;
 	    }
 	    startDate.setDate(startDate.getDate() + 1);
@@ -781,7 +775,7 @@ function calculateStandardAllocatedHours(selectedPeriod) {
 
 
 
-    return totalWorkingDays * 9; // 1 working day = 9 hours
+    return totalWorkingDays * 9; 
 }
 
 
@@ -799,11 +793,11 @@ function fetchEmployeeData() {
 
 
 
-            // Populate Approvers with only Admins
+            
             const adminEmployees = data.filter(employee => employee.e_Role === "Admin" && employee.status === "active");
             populateEmployeeDropdown("approversDropdown", "approversList", adminEmployees);
 
-            // Populate Reviewers & Delegators with all active employees
+            
             const activeEmployees = data.filter(employee => employee.status === "active");
             populateEmployeeDropdown("reviewersDropdown", "reviewersList", activeEmployees);
             populateEmployeeDropdown("delegatorDropdown", "delegatorsList", activeEmployees);
@@ -815,7 +809,7 @@ function fetchEmployeeData() {
 /* Populate Employee Dropdown */
 function populateEmployeeDropdown(dropdownButtonId, dropdownListId, employees) {
     const dropdownList = document.getElementById(dropdownListId);
-    dropdownList.innerHTML = ""; // Clear existing items
+    dropdownList.innerHTML = ""; 
 
     if (!dropdownList) {
 
@@ -828,7 +822,7 @@ function populateEmployeeDropdown(dropdownButtonId, dropdownListId, employees) {
         dropdownList.appendChild(li);
     });
 
-    // Event delegation to handle dropdown clicks
+   
     dropdownList.addEventListener("click", function (event) {
         event.preventDefault();
         const target = event.target;
@@ -843,14 +837,11 @@ function fetchEmployeeData() {
     fetch("/getEmployees")
         .then(response => response.json())
         .then(data => {
-
-
-
-            // Filter Admin employees who are also active
+            
             const activeAdmins = data.filter(employee => employee.e_Role === "Admin" && employee.status === "active");
             populateEmployeeDropdown("approversDropdown", "approversList", activeAdmins);
 
-            // Filter all active employees for Reviewers & Delegators
+           
             const activeEmployees = data.filter(employee => employee.status === "active");
             populateEmployeeDropdown("reviewersDropdown", "reviewersList", activeEmployees);
             populateEmployeeDropdown("delegatorDropdown", "delegatorsList", activeEmployees);
@@ -861,7 +852,7 @@ function fetchEmployeeData() {
 /* Populate Employee Dropdown */
 function populateEmployeeDropdown(dropdownButtonId, dropdownListId, employees) {
     const dropdownList = document.getElementById(dropdownListId);
-    dropdownList.innerHTML = ""; // Clear existing items
+    dropdownList.innerHTML = ""; 
 
     if (!dropdownList) {
 
@@ -910,7 +901,7 @@ function selectEmployee(name, email, dropdownButtonId) {
     // Prevent duplicate emails
     if (!currentEmails.includes(email)) {
         textArea.value += (textArea.value ? "\n" : "") + email;
-        document.getElementById(dropdownButtonId).innerText = name; // Update dropdown button text
+        document.getElementById(dropdownButtonId).innerText = name; 
     } else {
         showAlert("This employee is already added!", "danger");
     }
@@ -927,7 +918,7 @@ function removeLastEntry(textAreaId) {
     let lines = textArea.value.trim().split("\n");
     if (lines.length > 0) {
         lines.pop();
-        textArea.value = lines.join("\n"); // Update textarea
+        textArea.value = lines.join("\n"); 
     } else {
         showAlert("No employees to remove!", "danger");
     }
@@ -1026,7 +1017,7 @@ function savePreferences() {
             }
 
             const selectedPeriod = getSelectedPeriod();
-            const loggedInUser = sessionStorage.getItem("userName"); // ✅ Get username from local storage
+            const loggedInUser = sessionStorage.getItem("userName"); 
 
             if (!selectedPeriod || !loggedInUser) {
                 showAlert("Please select a period and ensure you're logged in!", "danger");
@@ -1035,7 +1026,7 @@ function savePreferences() {
 
             const preferences = {
                 period: selectedPeriod,
-                Employeename: loggedInUser,  // ✅ Ensure username is included
+                Employeename: loggedInUser,  
                 approvers: document.getElementById("selectedApprovers").value.trim().split("\n").join(","),
                 reviewers: document.getElementById("selectedReviewers").value.trim().split("\n").join(","),
                 delegator: document.getElementById("selectedDelegators").value.trim().split("\n").join(",")
@@ -1073,7 +1064,7 @@ function fetchPreferences() {
         return periodDropdown.options[periodDropdown.selectedIndex]?.text || null;
     }
     const selectedPeriod = getSelectedPeriod();
-    const loggedInUser = sessionStorage.getItem("userName"); // ✅ Get logged-in username
+    const loggedInUser = sessionStorage.getItem("userName"); 
 	
     if (!selectedPeriod || !loggedInUser) {
 
@@ -1134,7 +1125,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const username = sessionStorage.getItem("userName");
 
     function getSelectedPeriod() {
-        return periodDropdown.options[periodDropdown.selectedIndex]?.text || ""; // Ensure it's not undefined
+        return periodDropdown.options[periodDropdown.selectedIndex]?.text || ""; 
     }
 
     function updateButtonState() {
@@ -1174,7 +1165,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     sendApprovalBtn.textContent = "Reviewing";
                     sendApprovalBtn.classList.add("btn-info");
                     sendApprovalBtn.disabled = true;
-                    submitBtn.disabled = false; // ✅ Allow submit if pending
+                    submitBtn.disabled = false; 
                 } else if (approvalStatus === "Issue") {
                     sendApprovalBtn.textContent = "Timesheet Issue";
                     sendApprovalBtn.classList.add("btn-warning");
@@ -1196,12 +1187,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
-    // ✅ Function to Send for Approval OR Submit
+    
     function sendForApproval(selectedPeriod, status) {
         fetch("/sendForApproval", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, period: selectedPeriod, status }) // ✅ Send "Pending" or "Approved"
+            body: JSON.stringify({ username, period: selectedPeriod, status }) 
         })
         .then(response => response.json())
         .then(data => {
@@ -1218,7 +1209,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     submitBtn.disabled = true;
                     showAlert("Timesheet Successfully Submitted!", "success");
                 }
-                sessionStorage.setItem(`approvalStatus_${username}_${selectedPeriod}`, status); // Store state
+                sessionStorage.setItem(`approvalStatus_${username}_${selectedPeriod}`, status); 
             }
         })
 
@@ -1243,7 +1234,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // ✅ Handle Confirmation Click
         confirmApprovalBtn.onclick = function () {
             approvalModal.hide();
-            sendForApproval(selectedPeriod, "Pending"); // ✅ Send "Pending" status
+            sendForApproval(selectedPeriod, "Pending"); 
         };
     });
 
