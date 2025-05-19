@@ -308,7 +308,7 @@ async function appreovPaylisp() {
         // Get payslip table rows
         const rows = document.querySelectorAll("#payslip-preview-container table tbody tr");
 
-        // Extract values from the table cells by row index (based on your render)
+     
         const employeeName = rows[0].cells[1].innerText;
         const onboardDate = rows[1].cells[1].innerText;
         const designation = rows[2].cells[1].innerText;
@@ -316,11 +316,11 @@ async function appreovPaylisp() {
         const totalLeaves = rows[4].cells[1].innerText;
         const totalWorkingDays = rows[5].cells[1].innerText;
         const lop = rows[6].cells[1].innerText;
-        const basicSalary = rows[7].cells[1].innerText.replace(/₹|,/g, ""); // Remove ₹ and commas
+        const basicSalary = rows[7].cells[1].innerText.replace(/₹|,/g, "");
         const deductions = rows[8].cells[1].innerText.replace(/₹|,/g, "");
         const netPay = rows[9].cells[1].innerText.replace(/₹|,/g, "");
 
-        // Prepare payload
+    
         const payload = {
             username: employeeName,
             month: month,
@@ -333,10 +333,10 @@ async function appreovPaylisp() {
             basicSalary: parseFloat(basicSalary),
             deductions: parseFloat(deductions),
             netPay: parseFloat(netPay),
-            // Add bankName, bankAccount if you add those fields too
+            
         };
 
-        // Call your backend approve endpoint
+    
         const response = await fetch('/payslip/approvepayslip', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -399,16 +399,26 @@ function fetchPayslipData() {
                 const displayMonth = new Date(year, month - 1).toLocaleString('default', { month: 'long' }) + " - " + year;
                 const monthParam = `${year}-${month.padStart(2, '0')}`;
 
+                const formattedBasicSalary = "₹ " + Number(payslip.basicSalary).toLocaleString('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+
+                const formattedNetPay = "₹ " + Number(payslip.netPay).toLocaleString('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
 
                 tableBody.innerHTML += `
                     <tr>
                         <td>${payslip.id}</td>
                         <td>${payslip.username}</td> 
                         <td>${payslip.designation}</td> 
+                        <td>${formattedBasicSalary}</td> 
                         <td>${displayMonth}</td>
                         <td>${payslip.stdWorkDays}</td>		
                         <td>${payslip.totalWorkingDays}</td>	
-                        <td>${payslip.netPay}</td>	
+                        <td>${formattedNetPay}</td>	
                         <td>${payslip.bankName}</td>
                         <td>${payslip.salaryProcessAt}</td>	
                         <td>
@@ -422,6 +432,7 @@ function fetchPayslipData() {
         })
         .catch(error => console.error("Error fetching Payslip data:", error));
 }
+
 
 function downloadPayslipAdmin(username, month) {
     fetch(`/PayslipDownload?username=${encodeURIComponent(username)}&month=${encodeURIComponent(month)}`)
@@ -473,3 +484,187 @@ function downloadPayslip() {
             showAlert("Your Timesheet Didn't Approve on This Month.", "danger");
         });
 }
+
+
+
+function fetchinitialSalary() {
+    fetch("/getInitialSalary") 
+        .then(response => response.json())
+        .then(data => {
+            const tableBody = document.getElementById("Initialsalary-table-body");
+            tableBody.innerHTML = ""; 
+            
+            data.forEach(Salary => {
+                const bankStatus = Salary.bankaccount === "1" 
+                    ? '<span style="color:green;">&#10004;</span>'   
+                    : Salary.bankaccount === "0" 
+                        ? '<span style="color:red;">&#10060;</span>' 
+                        : Salary.bankaccount; 
+
+                const formattedMonthly = "₹ " + Number(Salary["Salary_M"]).toLocaleString('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+
+                const formattedYearly = "₹ " + Number(Salary.yearsalary).toLocaleString('en-IN', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+
+                tableBody.innerHTML += `
+                    <tr>
+                        <td>${Salary.id}</td>
+                        <td>${Salary['E-name']}</td> 
+                        <td>${Salary["doj"]}</td> 
+                        <td>${formattedMonthly}</td>
+                        <td>${formattedYearly}</td>
+                        <td>${Salary.effectiveFrom}</td>
+                        <td>${Salary.reason}</td>
+                        <td>${bankStatus}</td>							 
+                        <td>
+                            <button class="btn btn-success btn-sm" title="Salary Hike" onclick="openHikeForm('${Salary.id}')">
+                                <i class="bi bi-person-up"></i>
+                            </button>
+                            <button class="btn btn-success btn-sm" title="Salary History" onclick="showSalaryHistory('${Salary['E-name']}')">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        })
+        .catch(error => console.error("Error fetching Charge codes:", error));
+}
+
+
+
+function openHikeForm(employeeId) {
+    fetch(`/getSalaryById/${employeeId}`)
+        .then(res => res.json())
+        .then(data => {
+            const hikeFormHTML = `
+                <div class="card p-3 mb-3">
+                    <h4>Apply Salary Hike</h4>
+                    <form onsubmit="submitSalaryHike(event, '${data.id}', '${data['E-name']}', ${data.Salary_M})">
+                        ${inputField("Employee Name", "text", "ename", "", data["E-name"], true)}
+                        ${inputField("Current Salary", "number", "currentSalary", "", data.Salary_M, true)}
+                        ${inputField("Hike Percentage (%)", "number", "hikePercent", "", "", false, "oninput='calculateNewSalaryHike()'")}
+                        ${inputField("New Salary", "number", "newSalary", "newSalaryInput", "", true)}
+                        ${inputField("Reason", "text", "reason")}
+                        ${formButtons()}
+                    </form>
+                </div>
+            `;
+            document.getElementById("form-container").innerHTML = hikeFormHTML;
+        });
+}
+
+function calculateNewSalaryHike() {
+    const current = parseFloat(document.querySelector("[name='currentSalary']").value);
+    const percent = parseFloat(document.querySelector("[name='hikePercent']").value);
+    const newSalaryInput = document.querySelector("[name='newSalary']");
+
+    if (!isNaN(current) && !isNaN(percent)) {
+        const newSalary = current + (current * percent / 100);
+        newSalaryInput.value = newSalary.toFixed(2);
+    } else {      
+        newSalaryInput.value = "";
+    }
+}
+
+
+
+function submitSalaryHike(event, id, name, currentSalary) {
+    event.preventDefault();
+
+   
+    const message = `Are you sure you want to give Salary hike to <strong>${name}</strong>?`;
+    document.getElementById('salaryHikeConfirmMessage').innerHTML = message;
+
+    
+    const salaryHikeModal = new bootstrap.Modal(document.getElementById('salaryHikeConfirmModal'));
+    salaryHikeModal.show();
+
+ 
+    const confirmBtn = document.getElementById('confirmSalaryHikeBtn');
+
+
+    confirmBtn.replaceWith(confirmBtn.cloneNode(true)); 
+    const newConfirmBtn = document.getElementById('confirmSalaryHikeBtn');
+
+    newConfirmBtn.addEventListener('click', () => {
+		showLoader();
+        const hikePercent = document.querySelector("[name='hikePercent']").value;
+        const newSalary = document.querySelector("[name='newSalary']").value;
+        const reason = document.querySelector("[name='reason']").value;
+
+        fetch('/updateSalaryWithHike', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id, name, currentSalary, newSalary, hikePercent, reason
+            })
+        })
+        .then(res => res.text())
+        .then(msg => {
+            salaryHikeModal.hide();
+            hideForm();
+            showAlert(msg, "success");
+            fetchinitialSalary(); 
+        })
+        .catch(err => {
+            salaryHikeModal.hide();
+            showAlert('Error: ' + err.message, "danger");
+        })
+		.finally(() => hideLoader());
+    });
+}
+
+
+function showSalaryHistory(empName) {
+    document.getElementById("historyEmpName").innerText = empName;
+
+    fetch(`/getSalaryHistory?employeeName=${encodeURIComponent(empName)}`)
+        .then(response => response.json())
+        .then(history => {
+            const tbody = document.getElementById("salaryHistoryTableBody");
+            tbody.innerHTML = "";
+
+            if (history.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted">No salary history found.</td></tr>`;
+            } else {
+                history.forEach(entry => {
+                    const formattedOldSalary = "₹ " + Number(entry.oldsalary).toLocaleString('en-IN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+
+                    const formattedNewSalary = "₹ " + Number(entry.newsalary).toLocaleString('en-IN', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${entry.effectiveFrom}</td>
+                            <td>${formattedOldSalary}</td>
+                            <td>${formattedNewSalary}</td>
+                            <td>${entry.hikePercent}%</td>
+                            <td>${entry.reason}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            // Show modal
+            const salaryModal = new bootstrap.Modal(document.getElementById('salaryHistoryModal'));
+            salaryModal.show();
+        })
+        .catch(error => {
+            console.error("Error fetching salary history:", error);
+            showAlert("Failed to load salary history.", "danger");
+        });
+}
+
+
+

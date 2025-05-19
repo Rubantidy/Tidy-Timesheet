@@ -145,4 +145,36 @@ public class EmailServiceController {
 
 
    
+   
+   public void SalaryHikeEmail(Employeedao empData, double oldSalary, double newSalary, double hikePercent, String reason) throws MessagingException, IOException {
+	    MimeMessage message = mailSender.createMimeMessage();
+	    MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+	    helper.setFrom("timex@tidyds.com", "Tidy Digital Solutions");
+	    helper.setTo(empData.geteMail());
+	    helper.setSubject("Salary Hike Notification - Tidy Digital Solutions");
+
+	    String emailContent = "<html><body>"
+	            + "<h2>Hello " + empData.geteName() + ",</h2>"
+	            + "<p>We are pleased to inform you that your salary has been revised based on the recent evaluation. Here are the updated details:</p>"
+	            + "<p><strong>Previous Salary:</strong> ₹" + oldSalary + "</p>"
+	            + "<p><strong>New Salary:</strong> ₹" + newSalary + "</p>"
+	            + "<p><strong>Hike Percentage:</strong> " + hikePercent + "%</p>"
+	            + "<p><strong>Reason:</strong> " + reason + "</p>"
+	            + "<br>"
+	            + "<p>Please login to the <a href=\"https://timex.tidyds.com\">Timesheet Portal</a> to view the updated salary in your profile and payslip section.</p>"
+	            + "<p>If you have any questions, feel free to reach out to HR.</p>"
+	            + "<br>"
+	            + "<p>Warm regards,<br><strong>Tidy Digital Solutions Team</strong></p>"
+	            + "</body></html>";
+
+	    helper.setText(emailContent, true);
+
+	    ClassPathResource image = new ClassPathResource("static/img/logo.png");
+	    helper.addInline("logoImage", image);
+
+	    mailSender.send(message);
+	}
+
+   
 }

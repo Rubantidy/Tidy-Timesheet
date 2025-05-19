@@ -1,13 +1,16 @@
 package timesheet.payroll;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -15,12 +18,16 @@ import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.mail.MessagingException;
 import timesheet.admin.dao.Employeedao;
+import timesheet.admin.dao.Expensedao;
 import timesheet.admin.repo.EmployeeRepo;
 import timesheet.emails.EmailServiceController;
 import timesheet.payroll.dao.AddSalary;
 import timesheet.payroll.dao.Bankdetails;
+import timesheet.payroll.dao.SalaryHistory;
+import timesheet.payroll.dao.SalaryHistoryDTO;
 import timesheet.payroll.repo.AddSalaryRepo;
 import timesheet.payroll.repo.BankDetailsRepo;
+import timesheet.payroll.repo.SalaryHistoryRepo;
 
 
 @RestController
@@ -37,6 +44,10 @@ public class SalaryController {
 
 	@Autowired
 	private EmailServiceController emailservice;
+	
+	@Autowired
+	private SalaryHistoryRepo salaryHistoryRepo;
+
 	
 	
 	@GetMapping("/getEmployeesforSalary")
@@ -56,37 +67,66 @@ public class SalaryController {
 	
 	
 	@PostMapping("/addSalary")
-    public ResponseEntity<String> addSalary(@RequestBody AddSalary salaryData) {
-        try {
-          
-            int salaryMonthInt = Integer.parseInt(salaryData.getMonthsalary());
+	public ResponseEntity<String> addSalary(@RequestBody AddSalary salaryData) {
+	    try {
+	        int salaryMonthInt = Integer.parseInt(salaryData.getMonthsalary());
+	        int salaryYear = salaryMonthInt * 12;
 
-          
-            int salaryYear = salaryMonthInt * 12;
+	        salaryData.setYearsalary(String.valueOf(salaryYear));
+	        salaryData.setBankaccount("0");
 
-        
-            salaryData.setYearsalary(String.valueOf(salaryYear));  
-            salaryData.setBankaccount("0"); 
+	        // Set default values
+	        salaryData.setReason("Onboarding");
+	        salaryData.setEffectiveFrom(LocalDate.now());
 
-            Employeedao empData = EmpRepo.findByeName(salaryData.getEmployeename());
-        
-            addSalaryRepo.save(salaryData);
-            
-            try {
-            	emailservice.InitialSalaryEmail(salaryData, empData);
-            } catch (MessagingException e) {
-                e.printStackTrace();
-                return ResponseEntity.status(500).body("Failed to send email.");
-            }
+	        Employeedao empData = EmpRepo.findByeName(salaryData.getEmployeename());
 
-            return ResponseEntity.ok("Salary added successfully for " + salaryData.getEmployeename() + "!");
-        } catch (NumberFormatException e) {
-            return ResponseEntity.badRequest().body("Invalid SalaryMonth: must be a number.");
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(500).body("Failed to add salary due to server error.");
-        }
-    }
+	        // Save in AddSalary table
+	        addSalaryRepo.save(salaryData);
+
+	        double oldsalary = 0;
+	        // Save in SalaryHistory table
+	        SalaryHistory history = new SalaryHistory(
+	            salaryData.getEmployeename(),
+	            oldsalary,
+	            Double.valueOf(salaryData.getMonthsalary()),
+	            null, 
+	            "Onboarding",
+	            LocalDate.now()
+	        );
+	        salaryHistoryRepo.save(history); 
+
+	        try {
+	            emailservice.InitialSalaryEmail(salaryData, empData);
+	        } catch (MessagingException e) {
+	            e.printStackTrace();
+	            return ResponseEntity.status(500).body("Failed to send email.");
+	        }
+
+	        return ResponseEntity.ok("Salary added successfully for " + salaryData.getEmployeename() + "!");
+	    } catch (NumberFormatException e) {
+	        return ResponseEntity.badRequest().body("Invalid SalaryMonth: must be a number.");
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        return ResponseEntity.status(500).body("Failed to add salary due to server error.");
+	    }
+	}
+
+	
+
+	  @GetMapping("/getSalaryById/{id}")
+	    public ResponseEntity<?> getExpenseByid(@PathVariable int id) {
+	    
+	        Optional<AddSalary> optionalCode = addSalaryRepo.findById(id);
+	       
+	        if (optionalCode.isPresent()) {
+	            return ResponseEntity.ok(optionalCode.get());
+	        } else {
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Code not found");
+	        }
+	    }
+	  
+	  
 	
 	 @GetMapping("/getInitialSalary")
 	    public ResponseEntity<List<AddSalary>> getCodes() {
@@ -94,6 +134,67 @@ public class SalaryController {
 	        return ResponseEntity.ok(Salary);
 	    }
 	 
+	 @PostMapping("/updateSalaryWithHike")
+	 public ResponseEntity<String> updateSalaryWithHike(@RequestBody Map<String, Object> hikeData) {
+	     try {
+	         int id = Integer.valueOf(hikeData.get("id").toString());
+	         String name = hikeData.get("name").toString();
+	         double currentSalary = Double.parseDouble(hikeData.get("currentSalary").toString());
+	         double newSalary = Double.parseDouble(hikeData.get("newSalary").toString());
+	         double hikePercent = Double.parseDouble(hikeData.get("hikePercent").toString());
+	         String reason = hikeData.get("reason").toString();
+
+	         // Fetch AddSalary record
+	         AddSalary salary = addSalaryRepo.findById(id)
+	                 .orElseThrow(() -> new RuntimeException("Employee not found"));
+	         
+	         double oldsalary =Double.parseDouble(salary.getMonthsalary());
+
+	         // Update AddSalary table
+	         salary.setMonthsalary(String.valueOf((int) newSalary));
+	         salary.setYearsalary(String.valueOf((int) newSalary * 12));
+	         salary.setReason(reason);
+	         salary.setEffectiveFrom(LocalDate.now());
+	         addSalaryRepo.save(salary);
+
+	         // Save to SalaryHistory table
+	         SalaryHistory history = new SalaryHistory(
+	             name,
+	             oldsalary,
+	             newSalary,
+	             hikePercent,
+	             reason,
+	             LocalDate.now()
+	         );
+	         salaryHistoryRepo.save(history);
+	         
+	         Employeedao empData = EmpRepo.findByeName(name);
+	         emailservice.SalaryHikeEmail(empData, oldsalary, newSalary, hikePercent, reason);
+
+	         return ResponseEntity.ok("Salary hike applied successfully for " + salary.getEmployeename() + "!");
+	     } catch (Exception e) {
+	         e.printStackTrace();
+	         return ResponseEntity.status(500).body("Failed to apply salary hike.");
+	     }
+	 }
+
+
+	 @GetMapping("/getSalaryHistory")
+	    public ResponseEntity<List<SalaryHistoryDTO>> getSalaryHistory(@RequestParam String employeeName) {
+	        List<SalaryHistory> historyList = salaryHistoryRepo.findByEmployeeNameOrderByEffectiveFromDesc(employeeName);
+
+	        List<SalaryHistoryDTO> dtoList = historyList.stream()
+	            .map(h -> new SalaryHistoryDTO(
+	                h.getEffectiveFrom(),
+	                h.getOldsalary(),
+	                h.getNewsalary(),
+	                h.getHikePercent(),
+	                h.getReason()
+	            ))
+	            .collect(Collectors.toList());
+
+	        return ResponseEntity.ok(dtoList);
+	    }
 	
 	 
 	 @PostMapping("/saveBankDetails")

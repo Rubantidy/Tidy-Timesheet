@@ -1,5 +1,7 @@
 package timesheet.payroll.dao;
 
+import java.time.LocalDate;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.Entity;
@@ -27,6 +29,10 @@ public class AddSalary {
 	
 	private String Yearsalary;
 	private String Bankaccount;
+	
+    private String reason;
+
+    private LocalDate effectiveFrom;
 	
 	
 	public int getId() {
@@ -66,11 +72,29 @@ public class AddSalary {
 	public void setBankaccount(String bankaccount) {
 		Bankaccount = bankaccount;
 	}
+	
+	
+	public String getReason() {
+		return reason;
+	}
+	public void setReason(String reason) {
+		this.reason = reason;
+	}
+	public LocalDate getEffectiveFrom() {
+		return effectiveFrom;
+	}
+	public void setEffectiveFrom(LocalDate effectiveFrom) {
+		this.effectiveFrom = effectiveFrom;
+	}
 	@Override
 	public String toString() {
 		return "AddSalary [id=" + id + ", employeename=" + employeename + ", DOJ=" + DOJ + ", Monthsalary="
-				+ Monthsalary + ", Yearsalary=" + Yearsalary + ", Bankaccount=" + Bankaccount + "]";
+				+ Monthsalary + ", Yearsalary=" + Yearsalary + ", Bankaccount=" + Bankaccount + ", reason=" + reason
+				+ ", effectiveFrom=" + effectiveFrom + "]";
 	}
+
+	
+	
 	
 	
 	

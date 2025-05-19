@@ -398,6 +398,54 @@
 					</div>
 
 
+					<!-- Salary Hike Confirmation Modal -->
+					<div class="modal fade" id="salaryHikeConfirmModal" tabindex="-1" aria-labelledby="salaryHikeConfirmLabel" aria-hidden="true">
+					  <div class="modal-dialog">
+					    <div class="modal-content shadow">
+					      <div class="modal-header">
+					        <h5 class="modal-title" id="salaryHikeConfirmLabel">Confirm Salary Hike</h5>
+					        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					      </div>
+					      <div class="modal-body" id="salaryHikeConfirmMessage">
+					        <!-- Message will be injected dynamically -->
+					      </div>
+					      <div class="modal-footer">
+					        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+					        <button type="button" class="btn btn-success" id="confirmSalaryHikeBtn">Yes, Confirm</button>
+					      </div>
+					    </div>
+					  </div>
+					</div>
+
+					
+					<!-- Salary History Modal -->
+					<div class="modal fade" id="salaryHistoryModal" tabindex="-1" aria-labelledby="salaryHistoryModalLabel" aria-hidden="true">
+					  <div class="modal-dialog modal-lg">
+					    <div class="modal-content shadow">
+					      <div class="modal-header">
+					        <h5 class="modal-title" id="salaryHistoryModalLabel">Salary History for <span id="historyEmpName"></span></h5>
+					        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					      </div>
+					      <div class="modal-body">
+					        <table class="table table-bordered table-hover">
+					          <thead>
+					            <tr>
+					              <th>Effective From</th>
+					              <th>Old Salary</th>
+					              <th>New Salary</th>
+					              <th>Hike %</th>
+					              <th>Reason</th>
+					            </tr>
+					          </thead>
+					          <tbody id="salaryHistoryTableBody">
+					            <!-- Rows inserted via JS -->
+					          </tbody>
+					        </table>
+					      </div>
+					    </div>
+					  </div>
+					</div>
+
 
     
     <!-- Bootstrap JS -->

@@ -309,6 +309,8 @@ function showContent(section) {
 					   					   		       <th>DOJ</th>
 					   					                <th>Basic Salary</th>
 														<th>Annual Salary</th>
+														<th>Effective From</th>
+														<th>Reason</th>
 														<th>Bank Details</th>
 					   					   		        <th>Action</th>	
 					   					   	</tr>
@@ -367,6 +369,7 @@ function showContent(section) {
 					   					   	  <th>ID</th>
 					   	                       <th>Employee</th>
 					   						   <th>Designation</th>
+											   <th>Basic Pay</th>
 					   						   <th>Month</th>
 					   	                       <th>STD Days</th>
 											   <th>Worked Days</th>	
@@ -1565,37 +1568,8 @@ function SubmitUpdatedHoliday(event, id) {
 
 
 
-function fetchinitialSalary() {
-    fetch("/getInitialSalary") 
-        .then(response => response.json())
-        .then(data => {
-            const tableBody = document.getElementById("Initialsalary-table-body");
-            tableBody.innerHTML = ""; 
-            data.forEach(Salary => {
-                const bankStatus = Salary.bankaccount === "1" 
-                    ? '<span style="color:green;">&#10004;</span>'   
-                    : Salary.bankaccount === "0" 
-                        ? '<span style="color:red;">&#10060;</span>' 
-                        : Salary.bankaccount; 
 
-                tableBody.innerHTML += `
-                    <tr>
-                        <td>${Salary.id}</td>
-                        <td>${Salary['E-name']}</td> 
-                        <td>${Salary["doj"]}</td> 
-                        <td>${Salary["Salary_M"]}</td>
-                        <td>${Salary.yearsalary}</td>
-                        <td>${bankStatus}</td>							 
-                        <td>
-                            <button class="btn btn-success btn-sm"><i class="bi bi-pencil-square"></i></button>
-                            <button class="btn btn-danger btn-sm"><i class="bi bi-trash3"></i></button>
-                        </td>
-                    </tr>
-                `;
-            });
-        })
-        .catch(error => console.error("Error fetching Charge codes:", error));
-}
+
 
 /*Form creation for all the options*/
 function createForm(type) {
@@ -1693,7 +1667,7 @@ function createForm(type) {
 								              <option value="">Select Employee</option>
 								        </select>
 								    </div>
-									${inputField("DOJ", "text", "doj", "", "", true)}  
+								${inputField("DOJ", "text", "doj", "", "", true)} 
 								${inputField("Salary(Month)", "number", "Salary_M")}
 								${formButtons()}
 							</form>
@@ -1795,19 +1769,20 @@ function generatePassword(inputId) {
 }
 
 /*Input field function*/
-function inputField(label, type, name, formType = "", value = "", readonly = false) {
+function inputField(label, type, name, formType = "", value = "", readonly = false, extraAttrs = "") {
     const isPasswordField = name === "E-pass" || name === "SA-pass";
     const isChargeCodeField = name === "code" && formType === "charge-code";
 
     return `
         <div class="mb-3">
             <label class="form-label">${label}</label>
-            <input type="${type}" class="form-control" name="${name}" id="${name}" value="${value || ""}" ${readonly ? "readonly" : ""} required>
+            <input type="${type}" class="form-control" name="${name}" id="${name}" value="${value || ""}" ${readonly ? "readonly" : ""} ${extraAttrs} required>
             ${isPasswordField ? `<button class="btn btn-outline-primary" type="button" onclick="generatePassword('${name}')" style="margin-top: 10px;">Generate</button>` : ""}
             ${isChargeCodeField ? `<button class="btn btn-outline-primary" type="button" onclick="codeGenerate()" style="margin-top: 10px;">Generate Charge Code</button>` : ""}
         </div>
     `;
 }
+
 
 
 
