@@ -17,7 +17,6 @@ public class Bankdetails {
     private String accountNumber;
     private String ifsc;
     private String bankName;
-    private String upiId;
     
 	public Long getId() {
 		return id;
@@ -55,18 +54,13 @@ public class Bankdetails {
 	public void setBankName(String bankName) {
 		this.bankName = bankName;
 	}
-	public String getUpiId() {
-		return upiId;
-	}
-	public void setUpiId(String upiId) {
-		this.upiId = upiId;
-	}
 	@Override
 	public String toString() {
 		return "Bankdetails [id=" + id + ", employeename=" + employeename + ", accountHolder=" + accountHolder
-				+ ", accountNumber=" + accountNumber + ", ifsc=" + ifsc + ", bankName=" + bankName + ", upiId=" + upiId
-				+ "]";
+				+ ", accountNumber=" + accountNumber + ", ifsc=" + ifsc + ", bankName=" + bankName + "]";
 	}
+
+
     
     
     

@@ -374,11 +374,45 @@
 	</div>
  
 	
-	<div id="contributionSummary">
-	    <h3 id="contributionPercent"></h3>
-	    <p id="casualLeave"></p>
-	    <p id="sickLeave"></p>
-	    <p id="paidLeave"></p>
+	<div id="contributionSummary" style="
+	    margin-top: 30px;
+	    background: #f9f9f9;
+	    border-radius: 10px;
+	    padding: 25px 30px;
+	    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+	    max-width: 600px;
+	    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	">
+
+	    <h3 id="annualContribution" style="
+	        font-weight: bold;
+	        color: #003366;
+	        margin-bottom: 10px;
+	    ">
+	        Annual Chargeability Contribution: --
+	    </h3>
+
+	    <p id="leaveBalanceDate" style="
+	        font-size: 14px;
+	        color: #666;
+	        margin-bottom: 20px;
+	    ">
+	        As of today, you have the following leave balances:
+	    </p>
+
+	    <ul style="
+	        list-style-type: none;
+	        padding-left: 0;
+	        line-height: 1.8;
+	        font-size: 16px;
+	        color: #333;
+	    ">
+	        <li id="earnedLeave">Earned Casual Leave: --</li>
+	        <li id="remainingSick">Remaining Sick Leave: --</li>
+	        <li id="remainingFloating">Remaining Floating Leave: --</li>
+	        <li id="remainingCasual">Remaining Casual Leave: --</li>
+	        <li id="paidLeave" style="color: #cc0000; font-weight: 500;">Loss of Pay: --</li>
+	    </ul>
 	</div>
 
 	
@@ -478,6 +512,7 @@
 	
 	
 	<!-- Section for PaySlip -->
+	<!-- Section for PaySlip -->
 	<div id="payslip" class="content-section" style="display: none; padding: 20px;">
 
 	  <h3 class="text-primary">PaySlip Section</h3>
@@ -507,68 +542,78 @@
 	          <th>Bank Name</th>
 	          <td id="bankName">-</td>
 	        </tr>
-	        <tr>
-	          <th>UPI ID</th>
-	          <td id="bankUpiId">-</td>
-	        </tr>
 	      </tbody>
 	    </table>
 	  </div>
-	  
+
 	  <div>
-	  		<button  onclick="downloadPayslip()">download Payslip</button>
-	  	</div>
+	    <button onclick="downloadPayslip()">Download Payslip</button>
+	  </div>
 	</div>
-	
-	
-	
-	<!-- Models -->
-		
+
+
 	<!-- Bank Edit Modal -->
 	<div class="modal fade" id="bankEditModal" tabindex="-1" aria-labelledby="bankEditModalLabel" aria-hidden="true">
 	  <div class="modal-dialog">
 	    <div class="modal-content">
+	    
 	      <div class="modal-header">
 	        <h5 class="modal-title">Bank Details</h5>
 	        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 	      </div>
+	      
 	      <div class="modal-body">
 	        <form id="bankEditForm">
-				<div class="mb-2">
-				  <label class="form-label">Account Holder</label>
-				  <input type="text" class="form-control" id="inputAccountHolder">
-				  <div class="text-danger small" id="errorAccountHolder"></div>
-				</div>
+	        
+	          <div class="mb-2">
+	            <label class="form-label">Account Holder</label>
+	            <input type="text" class="form-control" id="inputAccountHolder">
+	            <div class="text-danger small" id="errorAccountHolder"></div>
+	          </div>
 
-				<div class="mb-2">
-				  <label class="form-label">Account Number</label>
-				  <input type="text" class="form-control" id="inputAccountNumber">
-				  <div class="text-danger small" id="errorAccountNumber"></div>
-				</div>
+			  <div class="mb-2 position-relative">
+			    <label class="form-label">Account Number</label>
+			    <input type="password" class="form-control" id="inputAccountNumber" 
+						 onpaste="handleBlock(event, 'errorAccountNumber')"
+				         oncopy="handleBlock(event, 'errorAccountNumber')"
+				         oncut="handleBlock(event, 'errorAccountNumber')">
+			    <i class="bi bi-eye-slash toggle-password" onclick="toggleVisibilityAccount('inputAccountNumber', this)" style="position: absolute; top: 38px; right: 10px; cursor: pointer;"></i>
+			    <div class="text-danger small" id="errorAccountNumber"></div>
+			  </div>
+			  <input type="hidden" id="fullAccountNumber">
 
-				<div class="mb-2">
-				  <label class="form-label">IFSC Code</label>
-				  <input type="text" class="form-control" id="inputIFSC">
-				  <div class="text-danger small" id="errorIFSC"></div>
-				</div>
 
-				<div class="mb-2">
-				  <label class="form-label">Bank Name</label>
-				  <input type="text" class="form-control" id="inputBankName">
-				  <div class="text-danger small" id="errorBankName"></div>
-				</div>
+			  <div class="mb-2 position-relative">
+			    <label class="form-label">Confirm Account Number</label>
+			    <input type="password" class="form-control" id="inputConfirmAccountNumber" 
+						onpaste="handleBlock(event, 'errorConfirmAccountNumber')"
+				         oncopy="handleBlock(event, 'errorConfirmAccountNumber')"
+				         oncut="handleBlock(event, 'errorConfirmAccountNumber')">
+			    <i class="bi bi-eye-slash toggle-password" onclick="toggleVisibilityAccount('inputConfirmAccountNumber', this)" style="position: absolute; top: 38px; right: 10px; cursor: pointer;"></i>
+			    <div class="text-danger small" id="errorConfirmAccountNumber"></div>
+			  </div>
 
-				<div class="mb-2">
-				  <label class="form-label">UPI ID</label>
-				  <input type="text" class="form-control" id="inputUpiId">
-				  <div class="text-danger small" id="errorUpiId"></div>
-				</div>
+	          <div class="mb-2">
+	            <label class="form-label">IFSC Code</label>
+	            <input type="text" class="form-control" id="inputIFSC">
+	            <div class="text-danger small" id="errorIFSC"></div>
+	          </div>
+
+	          <div class="mb-2">
+	            <label class="form-label">Bank Name</label>
+	            <input type="text" class="form-control" id="inputBankName">
+	            <div class="text-danger small" id="errorBankName"></div>
+	          </div>
+			  
+	        
 	        </form>
 	      </div>
+	      
 	      <div class="modal-footer">
 	        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
 	        <button class="btn btn-success" onclick="saveBankDetails()">Save</button>
 	      </div>
+	    
 	    </div>
 	  </div>
 	</div>
@@ -696,6 +741,26 @@
 	      <div class="modal-footer">
 	        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
 	        <button type="button" class="btn btn-primary" id="confirmSaveExpense">Save Expense</button>
+	      </div>
+	    </div>
+	  </div>
+	</div>
+	
+
+	<!-- Logout Confirmation Modal -->
+	<div class="modal fade" id="logoutConfirmModal" tabindex="-1" aria-labelledby="logoutConfirmModalLabel" aria-hidden="true">
+	  <div class="modal-dialog">
+	    <div class="modal-content">
+	      <div class="modal-header">
+	        <h5 class="modal-title" id="logoutConfirmModalLabel">Confirm Logout</h5>
+	        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+	      </div>
+	      <div class="modal-body">
+	        <p id="logoutMessage">Are you sure you want to logout?</p>
+	      </div>
+	      <div class="modal-footer">
+	        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+	        <button class="btn btn-danger" id="confirmLogoutBtn">Logout</button>
 	      </div>
 	    </div>
 	  </div>
@@ -1038,16 +1103,21 @@
 				
 				/*script for logout*/
 				document.getElementById('logout').addEventListener('click', function(event) {
-				       event.preventDefault();
+				    event.preventDefault();
 
-				       // Clear any session or sessionStorage data if needed
-				       sessionStorage.removeItem('userName'); // Example of clearing the user name stored in sessionStorage
+				    const userName = sessionStorage.getItem('userName') || 'User';
+				    const logoutMessage = `Are you sure you want to logout from TimeX, "${userName}"?`;
+				    document.getElementById('logoutMessage').innerText = logoutMessage;
 
-				       // Redirect to the login page
-				       window.location.href = '/login'; // Redirect to the login page or wherever needed
-					   showAlert("Logout Successfully..! ");
-					   
-				   });
+				    const logoutModal = new bootstrap.Modal(document.getElementById('logoutConfirmModal'));
+				    logoutModal.show();
+				});
+
+
+				document.getElementById('confirmLogoutBtn').addEventListener('click', function() {
+				    sessionStorage.clear();
+				    window.location.href = '/login'; 
+				});
 				
 				
 				
@@ -1260,38 +1330,41 @@
 				               const selectedText = option.textContent;
 				               const username = sessionStorage.getItem("userName");
 
-				               const isSickLeave = selectedText.endsWith("Sick Leave");
-				               const isOptionalLeave = selectedText.endsWith("Optional Leave");
+							   const isSickLeave = selectedText.endsWith("Sick Leave");
+							   const isOptionalLeave = selectedText.endsWith("Optional Leave");
+							   const isCasualLeave = selectedText.endsWith("Casual Leave");
 
-				               if (isSickLeave || isOptionalLeave) {
-				                   const leaveType = isSickLeave ? "Sick Leave" : "Optional Leave";
+							   if (isSickLeave || isOptionalLeave || isCasualLeave) {
+							       const leaveType = isSickLeave ? "Sick Leave" :
+							                         isOptionalLeave ? "Optional Leave" :
+							                         "Casual Leave";
 
-				                   const validateAndApply = (isAllowed) => {
-				                       if (!isAllowed) {
-				                           showAlert(`⚠ You have no ${leaveType} remaining. Please choose another leave or mark as Loss of Pay.`, "danger");
-				                           panel.style.display = "none";
-				                       } else {
-				                           button.textContent = option.textContent;
-				                           button.dataset.value = option.dataset.value;
-				                           button.appendChild(clearButton);
-				                           panel.style.display = "none";
-				                           clearButton.style.display = "inline";
-				                           arrowIcon.style.display = "inline";
-				                       }
-				                   };
+							       const validateAndApply = (isAllowed) => {
+							           if (!isAllowed) {
+							               showAlert(`⚠ You have no ${leaveType} remaining. Please choose another leave or mark as Loss of Pay.`, "danger");
+							               panel.style.display = "none";
+							           } else {
+							               button.textContent = option.textContent;
+							               button.dataset.value = option.dataset.value;
+							               button.appendChild(clearButton);
+							               panel.style.display = "none";
+							               clearButton.style.display = "inline";
+							               arrowIcon.style.display = "inline";
+							           }
+							       };
 
-				                   // 🔁 Check from cache first
-				                   if (leaveCache[leaveType] !== undefined) {
-				                       validateAndApply(leaveCache[leaveType]);
-				                   } else {
-				                       fetch(`/checkLeaveBalance?username=${encodeURIComponent(username)}&type=${encodeURIComponent(leaveType)}`)
-				                           .then(response => response.json())
-				                           .then(isAllowed => {
-				                               leaveCache[leaveType] = isAllowed;
-				                               validateAndApply(isAllowed);
-				                           });
-				                   }
-				               } else {
+							       if (leaveCache[leaveType] !== undefined) {
+							           validateAndApply(leaveCache[leaveType]);
+							       } else {
+							           fetch(`/checkLeaveBalance?username=${encodeURIComponent(username)}&type=${encodeURIComponent(leaveType)}`)
+							               .then(response => response.json())
+							               .then(isAllowed => {
+							                   leaveCache[leaveType] = isAllowed;
+							                   validateAndApply(isAllowed);
+							               });
+							       }
+							   }
+								 else {
 				                   // ✅ Normal charge code
 				                   button.textContent = option.textContent;
 				                   button.dataset.value = option.dataset.value;

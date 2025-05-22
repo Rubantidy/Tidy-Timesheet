@@ -21,9 +21,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import jakarta.mail.MessagingException;
 import timesheet.admin.dao.AllowedLeaves;
+import timesheet.admin.dao.CasualLeaveTracker;
 import timesheet.admin.dao.Delegatedao;
 import timesheet.admin.dao.Employeedao;
 import timesheet.admin.repo.AllowedLeavesRepository;
+import timesheet.admin.repo.CasualLeaveTrackerRepo;
 import timesheet.admin.repo.DelegateRepo;
 import timesheet.admin.repo.EmployeeRepo;
 import timesheet.emails.EmailServiceController;
@@ -47,6 +49,9 @@ public class EmpController {
     @Autowired
     private JavaMailSender mailSender;
     
+    @Autowired
+    private CasualLeaveTrackerRepo casualLeaveTrackerRepo;
+    
     
     @GetMapping("/Admin_Dashboard") 
     public String M1() {
@@ -60,44 +65,51 @@ public class EmpController {
 	}
 
 
+
+
     @PostMapping("/addEmployee")
     public ResponseEntity<String> addEmployee(@RequestBody Employeedao EmpData) throws IOException {
 
         EmpRepo.save(EmpData);
 
         try {
-        	emailservice.sendEmployeeEmail(EmpData);
+            emailservice.sendEmployeeEmail(EmpData);
         } catch (MessagingException e) {
             e.printStackTrace();
             return ResponseEntity.status(500).body("Failed to send email.");
         }
 
         String username = EmpData.geteName();
-        LocalDate onboardDate = LocalDate.parse(EmpData.getOnboard()); // Format: yyyy-MM-dd
+        LocalDate onboardDate = LocalDate.parse(EmpData.getOnboard());
         int onboardYear = onboardDate.getYear();
         int onboardMonth = onboardDate.getMonthValue();
 
-    
+        // Create AllowedLeaves
         if (!allowedLeaveRepo.existsByUsernameAndYear(username, onboardYear)) {
             allowedLeaveRepo.save(new AllowedLeaves(username, onboardYear));
         }
 
-      
+        // Initialize baseCasualTaken
         AllowedLeaves allowed = allowedLeaveRepo.findByUsernameAndYear(username, onboardYear);
         if (allowed != null) {
             int casualTakenCount = onboardMonth - 1;
             allowed.setBaseCasualTaken(Math.max(casualTakenCount, 0));
+            allowed.setCasualTaken(Math.max(casualTakenCount, 0));
             allowedLeaveRepo.save(allowed);
+        }
+
+        // 💡 Create CasualLeaveTracker for remaining months of the year
+        for (int m = onboardMonth; m <= 12; m++) {
+            if (!casualLeaveTrackerRepo.existsByUsernameAndYearAndMonth(username, onboardYear, m)) {
+                CasualLeaveTracker tracker = new CasualLeaveTracker(username, onboardYear, m);
+                casualLeaveTrackerRepo.save(tracker);
+            }
         }
 
         return ResponseEntity.ok("Employee Onboarded successfully..!");
     }
 
-
-
-
-
-   
+ 
     
     @GetMapping("/getEmployeeById/{id}")
     public ResponseEntity<?> getEmployeeByid(@PathVariable int id) {

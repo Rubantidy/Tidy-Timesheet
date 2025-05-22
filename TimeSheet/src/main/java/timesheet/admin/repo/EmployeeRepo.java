@@ -19,6 +19,10 @@ public interface EmployeeRepo extends JpaRepository<Employeedao, Integer> {
     
     @Query("SELECT e FROM Employeedao e WHERE e.status = 'active' AND e.eName NOT IN (SELECT s.employeename FROM AddSalary s)")
     List<Employeedao> findActiveEmployeesWithoutSalary();
+
+    @Query("SELECT e.eName FROM Employeedao e WHERE e.status = 'active'")
+    List<String> findAllUsernames();
+
     
     
     

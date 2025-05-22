@@ -26,6 +26,10 @@ public class AllowedLeaves {
     private int floatingAllowed = 2;
 
     private int year; 
+    
+    private int earncasualLeave = 0;
+    
+    
     public AllowedLeaves() {}
 
     public AllowedLeaves(String username, int year) {
@@ -115,13 +119,27 @@ public class AllowedLeaves {
 		this.baseCasualTaken = baseCasualTaken;
 	}
 
+	
+	
+	public int getEarncasualLeave() {
+		return earncasualLeave;
+	}
+
+	public void setEarncasualLeave(int earncasualLeave) {
+		this.earncasualLeave = earncasualLeave;
+	}
+
 	@Override
 	public String toString() {
 		return "AllowedLeaves [id=" + id + ", username=" + username + ", casualTaken=" + casualTaken
 				+ ", casualAllowed=" + casualAllowed + ", baseCasualTaken=" + baseCasualTaken + ", sickTaken="
 				+ sickTaken + ", sickAllowed=" + sickAllowed + ", floatingTaken=" + floatingTaken + ", floatingAllowed="
-				+ floatingAllowed + ", year=" + year + "]";
+				+ floatingAllowed + ", year=" + year + ", earncasualLeave=" + earncasualLeave + "]";
 	}
+
+
+	
+	
 
 
 	

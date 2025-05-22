@@ -102,6 +102,9 @@ public class PaySlipGenerator {
 
 	    empTable.addCell(createLabelCell("Name", labelFont));
 	    empTable.addCell(createValueCell(approvedPaysliprepo.getUsername(), normalFont));
+	    
+	    empTable.addCell(createLabelCell("Designation", labelFont));
+	    empTable.addCell(createValueCell(approvedPaysliprepo.getDesignation(), normalFont));
 
 	    empTable.addCell(createLabelCell("Bank", labelFont));
 	    empTable.addCell(createValueCell(approvedPaysliprepo.getBankName(), normalFont));
@@ -124,8 +127,6 @@ public class PaySlipGenerator {
 	    empTable.addCell(createLabelCell("LOP Days", labelFont));
 	    empTable.addCell(createValueCell(String.valueOf(approvedPaysliprepo.getLop().intValue()), normalFont));
 
-	    empTable.addCell(createLabelCell("Designation", labelFont));
-	    empTable.addCell(createValueCell(approvedPaysliprepo.getDesignation(), normalFont));
 
 	    empTable.addCell(createLabelCell("Location", labelFont));
 	    empTable.addCell(createValueCell(approvedPaysliprepo.getLocation(), normalFont));

@@ -14,10 +14,7 @@
 document.addEventListener("DOMContentLoaded", function () {
        
         const navLinks = document.querySelectorAll(".nav-link");
-
-
-		
-		
+				
 function switchSection(sectionId) {
     document.querySelectorAll(".content-section").forEach(section => {
         section.style.display = "none";
@@ -88,7 +85,6 @@ navLinks.forEach(link => {
 	        `;
 	    });
 	}
-
 
 
 	document.addEventListener("DOMContentLoaded", function() {
@@ -430,7 +426,7 @@ document.addEventListener("DOMContentLoaded", function () {
 		               selectedRow.remove(); 
 		               selectedRow = null; 
 		               showAlert("✅ Row deleted successfully!", "success");
-		               location.reload();
+		               fetchTimesheetData();
 		           } else {
 		               showAlert("❌ Failed to delete row from database.", "danger");
 		           }
@@ -446,7 +442,6 @@ document.addEventListener("DOMContentLoaded", function () {
         return firstCellText.includes("work location") || firstCellText.includes("company code");
     }
 });
-
 
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -731,15 +726,35 @@ function generateSummary() {
 	        document.getElementById("standardHours").textContent = standardHours;
 	        document.getElementById("totalExpense").textContent = data.totalExpense; 
 
-	        // Update leave details
-	        document.getElementById("contributionPercent").textContent = 
-	            `Contribution on this Period : ${((totalWorkingHours / standardHours) * 100).toFixed(2)}%`;
-	        document.getElementById("casualLeave").textContent = 
-	            `Casual Leave Taken: ${casualLeaveDays.toFixed(1)} (Max: 1 per month)`;
-	        document.getElementById("sickLeave").textContent = 
-	            `Sick Leave Taken: ${sickLeaveDays.toFixed(1)} (Max: 6 per year)`;
-	        document.getElementById("paidLeave").textContent = 
-	            `Loss of Pay: ${Math.max(0, paidLeaveDays.toFixed(1))}`;
+			// Get today's date in proper format
+			const today = new Date().toLocaleDateString('en-US', {
+			    year: 'numeric', month: 'long', day: 'numeric'
+			});
+
+			// Update contribution and loss of pay
+			document.getElementById("annualContribution").textContent = 
+			    `Annual Chargeability Contribution: ${(totalWorkingHours / standardHours * 100).toFixed(2)}%`;
+
+			document.getElementById("leaveBalanceDate").textContent = 
+			    `As of ${today}, you have the following leave balances:`;
+
+			// Leave data from backend
+			const allowedLeave = data.allowedLeave || {};
+
+			document.getElementById("earnedLeave").textContent = 
+			    `Earned Casual Leave: ${(allowedLeave.earnedLeave || 0).toFixed(2)} days`;
+
+			document.getElementById("remainingSick").textContent = 
+			    `Remaining Sick Leave: ${(allowedLeave.sickLeave || 0).toFixed(2)} / 6 days`;
+
+			document.getElementById("remainingFloating").textContent = 
+			    `Remaining Floating Leave: ${(allowedLeave.floatingLeave || 0).toFixed(2)} / 2 days`;
+
+			document.getElementById("remainingCasual").textContent = 
+			    `Remaining Casual Leave: ${(allowedLeave.casualLeave || 0).toFixed(2)} / 12 days`;
+
+			document.getElementById("paidLeave").textContent = 
+			    `Loss of Pay: ${Math.max(0, paidLeaveDays.toFixed(1))} days (taken on this month)`;
 	    });
 }
 
@@ -777,13 +792,6 @@ function calculateStandardAllocatedHours(selectedPeriod) {
 
     return totalWorkingDays * 9; 
 }
-
-
-
-
-
-
-
 
 /* Fetch Employee Data */
 function fetchEmployeeData() {
@@ -1238,7 +1246,7 @@ document.addEventListener("DOMContentLoaded", function () {
         };
     });
 
-    // ✅ "Submit" Button Click (Sets Status to "Approved")
+    
     submitBtn.addEventListener("click", function () {
         const selectedPeriod = getSelectedPeriod();
 

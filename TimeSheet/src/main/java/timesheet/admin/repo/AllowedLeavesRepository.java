@@ -11,3 +11,4 @@ public interface AllowedLeavesRepository extends JpaRepository<AllowedLeaves, In
 	AllowedLeaves findByUsernameAndYear(String username, int year);
 
 }
+	

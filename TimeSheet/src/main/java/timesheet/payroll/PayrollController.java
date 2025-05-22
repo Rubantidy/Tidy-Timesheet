@@ -85,10 +85,11 @@ public class PayrollController {
 	    public ResponseEntity<?> getPayslipDetails(
 	            @RequestParam String username,
 	            @RequestParam String month) {
+	    	
 
 	       
-	        username = username.trim();
-	        month = month.trim();
+//	        username = username.trim();
+//	        month = month.trim();
 
 
 	        Map<String, Object> result = new HashMap<>();

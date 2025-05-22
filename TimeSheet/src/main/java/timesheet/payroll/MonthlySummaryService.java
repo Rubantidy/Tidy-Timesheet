@@ -47,7 +47,7 @@ public class MonthlySummaryService {
         double pl = getDouble(data1.get("paidLeaveDays")) + getDouble(data2.get("paidLeaveDays"));
         double totalAbs = getDouble(data1.get("totalAbsences")) + getDouble(data2.get("totalAbsences"));
 
-        double lop = calculateLOP(cl, pl);
+        double lop = calculateLOP(pl);
 
         double totalWorkingDays = (totalHours / 9.0);
 
@@ -94,9 +94,8 @@ public class MonthlySummaryService {
     }
 
 
-    private double calculateLOP(double cl, double pl) {
-        double extraCL = cl > 1 ? (cl - 1) : 0;
-        return pl + extraCL;
+    private double calculateLOP(double pl) {
+        return pl;
     }
     
     

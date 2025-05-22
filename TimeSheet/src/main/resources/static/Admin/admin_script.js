@@ -8,6 +8,24 @@ document.addEventListener("DOMContentLoaded", function() {
 	        window.location.href = "/login";
 	    }
 	});
+		   
+	   document.getElementById('logout').addEventListener('click', function(event) {
+	       event.preventDefault();
+
+	       const userName = sessionStorage.getItem('userName') || 'User';
+	       const logoutMessage = `Are you sure you want to logout from TimeX, "${userName}"?`;
+	       document.getElementById('logoutMessage').innerText = logoutMessage;
+
+	       const logoutModal = new bootstrap.Modal(document.getElementById('logoutConfirmModal'));
+	       logoutModal.show();
+	   });
+
+
+	   document.getElementById('confirmLogoutBtn').addEventListener('click', function() {
+	       sessionStorage.clear();
+	       window.location.href = '/login'; 
+	   });
+
 
 document.addEventListener("DOMContentLoaded", function () {
     document.querySelectorAll(".nav-link").forEach(link => {
@@ -31,7 +49,7 @@ function showAlert(message, type = 'success') {
     alertToast.className = `toast align-items-center text-white bg-${type} border-0`;
 
 
-    const toast = new bootstrap.Toast(alertToast, { delay: 3000 }); // 4 seconds for all
+    const toast = new bootstrap.Toast(alertToast, { delay: 3000 }); 
     toast.show();
 }
 
@@ -56,20 +74,7 @@ function closeSidebarOnMobile() {
 }
 
 
-/*Script for dashboard icons functions */
-
-document.getElementById('logout').addEventListener('click', function(event) {
-       event.preventDefault();
-
-     
-       sessionStorage.removeItem('userName'); 
-       
-       window.location.href = '/login'; 
-	   showAlert("Logout Successfully..! ", "success");
-   });
-   
-   
-   
+/*Script for dashboard icons functions */   
 function showContent(section) {
 	
 

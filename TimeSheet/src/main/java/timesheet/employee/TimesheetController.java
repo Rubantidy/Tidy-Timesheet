@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +31,10 @@ import com.google.gson.Gson;
 
 import timesheet.admin.dao.AllowedLeaves;
 import timesheet.admin.dao.Assignment;
+import timesheet.admin.dao.CasualLeaveTracker;
 import timesheet.admin.repo.AllowedLeavesRepository;
 import timesheet.admin.repo.AssignmentRepository;
+import timesheet.admin.repo.CasualLeaveTrackerRepo;
 import timesheet.employee.dao.EmpExpensedao;
 import timesheet.employee.dao.Preference;
 import timesheet.employee.dao.SummaryEntry;
@@ -67,6 +70,9 @@ public class TimesheetController {
     
     @Autowired
     private MonthlySummaryService monthlySummaryService;
+    
+    @Autowired
+    private CasualLeaveTrackerRepo casualLeaveTrackerRepo;
 
   
 
@@ -103,14 +109,7 @@ public class TimesheetController {
 
         return ResponseEntity.ok(entries);
     }
-//    
-//    @PostMapping("/saveTimesheet")
-//    public ResponseEntity<String> saveTimesheet(@RequestBody List<TimesheetEntry> timesheetEntries) {
-//
-//        timesheetService.saveOrUpdateTimesheet(timesheetEntries);
-//
-//        return ResponseEntity.ok("Timesheet saved successfully");
-//    }
+
     
     
     @GetMapping("/checkLeaveBalance")
@@ -131,8 +130,13 @@ public class TimesheetController {
             return ResponseEntity.ok(leave.getFloatingTaken() < leave.getFloatingAllowed());
         }
 
-        return ResponseEntity.ok(true); 
+        if (type.endsWith("Casual Leave")) {
+            return ResponseEntity.ok(leave.getCasualTaken() < leave.getCasualAllowed());
+        }
+
+        return ResponseEntity.ok(true);
     }
+
     
     
 
@@ -145,28 +149,22 @@ public class TimesheetController {
         String username = newEntries.get(0).getUsername();
         String period = newEntries.get(0).getPeriod();
 
-       
         String[] split = period.split(" - ");
-        String startDate = split[0]; 
+        String startDate = split[0];
         int currentYear = Integer.parseInt(startDate.split("/")[2]);
         int currentMonth = Integer.parseInt(startDate.split("/")[1]);
 
-       
         AllowedLeaves leave = allowedleaverepo.findByUsernameAndYear(username, currentYear);
         if (leave == null) {
             return ResponseEntity.status(400).body("Leave record not found for user.");
         }
 
-        
         timesheetService.saveOrUpdateTimesheet(newEntries);
 
-   
         List<TimesheetEntry> allUserEntries = timesheetRepository.findByUsername(username);
 
-     
         int totalSL = 0;
         int totalFL = 0;
-        int clFromTimesheet = 0;
 
         for (TimesheetEntry entry : allUserEntries) {
             String entryPeriod = entry.getPeriod();
@@ -180,31 +178,69 @@ public class TimesheetController {
 
             if (code.endsWith("Sick Leave")) totalSL++;
             else if (code.endsWith("Optional Leave")) totalFL++;
-            else if (code.endsWith("Casual Leave")) clFromTimesheet++;
         }
 
-       
-        int totalCL = leave.getBaseCasualTaken() + clFromTimesheet;
-
-      
         if (totalSL > leave.getSickAllowed()) {
             return ResponseEntity.badRequest().body("⚠ You are exceeding your Sick Leave limit. Please choose another leave or mark as Loss of Pay.");
         }
         if (totalFL > leave.getFloatingAllowed()) {
             return ResponseEntity.badRequest().body("⚠ You are exceeding your Floating Leave limit. Please choose another leave or mark as Loss of Pay.");
         }
-        if (totalCL > leave.getCasualAllowed()) {
-            return ResponseEntity.badRequest().body("⚠ You are exceeding your Casual leave limit. Please choose another leave or mark as Loss of Pay.");
-        }
 
-   
         leave.setSickTaken(totalSL);
         leave.setFloatingTaken(totalFL);
-        leave.setCasualTaken(totalCL); 
         allowedleaverepo.save(leave);
+
+        // 🔁 Handle Casual Leave per entry basis
+        List<TimesheetEntry> entriesForMonth = allUserEntries.stream()
+            .filter(e -> {
+                if (e.getPeriod() == null || !e.getPeriod().contains(" - ")) return false;
+                String[] splitPeriod = e.getPeriod().split(" - ");
+                String[] dateParts = splitPeriod[0].split("/"); // "dd/MM/yyyy"
+                int month = Integer.parseInt(dateParts[1]);
+                int year = Integer.parseInt(dateParts[2]);
+                return month == currentMonth && year == currentYear;
+            })
+            .collect(Collectors.toList());
+
+        Set<String> submittedPeriods = entriesForMonth.stream()
+            .map(TimesheetEntry::getPeriod)
+            .collect(Collectors.toSet());
+
+        if (submittedPeriods.size() >= 2) {
+            CasualLeaveTracker tracker = casualLeaveTrackerRepo.findByUsernameAndYearAndMonth(username, currentYear, currentMonth);
+
+            long clDaysTaken = entriesForMonth.stream()
+                .filter(e -> e.getChargeCode() != null && e.getChargeCode().endsWith("Casual Leave"))
+                .count();
+
+            if (tracker != null && !tracker.isTaken()) {
+                int earnedCL = leave.getEarncasualLeave();
+                int totalAvailableCL = earnedCL + 1; // 1 CL for the month
+                int usedEarnedCL = (int) Math.min(clDaysTaken, earnedCL);
+                int usedMonthlyCL = (int) Math.max(0, clDaysTaken - earnedCL);
+
+                // Update taken counts
+                leave.setEarncasualLeave(earnedCL - usedEarnedCL);
+                leave.setCasualTaken(leave.getCasualTaken() + (int) clDaysTaken);
+
+                // If not all available CL taken, increase earn CL back by 1
+                if (clDaysTaken < totalAvailableCL) {
+                    leave.setEarncasualLeave(leave.getEarncasualLeave() + 1); // carry forward unused monthly CL
+                    tracker.setTaken(false);
+                } else {
+                    tracker.setTaken(true); // full month's CL used
+                }
+
+                casualLeaveTrackerRepo.save(tracker);
+                allowedleaverepo.save(leave);
+            }
+        }
 
         return ResponseEntity.ok("Timesheet saved successfully");
     }
+
+
 
     
    
@@ -303,6 +339,26 @@ public class TimesheetController {
         summaryData.put("paidLeaveDays", paidLeave);
         summaryData.put("totalExpense", totalExpense); 
         summaryData.put("entries", processedEntries);
+        
+        
+        int currentYear = LocalDate.now().getYear();
+        AllowedLeaves allowedLeave = allowedleaverepo.findByUsernameAndYear(username, currentYear);
+        Map<String, Float> allowedLeaveMap = new HashMap<>();
+        
+        float earnedleave =  allowedLeave.getEarncasualLeave();
+        float sickleave = (allowedLeave.getSickAllowed() - allowedLeave.getSickTaken());
+        float floatingleave = (allowedLeave.getFloatingAllowed() - allowedLeave.getFloatingTaken());
+        float casualevae = (allowedLeave.getCasualAllowed() - allowedLeave.getCasualTaken());
+
+        if (allowedLeave != null) {
+            allowedLeaveMap.put("earnedLeave", earnedleave);
+            allowedLeaveMap.put("sickLeave", sickleave);
+            allowedLeaveMap.put("floatingLeave", floatingleave);
+            allowedLeaveMap.put("casualLeave", casualevae);
+        } 
+
+        summaryData.put("allowedLeave", allowedLeaveMap);
+
 
         return ResponseEntity.ok(summaryData);
     }
@@ -577,10 +633,7 @@ public class TimesheetController {
             return ResponseEntity.notFound().build(); 
         }
     }
-
-    
-    
-    
+  
 
     @PostMapping("/saveEmpExpense")
     public EmpExpensedao saveExpense(

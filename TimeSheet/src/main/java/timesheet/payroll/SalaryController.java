@@ -203,8 +203,8 @@ public class SalaryController {
 	         @RequestParam("accountHolder") String accountHolder,
 	         @RequestParam("accountNumber") String accountNumber,
 	         @RequestParam("ifsc") String ifsc,
-	         @RequestParam("bankName") String bankName,
-	         @RequestParam("upiId") String upiId) {
+	         @RequestParam("bankName") String bankName)
+ {
 
 	     try {
 	     
@@ -225,7 +225,7 @@ public class SalaryController {
 	         bankDetails.setAccountNumber(accountNumber);
 	         bankDetails.setIfsc(ifsc);
 	         bankDetails.setBankName(bankName);
-	         bankDetails.setUpiId(upiId);
+
 
 	         bankDetailsrepo.save(bankDetails); 
 
