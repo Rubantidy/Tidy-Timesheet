@@ -40,8 +40,7 @@ public class YearlyLeaveResetJob {
                 allowedLeaves.setSickTaken(0);
                 allowedLeaves.setFloatingTaken(0);
                 allowedLeaves.setCasualTaken(0);
-                allowedLeaves.setEarncasualLeave(0);
-                allowedLeaveRepo.save(allowedLeaves);
+                allowedLeaveRepo.save(allowedLeaves); 
             }
 
             // Create CasualLeaveTracker for all months in the new year

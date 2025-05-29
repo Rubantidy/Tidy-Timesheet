@@ -139,7 +139,6 @@ public class TimesheetController {
 
     
     
-
     @PostMapping("/saveTimesheet")
     public ResponseEntity<String> saveTimesheet(@RequestBody List<TimesheetEntry> newEntries) {
         if (newEntries.isEmpty()) {
@@ -157,6 +156,32 @@ public class TimesheetController {
         AllowedLeaves leave = allowedleaverepo.findByUsernameAndYear(username, currentYear);
         if (leave == null) {
             return ResponseEntity.status(400).body("Leave record not found for user.");
+        }
+
+        List<TimesheetEntry> existingEntriesThisMonth = timesheetRepository.findByUsername(username).stream()
+            .filter(e -> {
+                if (e.getPeriod() == null || !e.getPeriod().contains(" - ")) return false;
+                String[] periodSplit = e.getPeriod().split(" - ");
+                String[] dateParts = periodSplit[0].split("/");
+                int month = Integer.parseInt(dateParts[1]);
+                int year = Integer.parseInt(dateParts[2]);
+                return month == currentMonth && year == currentYear;
+            })
+            .collect(Collectors.toList());
+
+        long existingCLCount = existingEntriesThisMonth.stream()
+            .filter(e -> e.getChargeCode() != null && e.getChargeCode().endsWith("Casual Leave"))
+            .count();
+
+        long newCLCount = newEntries.stream()
+            .filter(e -> e.getChargeCode() != null && e.getChargeCode().endsWith("Casual Leave"))
+            .count();
+
+        int earnedCL = leave.getEarncasualLeave();
+        int totalCLAllowed = earnedCL + 1;
+
+        if (existingCLCount + newCLCount > totalCLAllowed) {
+            return ResponseEntity.badRequest().body("Failed to Save timesheet!   ⚠ You entered more Casual Leaves than allowed (" + totalCLAllowed + "). Please reduce CL entries.");
         }
 
         timesheetService.saveOrUpdateTimesheet(newEntries);
@@ -191,12 +216,12 @@ public class TimesheetController {
         leave.setFloatingTaken(totalFL);
         allowedleaverepo.save(leave);
 
-        // 🔁 Handle Casual Leave per entry basis
+        // 🔁 Handle Casual Leave tracking
         List<TimesheetEntry> entriesForMonth = allUserEntries.stream()
             .filter(e -> {
                 if (e.getPeriod() == null || !e.getPeriod().contains(" - ")) return false;
                 String[] splitPeriod = e.getPeriod().split(" - ");
-                String[] dateParts = splitPeriod[0].split("/"); // "dd/MM/yyyy"
+                String[] dateParts = splitPeriod[0].split("/");
                 int month = Integer.parseInt(dateParts[1]);
                 int year = Integer.parseInt(dateParts[2]);
                 return month == currentMonth && year == currentYear;
@@ -210,36 +235,59 @@ public class TimesheetController {
         if (submittedPeriods.size() >= 2) {
             CasualLeaveTracker tracker = casualLeaveTrackerRepo.findByUsernameAndYearAndMonth(username, currentYear, currentMonth);
 
-            long clDaysTaken = entriesForMonth.stream()
-                .filter(e -> e.getChargeCode() != null && e.getChargeCode().endsWith("Casual Leave"))
-                .count();
+            if (tracker != null) {
+                long clDaysTaken = entriesForMonth.stream()
+                    .filter(e -> e.getChargeCode() != null && e.getChargeCode().endsWith("Casual Leave"))
+                    .count();
 
-            if (tracker != null && !tracker.isTaken()) {
-                int earnedCL = leave.getEarncasualLeave();
-                int totalAvailableCL = earnedCL + 1; // 1 CL for the month
-                int usedEarnedCL = (int) Math.min(clDaysTaken, earnedCL);
-                int usedMonthlyCL = (int) Math.max(0, clDaysTaken - earnedCL);
+                int currentEarnedCL = leave.getEarncasualLeave();
+                int monthlyCL = 1;
+                int totalAvailableCL = currentEarnedCL + monthlyCL;
 
-                // Update taken counts
-                leave.setEarncasualLeave(earnedCL - usedEarnedCL);
-                leave.setCasualTaken(leave.getCasualTaken() + (int) clDaysTaken);
-
-                // If not all available CL taken, increase earn CL back by 1
-                if (clDaysTaken < totalAvailableCL) {
-                    leave.setEarncasualLeave(leave.getEarncasualLeave() + 1); // carry forward unused monthly CL
-                    tracker.setTaken(false);
-                } else {
-                    tracker.setTaken(true); // full month's CL used
+                if (clDaysTaken > totalAvailableCL) {
+                    return ResponseEntity.badRequest().body("⚠ You are exceeding your available Casual Leave limit. Please choose another leave or mark as Loss of Pay.");
                 }
+
+                boolean wasTakenBefore = tracker.isTaken();
+
+                if (clDaysTaken == 0) {
+                    // ✅ No CL taken, carry forward 1
+                    leave.setEarncasualLeave(currentEarnedCL + 1);
+                    tracker.setTaken(false);
+                    if (wasTakenBefore) {
+                        leave.setCasualTaken(leave.getCasualTaken() - 1);
+                    }
+                } else {
+                    // ✅ Some CL taken: calculate how much from earned and monthly
+                    int usedEarnedCL = (int) Math.min(clDaysTaken, currentEarnedCL);
+                    int usedMonthlyCL = (int) Math.min(monthlyCL, clDaysTaken - usedEarnedCL);
+
+                    int unusedMonthlyCL = monthlyCL - usedMonthlyCL;
+
+                    // Reduce only used earned CL
+                    leave.setEarncasualLeave(currentEarnedCL - usedEarnedCL + unusedMonthlyCL); // 👈 add unused monthly CL to earned
+
+                    int newTotalUsed = usedEarnedCL + usedMonthlyCL;
+                    int currentCasualTaken = leave.getCasualTaken();
+
+                    if (!wasTakenBefore && newTotalUsed > 0) {
+                        leave.setCasualTaken(currentCasualTaken + newTotalUsed);
+                    } else if (wasTakenBefore && newTotalUsed == 0) {
+                        leave.setCasualTaken(currentCasualTaken - 1);
+                    }
+
+                    tracker.setTaken(true);
+                }
+
 
                 casualLeaveTrackerRepo.save(tracker);
                 allowedleaverepo.save(leave);
             }
+
         }
 
         return ResponseEntity.ok("Timesheet saved successfully");
     }
-
 
 
     
@@ -283,6 +331,7 @@ public class TimesheetController {
         float totalHours = 0;
         float totalAbsences = 0;
         float totalExpense = 0;
+        float totallop = 0;
 
 
         Map<String, Float> chargeCodeTotals = new HashMap<>();
@@ -290,6 +339,7 @@ public class TimesheetController {
         float casualLeaveThisMonth = 0;
         float sickLeaveThisYear = 0;
         float paidLeave = 0;
+        float floating = 0;
 
         for (TimesheetEntry entry : entries) {
             String code = entry.getChargeCode();
@@ -302,6 +352,7 @@ public class TimesheetController {
 
             chargeCodeTotals.put(code, chargeCodeTotals.getOrDefault(code, 0f) + hours);
             totalHours += hours;
+            
 
         
             if (code.endsWith("Casual Leave")) { 
@@ -310,10 +361,16 @@ public class TimesheetController {
                 sickLeaveThisYear += leaveDays;
             } else if (code.endsWith("Loss of Pay")) { 
                 paidLeave += leaveDays;
+            }else if(code.endsWith("Optional Leave")) {
+            	floating += leaveDays;
             }
 
             if (code.endsWith("Leave") || code.endsWith("Loss of Pay")) {
                 totalAbsences += hours;
+            }
+            if (code.endsWith("Loss of Pay")) {
+            	totallop += hours;
+            	
             }
         }
 
@@ -334,11 +391,14 @@ public class TimesheetController {
         Map<String, Object> summaryData = new HashMap<>();
         summaryData.put("totalHours", totalHours);
         summaryData.put("totalAbsences", totalAbsences);
+        summaryData.put("totallop", totallop);
         summaryData.put("casualLeaveDays", casualLeaveThisMonth);
         summaryData.put("sickLeaveDays", sickLeaveThisYear);
         summaryData.put("paidLeaveDays", paidLeave);
+        summaryData.put("floating", floating);
         summaryData.put("totalExpense", totalExpense); 
         summaryData.put("entries", processedEntries);
+        
         
         
         int currentYear = LocalDate.now().getYear();

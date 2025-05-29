@@ -1,5 +1,63 @@
 // SalaryLogic.js
+function paginateTable(tableId, rowsPerPage = 10) {
+    const table = document.getElementById(tableId);
+    if (!table) return;
 
+    const rows = table.querySelectorAll("tbody tr");
+    const totalPages = Math.ceil(rows.length / rowsPerPage);
+    const paginationContainerId = `${tableId}-pagination`;
+
+    // Remove previous pagination if exists
+    let existingContainer = document.getElementById(paginationContainerId);
+    if (existingContainer) existingContainer.remove();
+
+    // ❌ Don't show pagination if rows are less than or equal to one page
+    if (rows.length <= rowsPerPage) return;
+
+    // ✅ Create new pagination
+    let paginationContainer = document.createElement("div");
+    paginationContainer.id = paginationContainerId;
+    paginationContainer.classList.add("pagination-container");
+    table.parentElement.appendChild(paginationContainer);
+
+    function showPage(page) {
+        const start = (page - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
+
+        rows.forEach((row, index) => {
+            row.style.display = (index >= start && index < end) ? "" : "none";
+        });
+
+        updatePagination(page);
+    }
+
+    function updatePagination(activePage) {
+        paginationContainer.innerHTML = "";
+
+        const prev = document.createElement("span");
+        prev.innerHTML = "&lt;";
+        prev.className = "pagination-arrow";
+        prev.onclick = () => showPage(Math.max(1, activePage - 1));
+        paginationContainer.appendChild(prev);
+
+        for (let i = 1; i <= totalPages; i++) {
+            const pageBtn = document.createElement("span");
+            pageBtn.textContent = i;
+            pageBtn.className = `pagination-dot ${i === activePage ? "active" : ""}`;
+            pageBtn.onclick = () => showPage(i);
+            paginationContainer.appendChild(pageBtn);
+        }
+
+        const next = document.createElement("span");
+        next.innerHTML = "&gt;";
+        next.className = "pagination-arrow";
+        next.onclick = () => showPage(Math.min(totalPages, activePage + 1));
+        paginationContainer.appendChild(next);
+    }
+
+    // 👇 Initially show first page
+    showPage(1);
+}
 
 function fetchEmployeesForSalaryForm() {
     fetch("/getEmployeesforSalary")
@@ -142,10 +200,7 @@ function saveBankDetails() {
         "Accept": "application/json",
       }
     })
-      .then(response => {
-        if (response.ok) return response.json();
-        else throw new Error('Error saving bank details');
-      })
+		.then(response => response.json())
       .then(data => {
         showAlert(data.message, "success");
         document.getElementById("bankEditForm").reset();
@@ -162,20 +217,18 @@ function saveBankDetails() {
   };
 }
 
+function validateAccountNumber(inputId, errorId) {
+    const input = document.getElementById(inputId);
+    const errorDiv = document.getElementById(errorId);
+    const value = input.value;
 
-function toggleVisibilityAccount(inputId, icon) {
-  const input = document.getElementById(inputId);
-  if (input.type === "password") {
-    input.type = "text";
-    icon.classList.remove("bi-eye-slash");
-    icon.classList.add("bi-eye");
-  } else {
-    input.type = "password";
-    icon.classList.remove("bi-eye");
-    icon.classList.add("bi-eye-slash"); 
+    // Allow only digits
+    if (!/^\d*$/.test(value)) {
+        errorDiv.textContent = "Only numeric digits are allowed.";
+    } else {
+        errorDiv.textContent = "";
   }
-}
-
+  }
 
 function fetchBankDetails() {
   const username = sessionStorage.getItem("userName");
@@ -185,10 +238,7 @@ function fetchBankDetails() {
   }
 
   fetch(`/getBankDetails?Employeename=${encodeURIComponent(username)}`)
-    .then(response => {
-      if (!response.ok) throw new Error("Bank details not found");
-      return response.json();
-    })
+	.then(response => response.json())
     .then(data => {
       document.getElementById("bankAccountHolder").innerText = data.accountHolder || "-";
 
@@ -218,7 +268,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
 	    navLinks.forEach(link => {
 	        link.addEventListener("click", function () {
-	            // Remove active class from all links
+	         
 	            navLinks.forEach(nav => nav.classList.remove("active"));
 	            
 	            // Add active class to clicked link
@@ -227,10 +277,6 @@ document.addEventListener("DOMContentLoaded", function () {
 	    });
 	});
 
-	
-	
-	
-	
 	
 //Admin payslip generation
 function loadEmployeesForMonth() {
@@ -342,6 +388,7 @@ function showPayslipApproveConfirmation() {
 
 async function appreovPaylisp() {
     try {
+		showLoader();
         // Get selected month and employee
         const month = document.getElementById("monthPicker").value;
         const username = document.getElementById("employeeSelect").value;
@@ -428,7 +475,9 @@ async function appreovPaylisp() {
     } catch (error) {
         console.error("Error approving payslip:", error);
         showAlert("Error approving payslip. Check console for details.", "danger");
-    }
+		} finally {
+		        hideLoader(); 
+		    }
 }
 
 
@@ -475,6 +524,7 @@ function fetchPayslipData() {
                     </tr>
                 `;
             });
+			paginateTable("payslip-table-body");
         })
         .catch(error => console.error("Error fetching Payslip data:", error));
 }
@@ -711,6 +761,4 @@ function showSalaryHistory(empName) {
             showAlert("Failed to load salary history.", "danger");
         });
 }
-
-
 

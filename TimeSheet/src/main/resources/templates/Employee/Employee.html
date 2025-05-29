@@ -382,37 +382,58 @@
 	    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 	    max-width: 600px;
 	    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-	">
+		">
 
 	    <h3 id="annualContribution" style="
 	        font-weight: bold;
 	        color: #003366;
-	        margin-bottom: 10px;
-	    ">
-	        Annual Chargeability Contribution: --
+	        margin-bottom: 10px;">
+	        Annual Chargeability Contribution: 
 	    </h3>
 
 	    <p id="leaveBalanceDate" style="
 	        font-size: 14px;
 	        color: #666;
-	        margin-bottom: 20px;
-	    ">
+	        margin-bottom: 20px;">
 	        As of today, you have the following leave balances:
 	    </p>
 
-	    <ul style="
-	        list-style-type: none;
-	        padding-left: 0;
-	        line-height: 1.8;
-	        font-size: 16px;
-	        color: #333;
-	    ">
-	        <li id="earnedLeave">Earned Casual Leave: --</li>
-	        <li id="remainingSick">Remaining Sick Leave: --</li>
-	        <li id="remainingFloating">Remaining Floating Leave: --</li>
-	        <li id="remainingCasual">Remaining Casual Leave: --</li>
-	        <li id="paidLeave" style="color: #cc0000; font-weight: 500;">Loss of Pay: --</li>
-	    </ul>
+		<ul style="list-style-type: none; padding-left: 0; line-height: 1.8; font-size: 16px; color: #333; align-items: start;">
+		  <li>
+		    <span id="earnedLeave">Earned Casual Leave: --</span>
+		    <span class="info-icon" onclick="toggleTooltip(this)">ℹ️
+				<span class="tooltip-text">If casual leave is not taken in a given month, it will be converted into earned casual leave.</span>
+		    </span>
+		  </li>
+
+		  <li>
+		    <span id="remainingSick">Remaining Sick Leave: </span>
+		    <span class="info-icon" onclick="toggleTooltip(this)">ℹ️
+				<span class="tooltip-text">Sick leave can be availed with a valid reason or medical certificate, limited to 6 days per year.</span>
+		    </span>
+		  </li>
+
+		  <li>
+		    <span id="remainingFloating">Remaining Floating Leave:</span>
+		    <span class="info-icon" onclick="toggleTooltip(this)">ℹ️
+				<span class="tooltip-text">Floating leave can be used for optional government holidays, limited to 2 days per year.</span>
+		    </span>
+		  </li>
+
+		  <li>
+		    <span id="remainingCasual">Remaining Casual Leave: --</span>
+		    <span class="info-icon" onclick="toggleTooltip(this)">ℹ️
+				<span class="tooltip-text">If earned casual leave is 0, only one casual leave is allowed per month. Taking more casual leaves without available earned CL will automatically result in loss of pay (LOP) for the month. So please enter carefully.</span>
+		    </span>
+		  </li>
+
+		  <li style="color: #cc0000; font-weight: 500;">
+		    <span id="paidLeave">Loss of Pay: </span>
+		    <span class="info-icon" onclick="toggleTooltip(this)">ℹ️
+				<span class="tooltip-text">Please select LOP if no eligible leaves are available.</span>
+		    </span>
+		  </li>
+		</ul>
 	</div>
 
 	
@@ -571,25 +592,26 @@
 	            <div class="text-danger small" id="errorAccountHolder"></div>
 	          </div>
 
+			  <!-- Account Number Field -->
 			  <div class="mb-2 position-relative">
 			    <label class="form-label">Account Number</label>
-			    <input type="password" class="form-control" id="inputAccountNumber" 
-						 onpaste="handleBlock(event, 'errorAccountNumber')"
-				         oncopy="handleBlock(event, 'errorAccountNumber')"
-				         oncut="handleBlock(event, 'errorAccountNumber')">
-			    <i class="bi bi-eye-slash toggle-password" onclick="toggleVisibilityAccount('inputAccountNumber', this)" style="position: absolute; top: 38px; right: 10px; cursor: pointer;"></i>
+			    <input type="password" class="form-control" id="inputAccountNumber"
+			           oninput="validateAccountNumber('inputAccountNumber', 'errorAccountNumber')"
+			           onpaste="handleBlock(event, 'errorAccountNumber')"
+			           oncopy="handleBlock(event, 'errorAccountNumber')"
+			           oncut="handleBlock(event, 'errorAccountNumber')">
 			    <div class="text-danger small" id="errorAccountNumber"></div>
 			  </div>
 			  <input type="hidden" id="fullAccountNumber">
 
-
+			  <!-- Confirm Account Number Field -->
 			  <div class="mb-2 position-relative">
 			    <label class="form-label">Confirm Account Number</label>
-			    <input type="password" class="form-control" id="inputConfirmAccountNumber" 
-						onpaste="handleBlock(event, 'errorConfirmAccountNumber')"
-				         oncopy="handleBlock(event, 'errorConfirmAccountNumber')"
-				         oncut="handleBlock(event, 'errorConfirmAccountNumber')">
-			    <i class="bi bi-eye-slash toggle-password" onclick="toggleVisibilityAccount('inputConfirmAccountNumber', this)" style="position: absolute; top: 38px; right: 10px; cursor: pointer;"></i>
+			    <input type="text" class="form-control" id="inputConfirmAccountNumber"
+			           oninput="validateAccountNumber('inputConfirmAccountNumber', 'errorConfirmAccountNumber')"
+			           onpaste="handleBlock(event, 'errorConfirmAccountNumber')"
+			           oncopy="handleBlock(event, 'errorConfirmAccountNumber')"
+			           oncut="handleBlock(event, 'errorConfirmAccountNumber')">
 			    <div class="text-danger small" id="errorConfirmAccountNumber"></div>
 			  </div>
 
@@ -791,7 +813,6 @@
 	        selectedPeriodElement.textContent = "Selected Period: " + getSelectedPeriod();
 	    }
 
-	    // Initial load
 	    updateSelectedPeriod();
 
 	    // Event listeners that trigger the update

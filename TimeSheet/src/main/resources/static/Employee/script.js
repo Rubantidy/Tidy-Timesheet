@@ -211,14 +211,38 @@ document.addEventListener("DOMContentLoaded", function () {
 	function saveTimesheetData() {
 	    const selectedPeriod = getSelectedPeriod();
 
-	    document.getElementById("saveTimesheetMessage").innerText = 
+	    // Calculate expected total hours
+	    const standardAllocatedHours = calculateStandardAllocatedHours(selectedPeriod);
+
+	    // Calculate entered grand total hours
+	    let grandTotal = 0;
+	    const rows = document.querySelectorAll('#tableBody tr');
+
+	    rows.forEach(row => {
+	        if (row.classList.contains("static-row")) return;
+
+	        const inputs = row.querySelectorAll('td input[type="text"]');
+	        inputs.forEach(input => {
+	            const value = parseFloat(input.value.trim()) || 0;
+	            grandTotal += value;
+	        });
+	    });
+
+	    // Compare grand total and standard allocated hours
+	    if (grandTotal.toFixed(2) !== standardAllocatedHours.toFixed(2)) {
+			showAlert(`⚠ One or more cells contain incorrect values. Each day's total must equal 9 hours. Please review your entries.`, "danger");
+	        return;
+	    }
+
+	    // Proceed with confirmation modal if totals match
+	    document.getElementById("saveTimesheetMessage").innerText =
 	        `⚠ Are you sure you want to save the timesheet for "${selectedPeriod}"?`;
 
 	    let saveModal = new bootstrap.Modal(document.getElementById("saveTimesheetModal"));
 	    saveModal.show();
 
 	    document.getElementById("confirmSaveTimesheet").onclick = function () {
-	        saveModal.hide();  // Close modal
+	        saveModal.hide();
 
 	        const rows = document.querySelectorAll("#tableBody tr");
 	        let timesheetEntries = [];
@@ -227,14 +251,14 @@ document.addEventListener("DOMContentLoaded", function () {
 
 	        function parseDate(dateStr) {
 	            let parts = dateStr.split("/");
-	            return new Date(parts[2], parts[1] - 1, parts[0]); 
+	            return new Date(parts[2], parts[1] - 1, parts[0]);
 	        }
 
 	        let [startDateStr, endDateStr] = selectedPeriod.split(" - ");
 	        let startDate = parseDate(startDateStr);
 	        let endDate = parseDate(endDateStr);
 
-	        let skipColumns = []; // ✅ Sundays + Holidays
+	        let skipColumns = [];
 	        let currentDate = new Date(startDate);
 	        let columnIndex = 1;
 
@@ -269,7 +293,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	                let actualColIndex = colIndex + 1;
 	                let cellIndex = `${rowIndex}_${actualColIndex}`;
 
-	                if (skipColumns.includes(actualColIndex)) return; // ✅ Skip Sunday + Holiday columns
+	                if (skipColumns.includes(actualColIndex)) return;
 
 	                if (!input.hasAttribute("data-prev")) {
 	                    input.setAttribute("data-prev", input.value.trim());
@@ -290,18 +314,17 @@ document.addEventListener("DOMContentLoaded", function () {
 	                        hours: currentValue
 	                    });
 
-	                    input.setAttribute("data-prev", currentValue); 
-	                } 
-	                else if (previousValue !== "" && currentValue === "") {
+	                    input.setAttribute("data-prev", currentValue);
+	                } else if (previousValue !== "" && currentValue === "") {
 	                    timesheetEntries.push({
 	                        username: sessionStorage.getItem("userName"),
 	                        period: selectedPeriod,
 	                        chargeCode: chargeCode,
 	                        cellIndex: cellIndex,
-	                        hours: null 
+	                        hours: null
 	                    });
 
-	                    input.setAttribute("data-prev", ""); 
+	                    input.setAttribute("data-prev", "");
 	                }
 	            });
 
@@ -312,7 +335,7 @@ document.addEventListener("DOMContentLoaded", function () {
 	        let emptyColumns = [];
 
 	        for (let col = 1; col <= totalColumns; col++) {
-	            if (skipColumns.includes(col)) continue; 
+	            if (skipColumns.includes(col)) continue;
 	            if (!columnFilled[col]) emptyColumns.push(col);
 	        }
 
@@ -320,7 +343,6 @@ document.addEventListener("DOMContentLoaded", function () {
 	            emptyColumns.forEach(colIndex => {
 	                document.querySelectorAll(`#tableBody tr:not(.static-row) td:nth-child(${colIndex + 1}) input`).forEach(input => {
 	                    input.style.border = "1px solid red";
-	                    
 	                });
 	            });
 	            return;
@@ -337,16 +359,22 @@ document.addEventListener("DOMContentLoaded", function () {
 	                headers: { "Content-Type": "application/json" },
 	                body: JSON.stringify(timesheetEntries)
 	            })
-	            .then(response => response.text())
-	            .then(result => {
-	                showAlert(result, "success");
-	                fetchTimesheetData();
+	            .then(async response => {
+	                const text = await response.text();
+	                if (!response.ok) {
+	                    showAlert(text, "danger");
+	                } else {
+	                    showAlert(text, "success");
+	                    fetchTimesheetData();
+	                }
 	            });
 	        } catch (e) {
-	            showAlert("❌ JSON Formatting Error:", "danger");
+	            showAlert("❌ JSON Formatting Error", "danger");
 	        }
 	    };
 	}
+
+
 
 
 
@@ -690,6 +718,8 @@ function generateSummary() {
 
     const selectedPeriod = getSelectedPeriod();
     const selectedMonth = selectedPeriod.split(" ")[0]; // Extract month (assuming format: "March - First Half")
+	
+
 
 	fetch(`/getSummary?username=${username}&period=${selectedPeriod}`)
 	    .then(response => response.json())
@@ -716,7 +746,8 @@ function generateSummary() {
 	        }
 
 	        let standardHours = calculateStandardAllocatedHours(selectedPeriod);
-	        let totalWorkingHours = data.totalHours - data.totalAbsences;
+	        let totalWorkingHours = data.totalHours - data.totallop;
+		
 
 	        // Update total values
 	        document.getElementById("totalHours").textContent = data.totalHours;
@@ -754,12 +785,59 @@ function generateSummary() {
 			    `Remaining Casual Leave: ${(allowedLeave.casualLeave || 0).toFixed(2)} / 12 days`;
 
 			document.getElementById("paidLeave").textContent = 
-			    `Loss of Pay: ${Math.max(0, paidLeaveDays.toFixed(1))} days (taken on this month)`;
+			    `Loss of Pay: ${Math.max(0, paidLeaveDays.toFixed(1))} days (taken on this Period)`;
 	    });
 }
 
+function toggleTooltip(iconElement) {
+  // Close other open tooltips
+  document.querySelectorAll(".info-icon").forEach(el => {
+    if (el !== iconElement) el.classList.remove("active");
+  });
+
+  // Toggle this one
+  iconElement.classList.toggle("active");
+}
+
+// Optional: Close tooltip when clicking outside
+document.addEventListener("click", function (e) {
+  if (!e.target.closest(".info-icon")) {
+    document.querySelectorAll(".info-icon").forEach(el => el.classList.remove("active"));
+  }
+});
 
 
+/*
+function calculatesundays(selectedPeriod) {
+    let [startDateStr, endDateStr] = selectedPeriod.split(" - "); // Example: "01/03/2025 - 15/03/2025"
+
+
+    function parseDate(dateStr) {
+        let parts = dateStr.split("/");
+        return new Date(parts[2], parts[1] - 1, parts[0]);
+    }
+
+    let startDate = parseDate(startDateStr);
+    let endDate = parseDate(endDateStr);
+
+    if (isNaN(startDate) || isNaN(endDate)) {
+    
+        return 0; 
+    }
+
+    let totalsundays = 0;
+
+	while (startDate <= endDate) {
+	    if (startDate.getDay() === 0 ) { 
+	        totalsundays++;
+	    }
+	    startDate.setDate(startDate.getDate() + 1);
+	}
+
+
+    return totalsundays * 9; 
+} */
+ 
 function calculateStandardAllocatedHours(selectedPeriod) {
     let [startDateStr, endDateStr] = selectedPeriod.split(" - "); // Example: "01/03/2025 - 15/03/2025"
 
@@ -785,11 +863,6 @@ function calculateStandardAllocatedHours(selectedPeriod) {
 	    }
 	    startDate.setDate(startDate.getDate() + 1);
 	}
-
-
-
-
-
     return totalWorkingDays * 9; 
 }
 
@@ -1059,7 +1132,7 @@ function savePreferences() {
     });
 }
 
-
+/*
 function fetchPreferences() {
     const periodDropdown = document.getElementById("periodDropdown");
 
@@ -1122,7 +1195,7 @@ document.addEventListener("DOMContentLoaded", function () {
 		nextpre.addEventListener("click", fetchPreferences);
     } 
 });
-
+*/
 
 
 document.addEventListener("DOMContentLoaded", function () {

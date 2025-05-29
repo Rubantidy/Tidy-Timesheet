@@ -65,10 +65,13 @@ public class EmpController {
 	}
 
 
-
-
     @PostMapping("/addEmployee")
     public ResponseEntity<String> addEmployee(@RequestBody Employeedao EmpData) throws IOException {
+
+        // 🚫 Check if email already exists
+        if (EmpRepo.existsByeMail(EmpData.geteMail())) {
+            return ResponseEntity.status(409).body("Employee with this email already exists.");
+        }
 
         EmpRepo.save(EmpData);
 
@@ -84,12 +87,11 @@ public class EmpController {
         int onboardYear = onboardDate.getYear();
         int onboardMonth = onboardDate.getMonthValue();
 
-        // Create AllowedLeaves
+        // ✅ Existing logic for onboard year
         if (!allowedLeaveRepo.existsByUsernameAndYear(username, onboardYear)) {
             allowedLeaveRepo.save(new AllowedLeaves(username, onboardYear));
         }
 
-        // Initialize baseCasualTaken
         AllowedLeaves allowed = allowedLeaveRepo.findByUsernameAndYear(username, onboardYear);
         if (allowed != null) {
             int casualTakenCount = onboardMonth - 1;
@@ -98,7 +100,6 @@ public class EmpController {
             allowedLeaveRepo.save(allowed);
         }
 
-        // 💡 Create CasualLeaveTracker for remaining months of the year
         for (int m = onboardMonth; m <= 12; m++) {
             if (!casualLeaveTrackerRepo.existsByUsernameAndYearAndMonth(username, onboardYear, m)) {
                 CasualLeaveTracker tracker = new CasualLeaveTracker(username, onboardYear, m);
@@ -106,10 +107,38 @@ public class EmpController {
             }
         }
 
+        // 🆕 Extra logic: If onboarded in past year, apply current year's leave data starting from current month
+        int currentYear = LocalDate.now().getYear();
+        int currentMonth = LocalDate.now().getMonthValue();
+
+        if (onboardYear < currentYear) {
+
+            // ✅ Add AllowedLeaves for current year if not exists
+            if (!allowedLeaveRepo.existsByUsernameAndYear(username, currentYear)) {
+                allowedLeaveRepo.save(new AllowedLeaves(username, currentYear));
+            }
+
+            // ⚙️ Set casualTaken and baseCasualTaken as currentMonth - 1
+            AllowedLeaves currentAllowed = allowedLeaveRepo.findByUsernameAndYear(username, currentYear);
+            if (currentAllowed != null) {
+                int carryForwardCasualTaken = currentMonth - 1;
+                currentAllowed.setBaseCasualTaken(Math.max(carryForwardCasualTaken, 0));
+                currentAllowed.setCasualTaken(Math.max(carryForwardCasualTaken, 0));
+                allowedLeaveRepo.save(currentAllowed);
+            }
+
+            // 📅 Add CasualLeaveTracker for current year from current month to December
+            for (int m = currentMonth; m <= 12; m++) {
+                if (!casualLeaveTrackerRepo.existsByUsernameAndYearAndMonth(username, currentYear, m)) {
+                    CasualLeaveTracker tracker = new CasualLeaveTracker(username, currentYear, m);
+                    casualLeaveTrackerRepo.save(tracker);
+                }
+            }
+        }
+
         return ResponseEntity.ok("Employee Onboarded successfully..!");
     }
 
- 
     
     @GetMapping("/getEmployeeById/{id}")
     public ResponseEntity<?> getEmployeeByid(@PathVariable int id) {
@@ -123,53 +152,67 @@ public class EmpController {
     
     
     @PostMapping("/updateEmployee")
-    @ResponseBody
-    public String updateEmployee(@RequestBody Map<String, String> requestData) throws IOException {
+    public ResponseEntity<String> updateEmployee(@RequestBody Map<String, String> requestData) throws IOException {
         int id = Integer.parseInt(requestData.get("id"));
         Optional<Employeedao> optionalEmp = EmpRepo.findById(id);
 
-        if (optionalEmp.isPresent()) {
-            Employeedao emp = optionalEmp.get();
-
-           
-            String oldName = emp.geteName();
-            String newName = requestData.get("E-name");
-
-          
-            emp.seteName(newName);
-            emp.seteMail(requestData.get("E-mail"));
-            emp.setDesignation(requestData.get("E-desg"));
-            emp.setOnboard(requestData.get("onborad"));
-            emp.setE_Role(requestData.get("E-role"));
-
-            if ("Admin".equalsIgnoreCase(emp.getE_Role())) {
-                emp.setAdditionalRole("Employee");
-            } else {
-                emp.setAdditionalRole("-");
-            }
-
-            EmpRepo.save(emp);
-
-        
-            int year = LocalDate.now().getYear();
-            AllowedLeaves leaves = allowedLeaveRepo.findByUsernameAndYear(oldName, year);
-            if (leaves != null) {
-                leaves.setUsername(newName);
-                allowedLeaveRepo.save(leaves);
-            }
-
-            try {
-                emailservice.updateemployeeemail(emp);
-            } catch (MessagingException e) {
-                e.printStackTrace();
-                return "Failed to send email.";
-            }
-
-            return "Employee updated successfully!";
-        } else {
-            return "Employee not found!";
+        if (!optionalEmp.isPresent()) {
+            return ResponseEntity.status(404).body("Employee not found!");
         }
+
+        Employeedao emp = optionalEmp.get();
+
+        String newEmail = requestData.get("E-mail");
+        Employeedao existingWithEmail = EmpRepo.findByeMail(newEmail);
+
+        // 🚫 Check if another employee already uses this email
+        if (existingWithEmail != null && existingWithEmail.getId() != emp.getId()) {
+            return ResponseEntity.status(409).body("Another employee with this email already exists.");
+        }
+
+        String oldName = emp.geteName();
+        String newName = requestData.get("E-name");
+
+        emp.seteName(newName);
+        emp.seteMail(newEmail);
+        emp.setDesignation(requestData.get("E-desg"));
+        emp.setOnboard(requestData.get("onborad"));
+        emp.setE_Role(requestData.get("E-role"));
+
+        if ("Admin".equalsIgnoreCase(emp.getE_Role())) {
+            emp.setAdditionalRole("Employee");
+        } else {
+            emp.setAdditionalRole("-");
+        }
+
+        EmpRepo.save(emp);
+
+        int year = LocalDate.now().getYear();
+
+        // ✅ Update AllowedLeaves
+        AllowedLeaves leaves = allowedLeaveRepo.findByUsernameAndYear(oldName, year);
+        if (leaves != null) {
+            leaves.setUsername(newName);
+            allowedLeaveRepo.save(leaves);
+        }
+
+        // ✅ Update CasualLeaveTracker (for all months in the year)
+        List<CasualLeaveTracker> trackers = casualLeaveTrackerRepo.findByUsernameAndYear(oldName, year);
+        for (CasualLeaveTracker tracker : trackers) {
+            tracker.setUsername(newName);
+        }
+        casualLeaveTrackerRepo.saveAll(trackers);
+
+        try {
+            emailservice.updateemployeeemail(emp);
+        } catch (MessagingException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Failed to send email.");
+        }
+
+        return ResponseEntity.ok("Employee updated successfully!");
     }
+
 
 
     

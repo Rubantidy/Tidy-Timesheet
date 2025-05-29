@@ -841,4 +841,30 @@ body {
 
 	
 
+	.pagination-container {
+	    text-align: center;
+	    margin-top: 10px;
+		margin-left: -20px;
+		font-size: large;
+		font-weight: 600;
+	}
+
+	.pagination-dot {
+	    display: inline-block;
+	    margin: 0 5px;
+	    cursor: pointer;
+	    color: rgb(0, 0, 0);
+	    font-weight: bold;
+	}
+
+	.pagination-dot.active {
+	    color: rgb(255, 0, 255);
+	}
+
+	.pagination-arrow {
+	    cursor: pointer;
+	    margin: 0 10px;
+	    font-size: 18px;
+	    color: rgb(0, 0, 0);
+	}
 

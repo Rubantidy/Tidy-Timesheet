@@ -1,6 +1,7 @@
 package timesheet.payroll;
 
 import java.io.ByteArrayOutputStream;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -71,22 +72,12 @@ public class PaySlipGenerator {
 	        byte[] logoBytes = logoStream.readAllBytes();
 	        Image logo = Image.getInstance(logoBytes);
 	        logo.scaleToFit(100, 50);
-	        logo.setAlignment(Element.ALIGN_CENTER);
+	        logo.setAlignment(Element.ALIGN_LEFT);
 	        document.add(logo);
 	    } catch (Exception e) {
 	        e.printStackTrace();
 	    }
 
-	    // Title
-	    Paragraph payslipTitle = new Paragraph("PAYSLIP", titleFont);
-	    payslipTitle.setAlignment(Element.ALIGN_CENTER);
-	    document.add(payslipTitle);
-	    document.add(Chunk.NEWLINE);
-
-	    // Company
-	    Paragraph company = new Paragraph("Tidy Digital Solution Pvt, LTD", labelFont);
-	    company.setAlignment(Element.ALIGN_CENTER);
-	    document.add(company);
 
 	    Paragraph monthPara = new Paragraph("Payslip for " + approvedPaysliprepo.getMonth().toUpperCase(), labelFont);
 	    monthPara.setAlignment(Element.ALIGN_CENTER);
@@ -153,13 +144,6 @@ public class PaySlipGenerator {
 	    salaryTable.addCell(createCell(String.format("%,.2f", approvedPaysliprepo.getBasicSalary()), normalFont, Element.ALIGN_RIGHT));
 	    salaryTable.addCell(createCell("Deduction", normalFont, Element.ALIGN_LEFT));
 	    salaryTable.addCell(createCell(String.format("%,.2f", approvedPaysliprepo.getDeductions()), normalFont, Element.ALIGN_RIGHT));
-
-	    // Empty spacer row
-	    for (int i = 0; i < 4; i++) {
-	        PdfPCell empty = new PdfPCell(new Phrase(" "));
-	        empty.setBorder(Rectangle.NO_BORDER);
-	        salaryTable.addCell(empty);
-	    }
 
 	    // Gross Earnings & Deductions Row
 	    salaryTable.addCell(createCell("Gross Earnings", labelFont, Element.ALIGN_LEFT));

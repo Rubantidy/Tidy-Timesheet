@@ -175,6 +175,34 @@ public class EmailServiceController {
 
 	    mailSender.send(message);
 	}
+   
+   
+   public void sendPayslipApprovedEmail(String toEmail, String employeeName, String month) throws MessagingException, IOException {
+       MimeMessage message = mailSender.createMimeMessage();
+       MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+       helper.setFrom("timex@tidyds.com", "Tidy Digital Solutions");
+       helper.setTo(toEmail);
+       helper.setSubject("Payslip Approved for " + month);
+
+       String emailContent = "<html><body>"
+           + "<h2>Dear " + employeeName + ",</h2>"
+           + "<p>Your payslip for <strong>" + month + "</strong> has been approved successfully.</p>"
+           + "<p>You can access your payslip details on the <a href=\"https://timex.tidyds.com\">Tidy Timesheet Portal</a>.</p>"
+           + "<br>"
+           + "<p>If you have any questions, please contact HR.</p>"
+           + "<br>"
+           + "<img src='cid:logoImage' width='200' alt='Company logo' />"
+           + "<p>Best Regards,<br><b>Tidy Digital Solutions Team</b></p>"
+           + "</body></html>";
+
+       helper.setText(emailContent, true);
+
+       ClassPathResource image = new ClassPathResource("static/img/logo.png");
+       helper.addInline("logoImage", image);
+
+       mailSender.send(message);
+   }
 
    
 }

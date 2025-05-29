@@ -24,7 +24,7 @@ public class TimesheetEntry {
 
     private String hours; 
 
-  
+    
     public TimesheetEntry() {}
 
     public TimesheetEntry(String username, String period, String chargeCode, String cellIndex, String hours) {

@@ -74,6 +74,9 @@ function closeSidebarOnMobile() {
 }
 
 
+
+
+
 /*Script for dashboard icons functions */   
 function showContent(section) {
 	
@@ -580,7 +583,10 @@ function showContent(section) {
 							function fetchPendingApprovals() {
 							    fetch("/getPendingApprovals")
 							        .then(response => response.json())
-							        .then(data => populateTable("pendingSummaryBody", data, "Pending"))
+							        .then(data => {
+										populateTable("pendingSummaryBody", data, "Pending");
+										paginateTable("pendingSummaryBody");
+									})
 							        .catch(error => console.error("Error fetching pending approvals:", error));
 							}
 
@@ -588,7 +594,10 @@ function showContent(section) {
 							function fetchApprovalslist() {
 							    fetch("/getApprovalslist")
 							        .then(response => response.json())
-							        .then(data => populateTable("approvedSummaryBody", data, "Approved"))
+									.then(data => {
+									          populateTable("approvedSummaryBody", data, "Approved");
+									          paginateTable("approvedSummaryBody"); // ✅ Apply pagination here
+									      }) 
 							        .catch(error => console.error("Error fetching approvals list:", error));
 							}
 
@@ -596,7 +605,11 @@ function showContent(section) {
 							function fetchIssuelist() {
 							    fetch("/getIssuelist")
 							        .then(response => response.json())
-							        .then(data => populateTable("issueSummaryBody", data, "Issue"))
+							        .then(data => { 
+										populateTable("issueSummaryBody", data, "Issue");
+										paginateTable("issueSummaryBody"); 
+										
+									})
 							        .catch(error => console.error("Error fetching issue list:", error));
 							}
 
@@ -638,12 +651,13 @@ function showContent(section) {
 							        `;
 
 							        tableBody.appendChild(row);
-									
-									
-
-							        
+																        
 							        fetchEmployeeSummary(entry.username, entry.period, status);
 							    });
+								
+								// Optional: Remove old pagination if re-rendering
+								   const oldPagination = document.getElementById(`${tableId}-pagination`);
+								   if (oldPagination) oldPagination.remove();
 								
 								
 								const searchInput = document.getElementById("searchEEmployee");
@@ -863,10 +877,18 @@ function handleFormSubmit(event) {
         },
         body: JSON.stringify(jsonData)
     })
-    .then(response => response.text())
-    .then(data => {
-        showAlert(data, "success");
-        hideForm(); 
+	.then(async response => {
+	        const data = await response.text();
+
+	        if (!response.ok) {
+	            // Handle specific error messages from backend
+	            showAlert(data , "danger");
+	            throw new Error(data);
+	        }
+
+	        // Success
+	        showAlert(data, "success");
+	        hideForm(); 
 
         // ✅ Refresh the right section
         const action = form.getAttribute("action");
@@ -951,6 +973,7 @@ function fetchEmployeeData() {
 			        employeeListContainer.appendChild(li);
 			    }
 			});
+			paginateTable("employee-table-body");
         })
         .catch(error => console.error("Error fetching employees:", error));
 }
@@ -990,7 +1013,7 @@ function submitUpdatedEmployee(event, id) {
         "E-mail": document.getElementById("E-mail").value,
         "E-desg": document.getElementById("E-desg").value,
         "E-role": document.getElementById("E-role").value,
-		"onborad": document.getElementById("onborad").value,
+        "onborad": document.getElementById("onborad").value,
     };
 
     fetch("/updateEmployee", {
@@ -998,17 +1021,22 @@ function submitUpdatedEmployee(event, id) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updatedData),
     })
-    .then(response => response.text())
-    .then(message => {
-        hideLoader(); 
+    .then(async response => {
+        const message = await response.text();
+
+        if (!response.ok) {
+            showAlert(message, "danger");
+            throw new Error(message);
+        }
+
         hideForm();
         showAlert(message, "success");
         fetchEmployeeData();
     })
     .catch(error => {
-        hideLoader(); 
         console.error("Error updating employee:", error);
-    });
+    })
+    .finally(() => hideLoader());
 }
 
 
@@ -1094,6 +1122,7 @@ function fetchCodeDatas() {
                     </tr>
                 `;
             });
+			paginateTable("code-table-body");
         })
         .catch(error => console.error("Error fetching Charge codes:", error));
 }
@@ -1364,6 +1393,7 @@ function fetchExpense() {
 				                 
                 `;
             });
+			paginateTable("Expense-table-body");
         })
         .catch(error => console.error("Error fetching Expense Details:", error));
 }
@@ -1464,6 +1494,7 @@ function fetchDelegator() {
 				                 
                 `;
             });
+			paginateTable("Delegate-table-body");
         })
         .catch(error => console.error("Error fetching Delegator Details:", error));
 }
@@ -1490,6 +1521,7 @@ function fetchHoliday() {
 				                 
                 `;
             });
+			paginateTable("holiday-table-body");
         })
         .catch(error => console.error("Error fetching Expense Details:", error));
 }

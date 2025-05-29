@@ -23,6 +23,8 @@ public interface EmployeeRepo extends JpaRepository<Employeedao, Integer> {
     @Query("SELECT e.eName FROM Employeedao e WHERE e.status = 'active'")
     List<String> findAllUsernames();
 
+	boolean existsByeMail(String geteMail);
+
     
     
     
