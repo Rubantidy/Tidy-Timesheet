@@ -4,6 +4,9 @@ import java.io.ByteArrayOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
@@ -78,19 +81,21 @@ public class PaySlipGenerator {
 	        e.printStackTrace();
 	    }
 
+	    
+	    YearMonth ym = YearMonth.parse(approvedPaysliprepo.getMonth(), DateTimeFormatter.ofPattern("yyyy-MM"));
+	    String formattedMonth = ym.format(DateTimeFormatter.ofPattern("yyyy - MMMM", Locale.ENGLISH)).toUpperCase();
 
-	    Paragraph monthPara = new Paragraph("Payslip for " + approvedPaysliprepo.getMonth().toUpperCase(), labelFont);
+	    Paragraph monthPara = new Paragraph("Payslip For " + formattedMonth, titleFont);
 	    monthPara.setAlignment(Element.ALIGN_CENTER);
 	    document.add(monthPara);
 	    document.add(Chunk.NEWLINE);
 
 	    // Employee Info
 	    PdfPTable empTable = new PdfPTable(2);
-	    empTable.setWidthPercentage(100);
+	    empTable.setWidthPercentage(100); 
 	    empTable.setSpacingBefore(10f);
 	    empTable.setSpacingAfter(10f);
-
-
+	    
 	    empTable.addCell(createLabelCell("Name", labelFont));
 	    empTable.addCell(createValueCell(approvedPaysliprepo.getUsername(), normalFont));
 	    
@@ -124,7 +129,6 @@ public class PaySlipGenerator {
 
 	    document.add(empTable);
 
-	    document.add(Chunk.NEWLINE);
 
 	 // --- Salary Split Table with Styled Layout ---
 	    PdfPTable salaryTable = new PdfPTable(4);
@@ -171,14 +175,13 @@ public class PaySlipGenerator {
 	    document.add(Chunk.NEWLINE);
 
 	    // Footer
-	    Paragraph footer = new Paragraph("Salary processed at: " + approvedPaysliprepo.getSalaryProcessAt()
-	            + " | Approved at: " + approvedPaysliprepo.getApprovedAt(), smallFont);
+	    Paragraph footer = new Paragraph("Payslip Approved at:" + approvedPaysliprepo.getApprovedAt() + " | Salary processed at: " + approvedPaysliprepo.getSalaryProcessAt(), smallFont);
 	    footer.setAlignment(Element.ALIGN_CENTER);
 	    document.add(footer);
 
 	    document.add(Chunk.NEWLINE);
 
-	    Paragraph note = new Paragraph("** This is a computer generated payslip and does not require signature and stamp.", smallFont);
+	    Paragraph note = new Paragraph("** This is a computer generated payslip and does not require signature and stamp.**", smallFont);
 	    note.setAlignment(Element.ALIGN_CENTER);
 	    document.add(note);
 

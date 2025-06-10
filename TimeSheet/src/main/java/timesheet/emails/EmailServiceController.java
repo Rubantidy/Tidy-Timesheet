@@ -47,7 +47,7 @@ public class EmailServiceController {
 	                 + "<br>"
 	                 + "<p>We look forward to working with you and wish you great success in your role.</p>"
 	                 + "<br>"
-	                 + "<img src='cid:logoImage' width='200' alt='Company logo' />"
+	                 + "<img src='cid:logoImage' style='height: 60px;'><br><br>"
 	                 + "<p>Best Regards,<br><b>Tidy Digital Solutions Team</b></p>"
 	                 + "</body></html>";
 
@@ -88,7 +88,7 @@ public class EmailServiceController {
     	     + "<h3>Need Help?</h3>"
     	     + "<p>If you notice any incorrect details or experience issues accessing your account, please contact our support team immediately.</p>"
     	     + "<br>"
-    	     + "<img src='cid:logoImage' width='200' alt='Company logo' />"
+    	     + "<img src='cid:logoImage' style='height: 60px;'><br><br>"
     	     + "<p>Best Regards,<br><b>Tidy Digital Solutions Team</b></p>"
     	     + "</body></html>";
 
@@ -128,6 +128,7 @@ public class EmailServiceController {
 	            + "<br>"
 	            + "<p>We look forward to a successful journey with you at Tidy Digital Solutions.</p>"
 	            + "<br>"
+	            + "<img src='cid:logoImage' style='height: 60px;'><br><br>"
 	            + "<p>Best regards,<br><strong>Tidy Digital Solutions Team</strong></p>"
 	            + "</body></html>";
 
@@ -143,6 +144,34 @@ public class EmailServiceController {
 	    mailSender.send(message);
 	}
 
+   public void EditedSalary(Employeedao empData, int updatedSalary, int yearly) throws MessagingException, IOException {
+	    MimeMessage message = mailSender.createMimeMessage();
+	    MimeMessageHelper helper = new MimeMessageHelper(message, true);
+
+	    helper.setFrom("timex@tidyds.com", "Tidy Digital Solutions");
+	    helper.setTo(empData.geteMail());
+	    helper.setSubject("Salary Correction Notification - Tidy Digital Solutions");
+
+	    String emailContent = "<html><body>"	          
+	            + "<h2>Hello " + empData.geteName() + ",</h2>"
+	            + "<p>This is to inform you that your salary details have been corrected in the system due to a previous data entry error.</p>"
+	            + "<p><strong>Corrected Monthly Salary:</strong> ₹" + String.format("%,d", updatedSalary) + "</p>"
+	            + "<p><strong>Corrected Yearly Salary:</strong> ₹" + String.format("%,d", yearly) + "</p>"
+	            + "<br>"
+	            + "<p>You can view the updated salary details in your profile and payslip section by logging into the <a href=\"https://timex.tidyds.com\">Timesheet Portal</a>.</p>"
+	            + "<p>If you have any questions or concerns, please reach out to the HR team.</p>"
+	            + "<br><br>"
+	            + "<img src='cid:logoImage' style='height: 60px;'><br><br>"
+	            + "<p>Warm regards,<br><strong>Tidy Digital Solutions Team</strong></p>"
+	            + "</body></html>";
+
+	    helper.setText(emailContent, true);
+
+	    ClassPathResource image = new ClassPathResource("static/img/logo.png");
+	    helper.addInline("logoImage", image);
+
+	    mailSender.send(message);
+	}
 
    
    
@@ -165,6 +194,7 @@ public class EmailServiceController {
 	            + "<p>Please login to the <a href=\"https://timex.tidyds.com\">Timesheet Portal</a> to view the updated salary in your profile and payslip section.</p>"
 	            + "<p>If you have any questions, feel free to reach out to HR.</p>"
 	            + "<br>"
+	            + "<img src='cid:logoImage' style='height: 60px;'><br><br>"
 	            + "<p>Warm regards,<br><strong>Tidy Digital Solutions Team</strong></p>"
 	            + "</body></html>";
 
@@ -192,7 +222,7 @@ public class EmailServiceController {
            + "<br>"
            + "<p>If you have any questions, please contact HR.</p>"
            + "<br>"
-           + "<img src='cid:logoImage' width='200' alt='Company logo' />"
+           + "<img src='cid:logoImage' style='height: 60px;'><br><br>"
            + "<p>Best Regards,<br><b>Tidy Digital Solutions Team</b></p>"
            + "</body></html>";
 

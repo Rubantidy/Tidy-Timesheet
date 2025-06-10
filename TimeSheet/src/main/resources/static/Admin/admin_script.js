@@ -160,7 +160,7 @@ function showContent(section) {
 		                <tr>
 		                    <th>Employee</th>
 		                    <th>Period</th>
-		                    <th>Total Working Days</th>
+		                    <th>Total Working Days<br>(Without Sunday's)</th>
 		                    <th>Total Absences</th>
 							<th>Loss of Pay</th>
 		                    <th>Charge Code Details</th>
@@ -187,7 +187,7 @@ function showContent(section) {
 		                <tr>
 		                    <th>Employee</th>
 		                    <th>Period</th>
-		                   <th>Total Working Days</th>
+		                   <th>Total Working Days <br>(Without Sunday's)</th>
 		                    <th>Total Absences</th>
 							<th>Loss of Pay</th>
 		                    <th>Charge Code Details</th>
@@ -213,7 +213,7 @@ function showContent(section) {
 		                <tr>
 		                    <th>Employee</th>
 		                    <th>Period</th>
-		                    <th>Total Hours</th>
+		                    <th>Total Working Days <br>(Without Sunday's)</th>
 		                    <th>Total Absences</th>
 							<th>Loss of Pay</th>
 		                    <th>Charge Code Details</th>
@@ -334,7 +334,7 @@ function showContent(section) {
 					     <div class="row g-3 mb-4">
 					       <div class="col-md-4">
 					         <label class="form-label">Select Month</label>
-					         <input type="month" class="form-control" id="monthPicker" onchange="loadEmployeesForMonth()" />
+					         <input type="month" class="form-control" id="monthPicker"  onchange="loadEmployeesForMonth()" />
 					       </div>
 					       <div class="col-md-4">
 					         <label class="form-label">Select Employee</label>
@@ -459,6 +459,7 @@ function showContent(section) {
 						
 				}
 					
+				
 					
 				function listAssignedEmployees() {
 				    const searchInput = document.getElementById("searchAssignedEmployee");
@@ -643,8 +644,8 @@ function showContent(section) {
 							            ${status === "Pending" ? `
 							                <td style="display: flex; gap: 10px;">
 					
-							                        <button class="btn btn-success btn-sm" onclick="handleApproval('${entry.username}', '${entry.period}')"><i class="bi bi-check2-square"></i></button>
-							                        <button class="btn btn-danger btn-sm" onclick="handleIssue('${entry.username}', '${entry.period}')"><i class="bi bi-file-x"></i></button>
+							                        <button class="btn btn-success btn-sm" title="Approve Timesheet" onclick="handleApproval('${entry.username}', '${entry.period}')"><i class="bi bi-check2-square"></i></button>
+							                        <button class="btn btn-danger btn-sm"  title="Reject Timesheet" onclick="handleIssue('${entry.username}', '${entry.period}')"><i class="bi bi-file-x"></i></button>
 							     
 							                </td>
 							            ` : ""}
@@ -689,10 +690,6 @@ function showContent(section) {
 							                return;
 							            }
 
-										const totalDays = (summary.totalHours / 9);
-									
-
-									document.getElementById(`period-${username}-${period}`).textContent += ` (${totalDays})`;
 							            document.getElementById(`hours-${username}-${period}`).textContent = (summary.totalHours - summary.totalAbsences)/9   || "0";
 							            document.getElementById(`absences-${username}-${period}`).textContent = summary.totalAbsences/9 || "0";					
 										document.getElementById(`paid-${username}-${period}`).textContent = summary.paidLeaveDays || "0";
@@ -1704,8 +1701,8 @@ function createForm(type) {
 								              <option value="">Select Employee</option>
 								        </select>
 								    </div>
-								${inputField("DOJ", "text", "doj", "", "", true)} 
-								${inputField("Salary(Month)", "number", "Salary_M")}
+								${inputField("DOJ", "text", "doj", "", "", true, )} 
+								${inputField("Salary(Month)", "number", "Salary_M", "", "", false, "min='1000'")}
 								${formButtons()}
 							</form>
 						</div>
@@ -1813,12 +1810,22 @@ function inputField(label, type, name, formType = "", value = "", readonly = fal
     return `
         <div class="mb-3">
             <label class="form-label">${label}</label>
-            <input type="${type}" class="form-control" name="${name}" id="${name}" value="${value || ""}" ${readonly ? "readonly" : ""} ${extraAttrs} required>
+            <input 
+                type="${type}" 
+                class="form-control" 
+                name="${name}" 
+                id="${name}" 
+                value="${value || ""}" 
+                ${readonly ? "readonly" : ""} 
+                ${extraAttrs} 
+                required
+            >
             ${isPasswordField ? `<button class="btn btn-outline-primary" type="button" onclick="generatePassword('${name}')" style="margin-top: 10px;">Generate</button>` : ""}
             ${isChargeCodeField ? `<button class="btn btn-outline-primary" type="button" onclick="codeGenerate()" style="margin-top: 10px;">Generate Charge Code</button>` : ""}
         </div>
     `;
 }
+
 
 
 

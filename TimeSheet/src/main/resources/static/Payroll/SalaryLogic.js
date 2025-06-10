@@ -581,6 +581,71 @@ function downloadPayslip() {
         });
 }
 
+document.addEventListener("DOMContentLoaded", function () {
+    const periodDropdown = document.getElementById("periodDropdown");
+    const calender = document.getElementById("calendarPicker");
+    const preview = document.getElementById("prevPeriod");
+    const nextpre = document.getElementById("nextPeriod");
+
+    function getSelectedPeriod() {
+        return periodDropdown.options[periodDropdown.selectedIndex].text;
+    }
+
+    async function fetchAndShowPayslipSummary() {
+        const username = sessionStorage.getItem("userName");
+        const extractedPeriod = getSelectedPeriod();
+
+        // Extract "2025-05" from "01/05/2025 - 15/05/2025"
+        const dateParts = extractedPeriod.split(" - ")[0].split("/");
+        const formattedMonth = `${dateParts[2]}-${dateParts[1]}`;
+
+        try {
+            const response = await fetch(`/payslip/EmpPayslipSummary?username=${encodeURIComponent(username)}&month=${formattedMonth}`);
+
+            if (!response.ok) {
+                throw new Error("Payslip data not found");
+            }
+
+            const data = await response.json();
+
+            // Fill summary fields
+            document.getElementById("summaryUsername").textContent = data.username || "-";
+            document.getElementById("summaryDesignation").textContent = data.designation || "-";
+            document.getElementById("summaryMonth").textContent = data.month || "-";
+            document.getElementById("summaryStdWorkDays").textContent = data.stdWorkDays ?? "-";
+            document.getElementById("summaryTotalLeaves").textContent = data.totalLeaves ?? "-";
+			document.getElementById("summaryLOP").textContent = data.lop ?? "-";
+            document.getElementById("summaryWorkingDays").textContent = data.totalWorkingDays ?? "-";
+            document.getElementById("summaryBasicSalary").textContent = data.basicSalary ? `₹${data.basicSalary.toFixed(2)}` : "-";
+            document.getElementById("summaryDeductions").textContent = data.deductions ? `₹${data.deductions.toFixed(2)}` : "-";
+            document.getElementById("summaryNetPay").textContent = data.netPay ? `₹${data.netPay.toFixed(2)}` : "-";
+
+        } catch (err) {
+            console.error("Error fetching payslip summary:", err);
+            clearPayslipSummaryUI();
+        }
+    }
+
+    function clearPayslipSummaryUI() {
+        const fields = [
+            "summaryUsername", "summaryDesignation", "summaryMonth",
+            "summaryStdWorkDays", "summaryTotalLeaves", "summaryWorkingDays",
+            "summaryLOP", "summaryBasicSalary", "summaryDeductions", "summaryNetPay",
+        ];
+        fields.forEach(id => document.getElementById(id).textContent = "-");
+    }
+
+    // Auto-update when period changes
+    periodDropdown.addEventListener("change", fetchAndShowPayslipSummary);
+    calender.addEventListener("change", fetchAndShowPayslipSummary);
+    preview.addEventListener("click", () => setTimeout(fetchAndShowPayslipSummary, 200));
+    nextpre.addEventListener("click", () => setTimeout(fetchAndShowPayslipSummary, 200));
+
+    // Initial load
+    fetchAndShowPayslipSummary();
+});
+
+
 
 
 function fetchinitialSalary() {
@@ -618,12 +683,16 @@ function fetchinitialSalary() {
                         <td>${Salary.reason}</td>
                         <td>${bankStatus}</td>							 
                         <td>
+
                             <button class="btn btn-success btn-sm" title="Salary Hike" onclick="openHikeForm('${Salary.id}')">
                                 <i class="bi bi-person-up"></i>
                             </button>
                             <button class="btn btn-success btn-sm" title="Salary History" onclick="showSalaryHistory('${Salary['E-name']}')">
                                 <i class="bi bi-file-earmark-text"></i>
                             </button>
+							<button class="btn btn-success btn-sm" title="Edit Salary Edit" onclick="opensalaryedit('${Salary.id}')">
+							     <i class="bi bi-pencil-square"></i>
+							  </button>
                         </td>
                     </tr>
                 `;
@@ -632,6 +701,72 @@ function fetchinitialSalary() {
         .catch(error => console.error("Error fetching Charge codes:", error));
 }
 
+
+function opensalaryedit(employeeId) {
+    fetch(`/getSalaryById/${employeeId}`)
+        .then(res => res.json())
+        .then(data => {
+            const editFormHTML = `
+                <div class="card p-3 mb-3">
+                    <h4>*Update Employee Salary</h4>
+                    <form onsubmit="submitupdatedsalary(event, '${data.id}', '${data['E-name']}', ${data.Salary_M})">
+                        ${inputField("Employee Name", "text", "ename", "", data["E-name"], true)}
+						${inputField("DOJ", "text", "doj", "", data.doj, true)}
+                        ${inputField("Current Salary", "number", "currentSalary", "", data.Salary_M, false, "min='1000'")}
+                        ${formButtons()}
+                    </form>
+                </div>
+            `;
+            document.getElementById("form-container").innerHTML = editFormHTML;
+        });
+}
+
+function submitupdatedsalary(event, id, name) {
+    event.preventDefault();
+
+    const updatedSalary = document.querySelector("[name='currentSalary']").value;
+
+    if (!updatedSalary || updatedSalary < 1000) {
+        showAlert("Salary must be at least ₹1000", "danger");
+        return;
+    }
+
+    const message = `Are you sure you want to update the salary for <strong>${name}</strong>?`;
+    document.getElementById('salaryHikeConfirmMessage').innerHTML = message;
+
+    const salaryEditModal = new bootstrap.Modal(document.getElementById('salaryHikeConfirmModal'));
+    salaryEditModal.show();
+
+    const confirmBtn = document.getElementById('confirmSalaryHikeBtn');
+    confirmBtn.replaceWith(confirmBtn.cloneNode(true)); 
+    const newConfirmBtn = document.getElementById('confirmSalaryHikeBtn');
+
+    newConfirmBtn.addEventListener('click', () => {
+        showLoader();
+
+        fetch('/updateSalaryByEdit', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id,
+				name,
+                updatedSalary
+            })
+        })
+        .then(res => res.text())
+        .then(msg => {
+            salaryEditModal.hide();
+            hideForm();
+            showAlert(msg, "success");
+            fetchinitialSalary();
+        })
+        .catch(err => {
+            salaryEditModal.hide();
+            showAlert("Error: " + err.message, "danger");
+        })
+        .finally(() => hideLoader());
+    });
+}
 
 
 function openHikeForm(employeeId) {

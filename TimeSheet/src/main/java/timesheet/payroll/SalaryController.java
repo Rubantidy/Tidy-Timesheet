@@ -1,5 +1,6 @@
 package timesheet.payroll;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,7 @@ import timesheet.admin.repo.EmployeeRepo;
 import timesheet.emails.EmailServiceController;
 import timesheet.payroll.dao.AddSalary;
 import timesheet.payroll.dao.Bankdetails;
+import timesheet.payroll.dao.SalaryEditDto;
 import timesheet.payroll.dao.SalaryHistory;
 import timesheet.payroll.dao.SalaryHistoryDTO;
 import timesheet.payroll.repo.AddSalaryRepo;
@@ -196,6 +198,50 @@ public class SalaryController {
 	        return ResponseEntity.ok(dtoList);
 	    }
 	
+	 @PostMapping("/updateSalaryByEdit")
+	 public ResponseEntity<String> updateSalaryByEdit(@RequestBody SalaryEditDto dto) throws MessagingException, IOException {
+	     Optional<AddSalary> optionalSalary = addSalaryRepo.findById(dto.getId());
+
+	     if (optionalSalary.isPresent()) {
+	         AddSalary record = optionalSalary.get();
+
+	         try {
+	             int monthly = Integer.parseInt(dto.getUpdatedSalary());
+	             int yearly = monthly * 12;
+
+	             record.setMonthsalary(String.valueOf(monthly));
+	             record.setYearsalary(String.valueOf(yearly));
+	             record.setEffectiveFrom(LocalDate.now());
+	             record.setReason("Onboarding/Manual Edit");
+
+	             addSalaryRepo.save(record);
+	             
+	             double oldsalary = 0;
+	             SalaryHistory history = new SalaryHistory(
+	            		dto.getName(),
+	     	            oldsalary,
+	     	            Double.valueOf(dto.getUpdatedSalary()),
+	     	            null, 
+	     	            "Onboarding/Manual Edit",
+	     	            LocalDate.now()
+	     	        );
+	     	        salaryHistoryRepo.save(history);
+	     	        
+
+	     	       Employeedao empData = EmpRepo.findByeName(dto.getName());
+	     	       emailservice.EditedSalary(empData, monthly, yearly);
+
+	             return ResponseEntity.ok("Salary updated successfully for " + dto.getName() + "!");
+	         } catch (NumberFormatException e) {
+	             return ResponseEntity.badRequest().body("Invalid salary amount.");
+	         }
+	     } else {
+	         return ResponseEntity.status(404).body("Salary record not found for ID: " + dto.getId());
+	     }
+	 }
+
+
+	 
 	 
 	 @PostMapping("/saveBankDetails")
 	 public ResponseEntity<?> saveBankDetails(
@@ -237,7 +283,7 @@ public class SalaryController {
 	         addSalaryRepo.saveAll(salaryRecords);
 
 	         return ResponseEntity.ok(Map.of("message", "Bank details saved/updated and salary status updated!"));
-
+ 
 	     } catch (Exception e) {
 	         e.printStackTrace();
 	         return ResponseEntity.status(500).body(Map.of("message", "Error saving bank details: " + e.getMessage()));

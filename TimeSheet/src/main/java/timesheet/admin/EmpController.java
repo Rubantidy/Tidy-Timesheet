@@ -87,57 +87,77 @@ public class EmpController {
         int onboardYear = onboardDate.getYear();
         int onboardMonth = onboardDate.getMonthValue();
 
-        // ✅ Existing logic for onboard year
-        if (!allowedLeaveRepo.existsByUsernameAndYear(username, onboardYear)) {
-            allowedLeaveRepo.save(new AllowedLeaves(username, onboardYear));
+        // 🔄 Determine FY of onboarding
+        int fyStartYear = (onboardMonth >= 4) ? onboardYear : onboardYear - 1;
+        int fyEndYear = fyStartYear + 1;
+
+        // 🔄 Determine current FY based on today's date
+        LocalDate today = LocalDate.now();
+        int currentMonth = today.getMonthValue();
+        int currentYear = today.getYear();
+        int currentFyStart = (currentMonth >= 4) ? currentYear : currentYear - 1;
+        int currentFyEnd = currentFyStart + 1;
+
+        // ✅ Add AllowedLeaves for onboarding FY
+        if (!allowedLeaveRepo.existsByUsernameAndYear(username, fyStartYear)) {
+            allowedLeaveRepo.save(new AllowedLeaves(username, fyStartYear));
         }
 
-        AllowedLeaves allowed = allowedLeaveRepo.findByUsernameAndYear(username, onboardYear);
+        // ➕ Set initial casual leave counts for onboard FY
+        int monthsPassed = 0;
+        if (onboardYear == fyStartYear && onboardMonth >= 4) {
+            monthsPassed = onboardMonth - 4;
+        } else if (onboardYear < fyStartYear) {
+            monthsPassed = 0;
+        } else {
+            monthsPassed = 9 + onboardMonth; // Jan=1 → 10
+        }
+
+        AllowedLeaves allowed = allowedLeaveRepo.findByUsernameAndYear(username, fyStartYear);
         if (allowed != null) {
-            int casualTakenCount = onboardMonth - 1;
-            allowed.setBaseCasualTaken(Math.max(casualTakenCount, 0));
-            allowed.setCasualTaken(Math.max(casualTakenCount, 0));
+            allowed.setBaseCasualTaken(Math.max(monthsPassed, 0));
+            allowed.setCasualTaken(Math.max(monthsPassed, 0));
             allowedLeaveRepo.save(allowed);
         }
 
-        for (int m = onboardMonth; m <= 12; m++) {
-            if (!casualLeaveTrackerRepo.existsByUsernameAndYearAndMonth(username, onboardYear, m)) {
-                CasualLeaveTracker tracker = new CasualLeaveTracker(username, onboardYear, m);
-                casualLeaveTrackerRepo.save(tracker);
+        // 📅 Add CasualLeaveTracker for onboarding FY (Apr–Mar)
+        for (int m = 4; m <= 12; m++) {
+            if (!casualLeaveTrackerRepo.existsByUsernameAndYearAndMonth(username, fyStartYear, m)) {
+                casualLeaveTrackerRepo.save(new CasualLeaveTracker(username, fyStartYear, m));
+            }
+        }
+        for (int m = 1; m <= 3; m++) {
+            if (!casualLeaveTrackerRepo.existsByUsernameAndYearAndMonth(username, fyEndYear, m)) {
+                casualLeaveTrackerRepo.save(new CasualLeaveTracker(username, fyEndYear, m));
             }
         }
 
-        // 🆕 Extra logic: If onboarded in past year, apply current year's leave data starting from current month
-        int currentYear = LocalDate.now().getYear();
-        int currentMonth = LocalDate.now().getMonthValue();
+        // 🔁 If onboarded in past FY (before current FY), add leave data for current FY too
+        if (fyStartYear < currentFyStart) {
 
-        if (onboardYear < currentYear) {
-
-            // ✅ Add AllowedLeaves for current year if not exists
-            if (!allowedLeaveRepo.existsByUsernameAndYear(username, currentYear)) {
-                allowedLeaveRepo.save(new AllowedLeaves(username, currentYear));
+            // 1. Add AllowedLeaves for current FY if not exists
+            if (!allowedLeaveRepo.existsByUsernameAndYear(username, currentFyStart)) {
+                allowedLeaveRepo.save(new AllowedLeaves(username, currentFyStart));
             }
 
-            // ⚙️ Set casualTaken and baseCasualTaken as currentMonth - 1
-            AllowedLeaves currentAllowed = allowedLeaveRepo.findByUsernameAndYear(username, currentYear);
-            if (currentAllowed != null) {
-                int carryForwardCasualTaken = currentMonth - 1;
-                currentAllowed.setBaseCasualTaken(Math.max(carryForwardCasualTaken, 0));
-                currentAllowed.setCasualTaken(Math.max(carryForwardCasualTaken, 0));
-                allowedLeaveRepo.save(currentAllowed);
+            // 2. Add CasualLeaveTracker for Apr–Dec (current FY)
+            for (int m = 4; m <= 12; m++) {
+                if (!casualLeaveTrackerRepo.existsByUsernameAndYearAndMonth(username, currentFyStart, m)) {
+                    casualLeaveTrackerRepo.save(new CasualLeaveTracker(username, currentFyStart, m));
+                }
             }
 
-            // 📅 Add CasualLeaveTracker for current year from current month to December
-            for (int m = currentMonth; m <= 12; m++) {
-                if (!casualLeaveTrackerRepo.existsByUsernameAndYearAndMonth(username, currentYear, m)) {
-                    CasualLeaveTracker tracker = new CasualLeaveTracker(username, currentYear, m);
-                    casualLeaveTrackerRepo.save(tracker);
+            // 3. Add Jan–Mar for next part of current FY
+            for (int m = 1; m <= 3; m++) {
+                if (!casualLeaveTrackerRepo.existsByUsernameAndYearAndMonth(username, currentFyEnd, m)) {
+                    casualLeaveTrackerRepo.save(new CasualLeaveTracker(username, currentFyEnd, m));
                 }
             }
         }
 
         return ResponseEntity.ok("Employee Onboarded successfully..!");
     }
+
 
     
     @GetMapping("/getEmployeeById/{id}")

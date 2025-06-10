@@ -524,7 +524,7 @@
 	        <div class="d-flex">
 	            <div class="toast-body" id="alertMessage">
 	                <!-- Alert Message Will Appear Here -->
-	            </div>
+	            </div>	
 	            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
 	        </div>
 	    </div>
@@ -533,42 +533,104 @@
 	
 	
 	<!-- Section for PaySlip -->
-	<!-- Section for PaySlip -->
-	<div id="payslip" class="content-section" style="display: none; padding: 20px;">
+	<div id="payslip" class="container-fluid content-section" style="display: none; padding: 30px; background-color: #f8f9fa;">
 
-	  <h3 class="text-primary">PaySlip Section</h3>
+	  <!-- Payslip Summary -->
+	  <div class="card shadow-sm mb-4 border-0">
+	    <div class="card-body">
+	      <h4 class="card-title text-primary mb-4">Payslip Summary for FY 2025 -26</h4>
+	      <div class="row g-3">
 
-	  <!-- Bank Details Table -->
-	  <div class="card p-3">
-	    <div class="d-flex justify-content-between align-items-center mb-3">
-	      <h5 class="mb-0">Bank Details</h5>
-	      <button class="btn btn-primary" onclick="openBankEditModal()">Update Bank Details</button>
+	        <div class="col-md-4">
+	          <label class="form-label text-muted mb-0">Employee Name</label>
+	          <div class="fw-bold" id="summaryUsername">-</div>
+	        </div>
+
+	        <div class="col-md-4">
+	          <label class="form-label text-muted mb-0">Designation</label>
+	          <div class="fw-bold" id="summaryDesignation">-</div>
+	        </div>
+
+	        <div class="col-md-4">
+	          <label class="form-label text-muted mb-0">Month</label>
+	          <div class="fw-bold" id="summaryMonth">-</div>
+	        </div>
+
+	        <div class="col-md-4">
+	          <label class="form-label text-muted mb-0">Standard Work Days</label>
+	          <div class="fw-bold" id="summaryStdWorkDays">-</div>
+	        </div>
+
+	        <div class="col-md-4">
+	          <label class="form-label text-muted mb-0">Total Leaves</label>
+	          <div class="fw-bold" id="summaryTotalLeaves">-</div>
+	        </div>
+			
+
+			<div class="col-md-4">
+			  <label class="form-label text-muted mb-0">LOP</label>
+			  <div class="fw-bold" id="summaryLOP">-</div>
+			</div>
+
+	        <div class="col-md-4">
+	          <label class="form-label text-muted mb-0">Working Days</label>
+	          <div class="fw-bold" id="summaryWorkingDays">-</div>
+	        </div>
+
+
+	        <div class="col-md-4">
+	          <label class="form-label text-muted mb-0">Basic Salary</label>
+	          <div class="fw-bold text-success" id="summaryBasicSalary">₹-</div>
+	        </div>
+
+	        <div class="col-md-4">
+	          <label class="form-label text-muted mb-0">Deductions</label>
+	          <div class="fw-bold text-danger" id="summaryDeductions">₹-</div>
+	        </div>
+
+	        <div class="col-md-4">
+	          <label class="form-label text-muted mb-0">Net Pay</label>
+	          <div class="fw-bold text-primary fs-5" id="summaryNetPay">₹-</div>
+	        </div>
+
+	      </div>
 	    </div>
-
-	    <table class="table table-bordered w-100">
-	      <tbody>
-	        <tr>
-	          <th style="width: 200px;">Account Holder</th>
-	          <td id="bankAccountHolder">-</td>
-	        </tr>
-	        <tr>
-	          <th>Account Number</th>
-	          <td id="bankAccountNumber">-</td>
-	        </tr>
-	        <tr>
-	          <th>IFSC Code</th>
-	          <td id="bankIFSC">-</td>
-	        </tr>
-	        <tr>
-	          <th>Bank Name</th>
-	          <td id="bankName">-</td>
-	        </tr>
-	      </tbody>
-	    </table>
 	  </div>
 
-	  <div>
-	    <button onclick="downloadPayslip()">Download Payslip</button>
+	  <!-- Bank Details -->
+	  <div class="card shadow-sm mb-4 border-0">
+	    <div class="card-body">
+	      <div class="d-flex justify-content-between align-items-center mb-3">
+	        <h4 class="card-title text-primary mb-0">Bank Details</h4>
+	        <button class="btn btn-outline-primary btn-lg" onclick="openBankEditModal()">Update</button>
+	      </div>
+
+	      <div class="row g-3">
+	        <div class="col-md-6">
+	          <label class="form-label text-muted mb-0">Account Holder</label>
+	          <div class="fw-bold" id="bankAccountHolder">-</div>
+	        </div>
+	        <div class="col-md-6">
+	          <label class="form-label text-muted mb-0">Account Number</label>
+	          <div class="fw-bold" id="bankAccountNumber">-</div>
+	        </div>
+	        <div class="col-md-6">
+	          <label class="form-label text-muted mb-0">IFSC Code</label>
+	          <div class="fw-bold" id="bankIFSC">-</div>
+	        </div>
+	        <div class="col-md-6">
+	          <label class="form-label text-muted mb-0">Bank Name</label>
+	          <div class="fw-bold" id="bankName">-</div>
+	        </div>
+	      </div>
+	    </div>
+	  </div>
+
+	  <!-- Download Button -->
+	  <div class="text-end">
+	    <button class="btn btn-success btn-lg px-4" onclick="downloadPayslip()">
+	      <i class="bi bi-download"></i> Download Payslip
+	    </button>
 	  </div>
 	</div>
 

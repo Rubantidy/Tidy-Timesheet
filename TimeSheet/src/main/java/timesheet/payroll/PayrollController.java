@@ -254,5 +254,20 @@ public class PayrollController {
 	    }
 
 	    
+	    @GetMapping("/EmpPayslipSummary")
+	    public ResponseEntity<?> getPayslipSummary(
+	            @RequestParam String username,
+	            @RequestParam String month) {
+
+	        ApprovedPayslip payslip = approvedPayslip.findByUsernameAndMonth(username, month);
+
+	        if (payslip != null) {
+	            return ResponseEntity.ok(payslip);
+	        } else {
+	            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+	                    .body("Payslip not found for " + username + " and month " + month);
+	        }
+	    }
+	    
 	    
 }
