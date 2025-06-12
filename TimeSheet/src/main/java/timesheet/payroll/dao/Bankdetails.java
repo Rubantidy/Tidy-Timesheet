@@ -18,6 +18,8 @@ public class Bankdetails {
     private String ifsc;
     private String bankName;
     
+    private String bankBookPhotoPath;
+    
 	public Long getId() {
 		return id;
 	}
@@ -54,11 +56,23 @@ public class Bankdetails {
 	public void setBankName(String bankName) {
 		this.bankName = bankName;
 	}
-	@Override
-	public String toString() {
-		return "Bankdetails [id=" + id + ", employeename=" + employeename + ", accountHolder=" + accountHolder
-				+ ", accountNumber=" + accountNumber + ", ifsc=" + ifsc + ", bankName=" + bankName + "]";
-	}
+	
+
+public String getBankBookPhotoPath() {
+    return bankBookPhotoPath;
+}
+
+public void setBankBookPhotoPath(String bankBookPhotoPath) {
+    this.bankBookPhotoPath = bankBookPhotoPath;
+}
+@Override
+public String toString() {
+	return "Bankdetails [id=" + id + ", employeename=" + employeename + ", accountHolder=" + accountHolder
+			+ ", accountNumber=" + accountNumber + ", ifsc=" + ifsc + ", bankName=" + bankName + ", bankBookPhotoPath="
+			+ bankBookPhotoPath + "]";
+}
+
+
 
 
     

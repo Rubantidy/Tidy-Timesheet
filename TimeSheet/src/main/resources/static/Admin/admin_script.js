@@ -1,5 +1,9 @@
 
- 
+document.addEventListener("DOMContentLoaded", function () {
+    const lastTab = localStorage.getItem("lastAdminTab") || "dashboard";
+    showContent(lastTab);  // Show saved tab or default to dashboard
+});
+
 document.addEventListener("DOMContentLoaded", function() {
 	    const userName = sessionStorage.getItem("userName");
 
@@ -23,6 +27,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 	   document.getElementById('confirmLogoutBtn').addEventListener('click', function() {
 	       sessionStorage.clear();
+		   localStorage.clear();
 	       window.location.href = '/login'; 
 	   });
 
@@ -80,12 +85,10 @@ function closeSidebarOnMobile() {
 /*Script for dashboard icons functions */   
 function showContent(section) {
 	
-
-	if (!section) {
-	      
-	      return;
-	  }
-	
+  if (!section) return;
+  
+  localStorage.setItem("lastAdminTab", section);
+  
     const title = document.getElementById("content-title");
     const contentBox = document.getElementById("content-box");
 	const summery = document.getElementById("summery");
@@ -929,21 +932,29 @@ function fetchEmployeeData() {
             tableBody.innerHTML = "";
             data.forEach(employee => {
 				
-                const dropdownMenu = `
-                    <div class="dropdown">
-                        <button class="btn btn-success " type="button" data-bs-toggle="dropdown" aria-expanded="false">
-						&#8942;
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="#" onclick="editEmployee('${employee.id}')">Edit</a></li>
-                            <li>
-                                <a class="dropdown-item text-${employee.status === 'active' ? 'danger' : 'success'}" href="#" onclick="employeeAction('${employee.id}', '${employee.status}')">
-                                    ${employee.status === 'active' ? 'Deactivate' : 'Activate'}
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                `;
+				const dropdownMenu = `
+				    <div class="dropdown">
+				        <button class="btn btn-sm btn-success" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+				            <i class="bi bi-three-dots-vertical"></i>
+				        </button>
+				        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="min-width: 200px; border-radius: 12px;">
+				            <li>
+				                <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#" onclick="editEmployee('${employee.id}')">
+				                    <i class="bi bi-pencil-square text-primary"></i>
+				                    <span>Edit Employee</span>
+				                </a>
+				            </li>
+				            <li>
+				                <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-${employee.status === 'active' ? 'danger' : 'success'}"
+				                   href="#" onclick="employeeAction('${employee.id}', '${employee.status}')">
+				                    <i class="bi ${employee.status === 'active' ? 'bi-person-x-fill' : 'bi-person-check-fill'}"></i>
+				                    <span>${employee.status === 'active' ? 'Deactivate' : 'Activate'}</span>
+				                </a>
+				            </li>
+				        </ul>
+				    </div>
+				`;
+
 
                 tableBody.innerHTML += `
                     <tr>
@@ -1092,18 +1103,40 @@ function fetchCodeDatas() {
                 let rowClass = code.status.toLowerCase() === "complete" ? 'class="table-success"' : '';
 
               
-                let dropdownMenu = (code.codeType.toLowerCase() === "charge code" && code.status.toLowerCase() === "progress") ? `
-                    <div class="dropdown">
-                        <button class="btn btn-success" type="button" id="dropdownMenu${code.id}" data-bs-toggle="dropdown" aria-expanded="false">
-                            &#8942; <!-- Vertical 3 dots -->
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="dropdownMenu${code.id}">
-                            <li><a class="dropdown-item" href="#" onclick="completeChargeCode('${code.id}')">Complete</a></li>
-                            <li><a class="dropdown-item" href="#" onclick="openAssignModal('${code.id}', '${code.code}', '${code.description}')">Assign to</a></li>
-							<li><a class="dropdown-item" href="#" onclick="editChargeCode('${code.id}')">Edit</a></li>
-							 <li><a class="dropdown-item" href="#" onclick="deleteChargeCode('${code.id}')">Delete</a></li>
-                        </ul>
-                    </div>` : '';
+				let dropdownMenu = (code.codeType.toLowerCase() === "charge code" && code.status.toLowerCase() === "progress") ? `
+				  <div class="dropdown">
+				    <button class="btn btn-sm btn-success" type="button" id="dropdownMenu${code.id}" data-bs-toggle="dropdown" aria-expanded="false">
+				      <i class="bi bi-three-dots-vertical"></i>
+				    </button>
+				    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" aria-labelledby="dropdownMenu${code.id}" style="min-width: 220px; border-radius: 12px;">
+				      <li>
+				        <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#" onclick="completeChargeCode('${code.id}')">
+				          <i class="bi bi-check2-circle text-success"></i>
+				          <span>Mark Complete</span>
+				        </a>
+				      </li>
+				      <li>
+				        <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#" onclick="openAssignModal('${code.id}', '${code.code}', '${code.description}')">
+				          <i class="bi bi-person-plus-fill text-primary"></i>
+				          <span>Assign to</span>
+				        </a>
+				      </li>
+				      <li>
+				        <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#" onclick="editChargeCode('${code.id}')">
+				          <i class="bi bi-pencil-square text-warning"></i>
+				          <span>Edit</span>
+				        </a>
+				      </li>
+				      <li>
+				        <a class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger" href="#" onclick="deleteChargeCode('${code.id}')">
+				          <i class="bi bi-trash-fill"></i>
+				          <span>Delete</span>
+				        </a>
+				      </li>
+				    </ul>
+				  </div>
+				` : '';
+
 
                 tableBody.innerHTML += `
                     <tr ${rowClass}>
@@ -1128,7 +1161,7 @@ function fetchCodeDatas() {
 
 function editChargeCode(codeId) {
     fetch(`/getChargecodeById/${codeId}`)
-        .then(response => response.json())
+        .then(response => response.json())	
         .then(data => {
 			
             const editFormHTML = `
@@ -1141,7 +1174,7 @@ function editChargeCode(codeId) {
                         ${inputField("Onboard/Start date", "date", "startDate", "", data.startDate)}
                         ${inputField("Country/Region", "text", "country", "", data.country)}
                         ${textareaField("Description", "description", data.description)}
-                        ${inputField("Charge Code", "text", "code", "charge-code", data.code)}
+                        ${inputField("Charge Code", "text", "code", "charge-code", data.code, true)}
                         ${formButtons("Update")}
                     </form>
                 </div>

@@ -7,14 +7,14 @@ function paginateTable(tableId, rowsPerPage = 10) {
     const totalPages = Math.ceil(rows.length / rowsPerPage);
     const paginationContainerId = `${tableId}-pagination`;
 
-    // Remove previous pagination if exists
+
     let existingContainer = document.getElementById(paginationContainerId);
     if (existingContainer) existingContainer.remove();
 
-    // ❌ Don't show pagination if rows are less than or equal to one page
+
     if (rows.length <= rowsPerPage) return;
 
-    // ✅ Create new pagination
+
     let paginationContainer = document.createElement("div");
     paginationContainer.id = paginationContainerId;
     paginationContainer.classList.add("pagination-container");
@@ -89,6 +89,47 @@ function updateDOJ() {
 }
 
 
+document.addEventListener("DOMContentLoaded", function () {
+    const periodDropdown = document.getElementById("periodDropdown");
+	const calender = document.getElementById('calendarPicker');
+	const preview = document.getElementById('prevPeriod');
+	const nextpre = document.getElementById('nextPeriod');
+    const updateBtn = document.getElementById("bankUpdateBtn");
+
+	function checkAndDisableUpdateBtn() {
+	  const selectedPeriod = periodDropdown.options[periodDropdown.selectedIndex].text;
+	  const startDate = selectedPeriod.split(" - ")[0];  
+	  const startDay = parseInt(startDate.split("/")[0]);
+
+	  // Check if bank details are already saved (i.e., not empty)
+	  const accountHolder = document.getElementById('bankAccountHolder').textContent.trim();
+	  const accountNumber = document.getElementById('fullAccountNumber').value.trim();
+	  const ifsc = document.getElementById('bankIFSC').textContent.trim();
+	  const bankName = document.getElementById('bankName').textContent.trim();
+
+	  const isBankDetailsFilled = accountHolder && accountNumber && ifsc && bankName;
+
+	  if (startDay >= 16 && isBankDetailsFilled) {
+	    updateBtn.disabled = true;
+	    updateBtn.classList.add("disabled");
+	  } else {
+	    updateBtn.disabled = false;
+	    updateBtn.classList.remove("disabled");
+	  }
+	}
+
+
+    // Call once on load
+    checkAndDisableUpdateBtn();
+
+    // Call again when dropdown changes
+    periodDropdown.addEventListener("change", checkAndDisableUpdateBtn);
+	calender.addEventListener("change", checkAndDisableUpdateBtn);
+	preview.addEventListener("click", checkAndDisableUpdateBtn);
+	nextpre.addEventListener("click", checkAndDisableUpdateBtn);
+});
+
+
 //Employee
 function openBankEditModal() {
   document.getElementById('inputAccountHolder').value = document.getElementById('bankAccountHolder').textContent;
@@ -97,22 +138,19 @@ function openBankEditModal() {
   document.getElementById('inputIFSC').value = document.getElementById('bankIFSC').textContent;
   document.getElementById('inputBankName').value = document.getElementById('bankName').textContent;
 
+  // Set bank book preview if exists
+  const bankBookImgSrc = document.getElementById('bankBookPhoto').getAttribute('src');
+  const inputPreview = document.getElementById('inputBankBookPreview');
+  if (bankBookImgSrc && bankBookImgSrc !== '#') {
+    inputPreview.src = bankBookImgSrc;
+    inputPreview.style.display = 'block';
+  } else {
+    inputPreview.style.display = 'none';
+  }
+
   const modal = new bootstrap.Modal(document.getElementById('bankEditModal'));
   modal.show();
 }
-
-
-function handleBlock(event, errorElementId) {
-  event.preventDefault();
-  const errorElement = document.getElementById(errorElementId);
-  errorElement.innerText = "This field doesn't allow copy and paste.";
-
-  // Clear the message after 2 seconds
-  setTimeout(() => {
-    errorElement.innerText = "";
-  }, 2000);
-}
-
 
 function saveBankDetails() {
   const username = sessionStorage.getItem("userName");
@@ -121,20 +159,22 @@ function saveBankDetails() {
   const confirmAccountNumber = document.getElementById('inputConfirmAccountNumber').value.trim();
   const ifsc = document.getElementById('inputIFSC').value.trim().toUpperCase();
   const bankName = document.getElementById('inputBankName').value.trim();
+  const bankBookFile = document.getElementById('inputBankBook').files[0]; // Get file
 
-  // Clear all previous error messages
+  // Clear previous errors
   const errorFields = [
     'errorAccountHolder',
     'errorAccountNumber',
     'errorConfirmAccountNumber',
     'errorIFSC',
-    'errorBankName'
+    'errorBankName',
+    'errorBankBook'
   ];
   errorFields.forEach(id => document.getElementById(id).innerText = "");
 
   let hasError = false;
 
-  // Validation
+  // Validate fields
   if (!accountHolder) {
     document.getElementById("errorAccountHolder").innerText = "Please enter account holder name.";
     hasError = true;
@@ -169,21 +209,26 @@ function saveBankDetails() {
     hasError = true;
   }
 
+  // Optional: validate image type/size
+  if (bankBookFile) {
+    const validTypes = ["image/jpeg", "image/png", "image/jpg"];
+    if (!validTypes.includes(bankBookFile.type)) {
+      document.getElementById("errorBankBook").innerText = "Bank book photo must be JPG or PNG.";
+      hasError = true;
+    }
+  }
+
   if (hasError) return;
 
-  // Setup confirmation modal
+  // Confirmation modal
   document.getElementById("confirmBankText").innerText =
     `Are you sure you want to save the bank details for ${accountHolder}?`;
   document.getElementById("bankWarningNote").innerText =
     "Note: If you enter wrong details, it may affect the salary process.";
 
-  // 👉 Hide bank edit modal
   bootstrap.Modal.getInstance(document.getElementById("bankEditModal")).hide();
-
-  // 👉 Then show confirmation modal
   const confirmModal = new bootstrap.Modal(document.getElementById("confirmBankModal"));
   confirmModal.show();
-
 
   document.getElementById("confirmSaveBank").onclick = function () {
     let formData = new FormData();
@@ -192,6 +237,9 @@ function saveBankDetails() {
     formData.append("accountNumber", accountNumber);
     formData.append("ifsc", ifsc);
     formData.append("bankName", bankName);
+    if (bankBookFile) {
+      formData.append("bankBookPhoto", bankBookFile);
+    }
 
     fetch("/saveBankDetails", {
       method: "POST",
@@ -200,7 +248,7 @@ function saveBankDetails() {
         "Accept": "application/json",
       }
     })
-		.then(response => response.json())
+      .then(response => response.json())
       .then(data => {
         showAlert(data.message, "success");
         document.getElementById("bankEditForm").reset();
@@ -217,6 +265,8 @@ function saveBankDetails() {
   };
 }
 
+
+
 function validateAccountNumber(inputId, errorId) {
     const input = document.getElementById(inputId);
     const errorDiv = document.getElementById(errorId);
@@ -230,35 +280,54 @@ function validateAccountNumber(inputId, errorId) {
   }
   }
 
-function fetchBankDetails() {
-  const username = sessionStorage.getItem("userName");
-  if (!username) {
-    console.error("Username not found in session");
-    return;
+  
+  function openPhotoModal() {
+    const modal = new bootstrap.Modal(document.getElementById("bankPhotoModal"));
+    modal.show();
   }
 
-  fetch(`/getBankDetails?Employeename=${encodeURIComponent(username)}`)
-	.then(response => response.json())
-    .then(data => {
-      document.getElementById("bankAccountHolder").innerText = data.accountHolder || "-";
+  function fetchBankDetails() {
+    const username = sessionStorage.getItem("userName");
+    if (!username) {
+      console.error("Username not found in session");
+      return;
+    }
 
-      // Masked for table view
-      let maskedAccountNumber = "-";
-      if (data.accountNumber && data.accountNumber.length >= 6) {
-        const lastSix = data.accountNumber.slice(-6);
-        const masked = "X".repeat(data.accountNumber.length - 6) + lastSix;
-        maskedAccountNumber = masked;
-      }
-      document.getElementById("bankAccountNumber").innerText = maskedAccountNumber;
+    fetch(`/getBankDetails?Employeename=${encodeURIComponent(username)}`)
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById("bankAccountHolder").innerText = data.accountHolder || "-";
 
+        let maskedAccountNumber = "-";
+        if (data.accountNumber && data.accountNumber.length >= 6) {
+          const lastSix = data.accountNumber.slice(-6);
+          const masked = "X".repeat(data.accountNumber.length - 6) + lastSix;
+          maskedAccountNumber = masked;
+        }
+        document.getElementById("bankAccountNumber").innerText = maskedAccountNumber;
+        document.getElementById("bankIFSC").innerText = data.ifsc || "-";
+        document.getElementById("bankName").innerText = data.bankName || "-";
 
-      document.getElementById("bankIFSC").innerText = data.ifsc || "-";
-      document.getElementById("bankName").innerText = data.bankName || "-";
+        // Save real account number
+        document.getElementById("fullAccountNumber").value = data.accountNumber || "";
 
-      // Save real account number to hidden field for modal
-      document.getElementById("fullAccountNumber").value = data.accountNumber || "";
-    })
-}
+        // Load and show bank book photo if available
+        const bankPhoto = document.getElementById("bankBookPhoto");
+        if (data.bankBookPhotoPath) {
+			const fullImageUrl = data.bankBookPhotoPath.replace(/^[:]?/, '').replace(/\\/g, '/');
+          bankPhoto.src = fullImageUrl;
+          bankPhoto.style.display = "block";
+
+          // Set modal image src
+          document.getElementById("bankPhotoModalImg").src = fullImageUrl;
+        } else {
+          bankPhoto.style.display = "none";
+        }
+      })
+      .catch(error => {
+        console.error("Error fetching bank details:", error);
+      });
+  }
 
 
 
@@ -647,59 +716,161 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 
+function viewBankDetails(employeeName) {
+  fetch(`/getBankDetails?Employeename=${encodeURIComponent(employeeName)}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.accountHolder) {
+        // Set modal title and fields
+        document.getElementById("bankDetailsModalTitle").innerText = `Bank Details - ${employeeName}`;
+        document.getElementById("modalAccountHolder").innerText = data.accountHolder || "-";
+        document.getElementById("modalAccountNumber").innerText = data.accountNumber || "-";
+        document.getElementById("modalIFSC").innerText = data.ifsc || "-";
+        document.getElementById("modalBankName").innerText = data.bankName || "-";
+
+        // Show photo if exists
+        const bankPhoto = document.getElementById("modalBankPhoto");
+        if (data.bankBookPhotoPath) {
+          const fullImageUrl = data.bankBookPhotoPath.replace(/^[:]?/, '').replace(/\\/g, '/');
+          bankPhoto.src = fullImageUrl;
+          bankPhoto.style.display = "block";
+		  
+		  // 🆕 Open image in new tab on click
+		    bankPhoto.style.cursor = "pointer";
+		    bankPhoto.onclick = () => {
+		      window.open(fullImageUrl, "_blank");
+		    };
+        } else {
+          bankPhoto.style.display = "none";
+        }
+
+        // Add copy + tooltip logic
+        const fields = ["modalAccountHolder", "modalAccountNumber", "modalIFSC", "modalBankName"];
+        fields.forEach(fieldId => {
+          const icon = document.querySelector(`#${fieldId} + i`);
+          if (icon) {
+            icon.className = "bi bi-clipboard ms-2";
+            icon.setAttribute("title", "Copy");
+            icon.onclick = () => {
+              const text = document.getElementById(fieldId).innerText;
+              navigator.clipboard.writeText(text).then(() => {
+               icon.className = "bi bi-check-lg text-success ms-2"; 
+                icon.setAttribute("title", "Copied!");
+
+                // Revert after 1.5s
+                setTimeout(() => {
+                  icon.className = "bi bi-clipboard ms-2";
+                  icon.setAttribute("title", "Copy");
+                }, 1500);
+              });
+            };
+          }
+        });
+
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById("bankDetailsModal"));
+        modal.show();
+      } else {
+		showAlert(`Bank details not found for ${employeeName}!`, "danger");
+      }
+    })
+    .catch(error => {
+      console.error("Error fetching bank details:", error);
+    });
+}
+
+
+
+
+function copyToClipboard(id) {
+  const element = document.getElementById(id);
+  const icon = element.nextElementSibling; 
+
+  const text = element.innerText;
+  navigator.clipboard.writeText(text)
+    .then(() => {
+      const originalClass = icon.className;
+      icon.className = "bi bi-check-lg text-success ms-2"; 
+      setTimeout(() => {
+        icon.className = originalClass; 
+      }, 1500);
+    })
+    .catch(err => {
+      console.error("Copy failed: ", err);
+    });
+}
+
+
 
 function fetchinitialSalary() {
-    fetch("/getInitialSalary") 
-        .then(response => response.json())
-        .then(data => {
-            const tableBody = document.getElementById("Initialsalary-table-body");
-            tableBody.innerHTML = ""; 
-            
-            data.forEach(Salary => {
-                const bankStatus = Salary.bankaccount === "1" 
-                    ? '<span style="color:green;">&#10004;</span>'   
-                    : Salary.bankaccount === "0" 
-                        ? '<span style="color:red;">&#10060;</span>' 
-                        : Salary.bankaccount; 
+  fetch("/getInitialSalary")
+    .then(response => response.json())
+    .then(data => {
+      const tableBody = document.getElementById("Initialsalary-table-body");
+      tableBody.innerHTML = "";
 
-                const formattedMonthly = "₹ " + Number(Salary["Salary_M"]).toLocaleString('en-IN', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
+      data.forEach(Salary => {
+        const formattedMonthly = "₹ " + Number(Salary["Salary_M"]).toLocaleString('en-IN', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
 
-                const formattedYearly = "₹ " + Number(Salary.yearsalary).toLocaleString('en-IN', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
+        const formattedYearly = "₹ " + Number(Salary.yearsalary).toLocaleString('en-IN', {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        });
 
-                tableBody.innerHTML += `
-                    <tr>
-                        <td>${Salary.id}</td>
-                        <td>${Salary['E-name']}</td> 
-                        <td>${Salary["doj"]}</td> 
-                        <td>${formattedMonthly}</td>
-                        <td>${formattedYearly}</td>
-                        <td>${Salary.effectiveFrom}</td>
-                        <td>${Salary.reason}</td>
-                        <td>${bankStatus}</td>							 
-                        <td>
+        const bankBtnClass = Salary.bankaccount === "1" ? "btn btn-success" : "btn-outline-secondary";
 
-                            <button class="btn btn-success btn-sm" title="Salary Hike" onclick="openHikeForm('${Salary.id}')">
-                                <i class="bi bi-person-up"></i>
-                            </button>
-                            <button class="btn btn-success btn-sm" title="Salary History" onclick="showSalaryHistory('${Salary['E-name']}')">
-                                <i class="bi bi-file-earmark-text"></i>
-                            </button>
-							<button class="btn btn-success btn-sm" title="Edit Salary Edit" onclick="opensalaryedit('${Salary.id}')">
-							     <i class="bi bi-pencil-square"></i>
-							  </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        })
-        .catch(error => console.error("Error fetching Charge codes:", error));
+        tableBody.innerHTML += `
+          <tr>
+            <td>${Salary.id}</td>
+            <td>${Salary['E-name']}</td>
+            <td>${Salary["doj"]}</td>
+            <td>${formattedMonthly}</td>
+            <td>${formattedYearly}</td>
+            <td>${Salary.effectiveFrom}</td>
+            <td>${Salary.reason}</td>
+            <td>
+              <button class="btn ${bankBtnClass} btn-sm ms-2" title="View Bank Details" onclick="viewBankDetails('${Salary['E-name']}')">
+                View
+              </button>
+            </td>
+			<td>
+			  <div class="dropdown">
+			    <button class="btn btn-sm btn-success" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+			      <i class="bi bi-three-dots-vertical"></i>
+			    </button>
+			    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="min-width: 220px; border-radius: 12px;">
+			      <li>
+			        <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#" onclick="openHikeForm('${Salary.id}')">
+			          <i class="bi bi-graph-up text-success"></i>
+			          <span>Salary Hike</span>
+			        </a>
+			      </li>
+			      <li>
+			        <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#" onclick="showSalaryHistory('${Salary['E-name']}')">
+			          <i class="bi bi-clock-history text-primary"></i>
+			          <span>Salary History</span>
+			        </a>
+			      </li>
+			      <li>
+			        <a class="dropdown-item d-flex align-items-center gap-2 py-2" href="#" onclick="opensalaryedit('${Salary.id}')">
+			          <i class="bi bi-pencil-square text-warning"></i>
+			          <span>Edit Salary</span>
+			        </a>
+			      </li>
+			    </ul>
+			  </div>
+			</td>
+					
+          </tr>
+        `;
+      });
+    })
+    .catch(error => console.error("Error fetching Charge codes:", error));
 }
+
 
 
 function opensalaryedit(employeeId) {

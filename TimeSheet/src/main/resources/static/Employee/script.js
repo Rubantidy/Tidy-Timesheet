@@ -70,7 +70,7 @@ navLinks.forEach(link => {
 
 	   
 	    filteredData.forEach(code => {
-	        let rowColor = code.status === "Complete" ? "style='background-color: #d9e2f3; font-weight: bold;'" : ""; 
+	        let rowColor = code.status === "Complete" ? "style='background-color: #f06e6e; font-weight: bold;'" : ""; 
 	        
 	        employeeTableBody.innerHTML += `
 	            <tr ${rowColor}>
@@ -83,6 +83,7 @@ navLinks.forEach(link => {
 	                <td>${code.country}</td>
 	            </tr>
 	        `;
+			paginateTable("employee-code-table-body");
 	    });
 	}
 

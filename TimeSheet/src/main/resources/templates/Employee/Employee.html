@@ -602,12 +602,12 @@
 	    <div class="card-body">
 	      <div class="d-flex justify-content-between align-items-center mb-3">
 	        <h4 class="card-title text-primary mb-0">Bank Details</h4>
-	        <button class="btn btn-outline-primary btn-lg" onclick="openBankEditModal()">Update</button>
+	        <button id="bankUpdateBtn" class="btn btn-outline-primary btn-lg" onclick="openBankEditModal()">Update</button>
 	      </div>
 
 	      <div class="row g-3">
 	        <div class="col-md-6">
-	          <label class="form-label text-muted mb-0">Account Holder</label>
+	          <label class="form-label text-muted mb-0">Account Holder Name</label>
 	          <div class="fw-bold" id="bankAccountHolder">-</div>
 	        </div>
 	        <div class="col-md-6">
@@ -622,12 +622,34 @@
 	          <label class="form-label text-muted mb-0">Bank Name</label>
 	          <div class="fw-bold" id="bankName">-</div>
 	        </div>
+
+			<div>
+				<label class="form-label text-muted mb-0">Uploaded Bank Book</label>
+			  <img id="bankBookPhoto" src="#" alt="Bank Book"
+			       class="img-fluid rounded border"
+			       style="max-width: 300px; display: none; cursor: pointer;"
+			       onclick="openPhotoModal()" />
+			</div>
+	      </div>
+	    </div>
+	  </div>
+
+	  <!-- Modal for Full Image View -->
+	  <div class="modal fade" id="bankPhotoModal" tabindex="-1" aria-hidden="true">
+	    <div class="modal-dialog modal-dialog-centered modal-lg">	   
+	      <div class="modal-content bg-dark">
+	        <div class="modal-body text-center p-0">
+	          <img id= "bankPhotoModalImg" src="#" class="img-fluid rounded" style="max-height: 80vh;" />
+	        </div>
+	        <div class="modal-footer border-0 justify-content-center">
+	          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Close</button>
+	        </div>
 	      </div>
 	    </div>
 	  </div>
 
 	  <!-- Download Button -->
-	  <div class="text-end">
+	  <div class="text-end">	
 	    <button class="btn btn-success btn-lg px-4" onclick="downloadPayslip()">
 	      <i class="bi bi-download"></i> Download Payslip
 	    </button>
@@ -649,7 +671,7 @@
 	        <form id="bankEditForm">
 	        
 	          <div class="mb-2">
-	            <label class="form-label">Account Holder</label>
+	            <label class="form-label">Account Holder Name</label>
 	            <input type="text" class="form-control" id="inputAccountHolder">
 	            <div class="text-danger small" id="errorAccountHolder"></div>
 	          </div>
@@ -688,6 +710,14 @@
 	            <input type="text" class="form-control" id="inputBankName">
 	            <div class="text-danger small" id="errorBankName"></div>
 	          </div>
+			  
+			  <!-- 🆕 Bank Book Photo Upload -->
+			           <div class="mb-3">
+			             <label for="inputBankBook" class="form-label">Upload Bank Book Photo</label>
+			             <input type="file" class="form-control" id="inputBankBook" accept="image/png, image/jpeg" />
+			             <div class="text-danger small" id="errorBankBook"></div>
+			             <img id="inputBankBookPreview" src="#" class="img-fluid rounded mt-2 border" style="max-width: 200px; display: none;" />
+			           </div>
 			  
 	        
 	        </form>
@@ -885,29 +915,38 @@
 	});
 
 
+
+	
 	document.addEventListener("DOMContentLoaded", function () {
 		fetchBankDetails();
 	    const navLinks = document.querySelectorAll(".nav-link");
 
 	    navLinks.forEach(link => {
 	        link.addEventListener("click", function (event) {
-	            event.preventDefault(); // Prevent default anchor action
-	            
-	            // Remove active class from all
+	            event.preventDefault();
 	            navLinks.forEach(l => l.classList.remove("active"));
-
-	            // Add active class to clicked link
 	            this.classList.add("active");
 
-	            // Show the target section (Optional)
-	            const targetSection = document.getElementById(this.getAttribute("data-target"));
+	            const targetSectionId = this.getAttribute("data-target");
+
+	            // ✅ Save selected tab to localStorage
+	            localStorage.setItem("activeEmployeeTab", targetSectionId);
+
+	            // Show correct section
+	            document.querySelectorAll(".content-section").forEach(sec => sec.style.display = "none");
+	            const targetSection = document.getElementById(targetSectionId);
 	            if (targetSection) {
-	                document.querySelectorAll(".section-content").forEach(sec => sec.style.display = "none");
 	                targetSection.style.display = "block";
 	            }
 	        });
 	    });
+
+	    // ✅ Load last selected tab on refresh
+	    const lastTab = localStorage.getItem("activeEmployeeTab") || "timeSection";
+	    const defaultLink = document.querySelector(`.nav-link[data-target="${lastTab}"]`);
+	    if (defaultLink) defaultLink.click(); // Trigger the click to show the section
 	});
+
 
 	
 	function showAlert(message, type = 'success') {
@@ -1199,6 +1238,7 @@
 
 				document.getElementById('confirmLogoutBtn').addEventListener('click', function() {
 				    sessionStorage.clear();
+					localStorage.clear();
 				    window.location.href = '/login'; 
 				});
 				
@@ -1404,12 +1444,26 @@
 				       const leaveCache = {}; // Caches leave validation result per type
 
 				       sortedCodes.forEach(code => {
-				           const option = document.createElement("div");
-				           option.classList.add("dropdown-option");
-				           option.textContent = `${code.code} - ${code.description}`;
-				           option.dataset.value = code.code;
+						
+				    
+						   const option = document.createElement("div");
+						   option.classList.add("dropdown-option");
+						   option.textContent = `${code.code} - ${code.description}`;
+						   option.dataset.value = code.code;
+
+						  /* // ✅ Apply style for "Complete" status
+						   if (code.status === "Complete") {
+						       option.style.backgroundColor = "#f06e6e";  // Green background
+						       option.style.fontWeight = "bold";
+						       option.style.color = "#3b3535"; // Optional for readability
+						   }*/
 
 				           option.addEventListener("click", function () {
+							/*if (code.status === "Complete") {
+							      showAlert("⚠ This charge code is marked as Complete and cannot be selected.", "danger");
+							      return;
+							  }*/
+							  
 				               const selectedText = option.textContent;
 				               const username = sessionStorage.getItem("userName");
 

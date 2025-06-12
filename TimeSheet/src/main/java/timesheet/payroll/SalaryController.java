@@ -1,6 +1,11 @@
 package timesheet.payroll;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +21,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.mail.MessagingException;
 import timesheet.admin.dao.Employeedao;
@@ -249,33 +255,48 @@ public class SalaryController {
 	         @RequestParam("accountHolder") String accountHolder,
 	         @RequestParam("accountNumber") String accountNumber,
 	         @RequestParam("ifsc") String ifsc,
-	         @RequestParam("bankName") String bankName)
- {
-
+	         @RequestParam("bankName") String bankName,
+	         @RequestParam(value = "bankBookPhoto", required = false) MultipartFile bankBookPhoto
+	 ) {
 	     try {
-	     
 	         Optional<Bankdetails> existingDetailsOpt = bankDetailsrepo.findTopByEmployeenameOrderByIdDesc(employeename);
 
-	         Bankdetails bankDetails;
-	         if (existingDetailsOpt.isPresent()) {
-	            
-	             bankDetails = existingDetailsOpt.get();
-	         } else {
-	       
-	             bankDetails = new Bankdetails();
-	             bankDetails.setEmployeename(employeename);
-	         }
+	         Bankdetails bankDetails = existingDetailsOpt.orElseGet(() -> {
+	             Bankdetails newDetails = new Bankdetails();
+	             newDetails.setEmployeename(employeename);
+	             return newDetails;
+	         });
 
-	      
+	         // Set basic details
 	         bankDetails.setAccountHolder(accountHolder);
 	         bankDetails.setAccountNumber(accountNumber);
 	         bankDetails.setIfsc(ifsc);
 	         bankDetails.setBankName(bankName);
 
+	         // Handle bank book photo upload
+	         if (bankBookPhoto != null && !bankBookPhoto.isEmpty()) {
+	             String originalFilename = bankBookPhoto.getOriginalFilename();
+	             String extension = Optional.ofNullable(originalFilename)
+	                     .filter(f -> f.contains("."))
+	                     .map(f -> f.substring(originalFilename.lastIndexOf(".")))
+	                     .orElse("");
 
-	         bankDetailsrepo.save(bankDetails); 
+	             String newFileName = employeename + "_bankbook_" + System.currentTimeMillis() + extension;
+	             String uploadDir = "uploads/bank/";
 
-	   
+	             File uploadPath = new File(uploadDir);
+	             if (!uploadPath.exists()) uploadPath.mkdirs();
+
+	             Path filePath = Paths.get(uploadDir, newFileName);
+	             Files.copy(bankBookPhoto.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+
+	             // Save path to DB
+	             bankDetails.setBankBookPhotoPath(filePath.toString());
+	         }
+
+	         bankDetailsrepo.save(bankDetails);
+
+	         // Update salary status
 	         List<AddSalary> salaryRecords = addSalaryRepo.findByEmployeename(employeename);
 	         for (AddSalary record : salaryRecords) {
 	             record.setBankaccount("1");
@@ -283,16 +304,17 @@ public class SalaryController {
 	         addSalaryRepo.saveAll(salaryRecords);
 
 	         return ResponseEntity.ok(Map.of("message", "Bank details saved/updated and salary status updated!"));
- 
 	     } catch (Exception e) {
 	         e.printStackTrace();
 	         return ResponseEntity.status(500).body(Map.of("message", "Error saving bank details: " + e.getMessage()));
 	     }
 	 }
 
+
 	 
 	 @GetMapping("/getBankDetails")
 	 public ResponseEntity<?> getBankDetails(@RequestParam("Employeename") String employeename) {
+		 
 	     try {
 	         Optional<Bankdetails> bankDetails = bankDetailsrepo.findTopByEmployeenameOrderByIdDesc(employeename);
 	         if (bankDetails.isPresent()) {
