@@ -186,8 +186,10 @@
 		                // Redirect based on role
 		                if (result.role === "Admin") {
 		                    window.location.href = "/Admin_Dashboard";
+							localStorage.setItem("lastAdminTab", "dashboard");
 		                } else if (result.role === "Employee") {
 		                    window.location.href = "/Employee_Dashboard";
+							localStorage.setItem("activeEmployeeTab", "timeSection");
 		                }
 		            } else {
 						errorMessage.style.display = 'block';

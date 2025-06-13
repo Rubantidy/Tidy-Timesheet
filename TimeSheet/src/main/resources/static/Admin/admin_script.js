@@ -167,6 +167,7 @@ function showContent(section) {
 		                    <th>Total Absences</th>
 							<th>Loss of Pay</th>
 		                    <th>Charge Code Details</th>
+							<th>View</th>
 		                    <th>Action</th>
 		                </tr>
 		            </thead>
@@ -194,6 +195,7 @@ function showContent(section) {
 		                    <th>Total Absences</th>
 							<th>Loss of Pay</th>
 		                    <th>Charge Code Details</th>
+							<th>View</th>
 		                </tr>
 		            </thead>
 		            <tbody id="approvedSummaryBody">
@@ -220,6 +222,7 @@ function showContent(section) {
 		                    <th>Total Absences</th>
 							<th>Loss of Pay</th>
 		                    <th>Charge Code Details</th>
+							<th>View</th>
 		                </tr>
 		            </thead>
 		            <tbody id="issueSummaryBody">
@@ -300,8 +303,8 @@ function showContent(section) {
 					           <table class="table table-striped">
 					               <thead>
 					                   <tr>
-										   <th>Date</th>
-										   <th>Name</th>
+									  		 <th>Name</th>
+										   <th>Date</th>							
 										   <th>Year</th>
 					                       <th>Action</th>	
 					                   </tr>
@@ -616,7 +619,37 @@ function showContent(section) {
 									})
 							        .catch(error => console.error("Error fetching issue list:", error));
 							}
+							
+/*
+							function formatPeriod(periodStr) {
+							    if (!periodStr || !periodStr.includes(" - ")) return periodStr;
 
+							    const [start, end] = periodStr.split(" - ");
+							    const startDateParts = start.split("/");
+							    const endDateParts = end.split("/");
+
+							    if (startDateParts.length !== 3 || endDateParts.length !== 3) return periodStr;
+
+							    const startDate = new Date(`${startDateParts[2]}-${startDateParts[1]}-${startDateParts[0]}`);
+							    const endDate = new Date(`${endDateParts[2]}-${endDateParts[1]}-${endDateParts[0]}`);
+
+							    if (isNaN(startDate) || isNaN(endDate)) return periodStr;
+
+							    const format = (date) => {
+							        const day = String(date.getDate()).padStart(2, '0');
+							        const month = date.toLocaleString('default', { month: 'short' });
+							        const year = date.getFullYear();
+							        return `${day}-${month}-${year}`;
+							    };
+
+							    return `${format(startDate)} to ${format(endDate)}`;
+								
+								<td><b id="period-${entry.username}-${entry.period}">${formatPeriod(entry.period)}</b></td>
+							} */
+
+
+							
+							
 							function populateTable(tableId, data, status) {
 						
 							    let tableBody = document.getElementById(tableId);
@@ -638,12 +671,18 @@ function showContent(section) {
 								
 
 							        row.innerHTML = `
-							            <td>${entry.username}</td>
-										<td><b id="period-${entry.username}-${entry.period}">${entry.period}</b></td> 							
+							            <td>${entry.username}</td>										
+										<td><b id="period-${entry.username}-${entry.period}">${entry.period}</b></td>						
 							            <td id="hours-${entry.username}-${entry.period}">Fetching...</td>
 							            <td id="absences-${entry.username}-${entry.period}">Fetching...</td>
 										<td id="paid-${entry.username}-${entry.period}">Fetching...</td>
 							            <td id="charge-${entry.username}-${entry.period}">Fetching...</td>
+										<td class="text-center">																		  
+										  <button class="btn btn-info btn-sm" title="View Timesheet" onclick="viewTimesheetGrid('${entry.username}', '${entry.period}')">
+										      <i class="bi bi-eye"></i>
+										  </button>
+										</td>
+
 							            ${status === "Pending" ? `
 							                <td style="display: flex; gap: 10px;">
 					
@@ -711,7 +750,6 @@ function showContent(section) {
 
 
 							
-
 							
 							function getTableBodyByStatus(status) {
 							    if (status === "Approved") return document.getElementById("approvedSummaryBody");
@@ -796,6 +834,139 @@ function showContent(section) {
 
 
 	
+			function viewTimesheetGrid(username, period) {
+										    fetch(`/timesheetGrid?username=${encodeURIComponent(username)}&period=${encodeURIComponent(period)}`)
+										        .then(response => response.json())
+										        .then(data => {
+										            // Set modal header info
+										            document.getElementById("modalUsername").textContent = username;
+										            document.getElementById("modalPeriod").textContent = period;
+
+										            updateAdminTimesheetHeader(period);
+										            fillAdminTimesheetTable(data, period);
+										            new bootstrap.Modal(document.getElementById("adminTimesheetModal")).show();
+										        })
+										        .catch(err => {
+										            console.error("Error fetching grid:", err);
+										            alert("Failed to load timesheet data");
+										        });
+										}
+
+
+
+										function updateAdminTimesheetHeader(period) {
+										    const theadRow = document.getElementById("adminTimesheetHeader");
+										    theadRow.innerHTML = `<th class="text-white">Charge code</th>`;
+
+										    const [startStr, endStr] = period.split(" - ");
+										    const [startDay, startMonth, startYear] = startStr.split("/").map(Number);
+										    const [endDay, endMonth, endYear] = endStr.split("/").map(Number);
+
+										    const startDate = new Date(startYear, startMonth - 1, startDay);
+										    const endDate = new Date(endYear, endMonth - 1, endDay);
+
+										    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+										        console.error("Invalid period format in updateAdminTimesheetHeader", { startStr, endStr });
+										        return;
+										    }
+
+										    for (let d = startDate.getDate(); d <= endDate.getDate(); d++) {
+										        const padded = d.toString().padStart(2, '0');
+										        theadRow.innerHTML += `<th>${padded}</th>`;
+										    }
+										}
+
+										
+										function fillAdminTimesheetTable(data, period) {
+										    const tbody = document.getElementById("adminTimesheetBody");
+										    tbody.innerHTML = "";
+
+										    // Calculate total columns using period string
+										    const [startStr, endStr] = period.split(" - ");
+										    const [startDay, startMonth, startYear] = startStr.split("/").map(Number);
+										    const [endDay, endMonth, endYear] = endStr.split("/").map(Number);
+										    const startDate = new Date(startYear, startMonth - 1, startDay);
+										    const endDate = new Date(endYear, endMonth - 1, endDay);
+
+										    let totalCols = 0;
+										    const dateCursor = new Date(startDate);
+										    while (dateCursor <= endDate) {
+										        totalCols++;
+										        dateCursor.setDate(dateCursor.getDate() + 1);
+										    }
+										  
+										    const columnHasValue = Array(totalCols + 1).fill(false); // [0..totalCols]
+
+										    const staticRowLabels = {
+										        "0": "Work Location",
+										        "1": "Company Code"
+										    };
+
+										    const allRows = [];
+
+										    // --- Static Rows ---
+										    Object.keys(staticRowLabels).forEach(rowKey => {
+										        const row = document.createElement("tr");
+										        row.innerHTML = `<td><b>${staticRowLabels[rowKey]}</b></td>`;
+
+										        for (let col = 1; col <= totalCols; col++) {
+										            const cell = data[rowKey]?.[col.toString()];
+										            const [code, hrs] = cell ? cell.split("|") : ["", ""];
+										            if (hrs) columnHasValue[col] = true;
+
+										            row.innerHTML += `<td>${hrs ? `<div>${hrs}</div>` : ""}</td>`;
+										        }
+
+										        allRows.push(row);
+										    });
+
+										    // --- Dynamic Charge Code Rows ---
+										    const dynamicRowKeys = Object.keys(data)
+										        .filter(key => key !== "0" && key !== "1")
+										        .sort((a, b) => parseInt(a) - parseInt(b));
+
+										    dynamicRowKeys.forEach(rowKey => {
+										        let chargeCodeTitle = "";
+										        for (let col = 1; col <= totalCols; col++) {
+										            const cell = data[rowKey]?.[col.toString()];
+										            if (cell) {
+										                const [code] = cell.split("|");
+										                if (code) {
+										                    chargeCodeTitle = code;
+										                    break;
+										                }
+										            }
+										        }
+
+										        const row = document.createElement("tr");
+										        row.innerHTML = `<td><b>${chargeCodeTitle || "Select Charge Code"}</b></td>`;
+
+										        for (let col = 1; col <= totalCols; col++) {
+										            const cell = data[rowKey]?.[col.toString()];
+										            const [, hrs] = cell ? cell.split("|") : ["", ""];
+										            if (hrs) columnHasValue[col] = true;
+
+										            row.innerHTML += `<td>${hrs ? `<div>${hrs}</div>` : ""}</td>`;
+										        }
+
+										        allRows.push(row);
+										    });
+
+										    // --- Append All Rows ---
+										    allRows.forEach(row => tbody.appendChild(row));
+
+										    // --- Mark Empty Columns as Grey ---
+										    const rows = tbody.querySelectorAll("tr");
+										    rows.forEach(row => {
+										        const cells = row.querySelectorAll("td");
+										        for (let col = 1; col <= totalCols; col++) {
+										            if (!columnHasValue[col]) {
+										                cells[col].classList.add("bg-light", "text-muted");
+										            }
+										        }
+										    });
+										}
+										
 
 function setActiveNavLink(activeLink) {
     document.querySelectorAll(".nav-link").forEach(link => link.classList.remove("active"));
@@ -955,11 +1126,13 @@ function fetchEmployeeData() {
 				    </div>
 				`;
 
+				  const dateObj = new Date(employee.onborad);
+				  const formattedDate = `${dateObj.getFullYear()}-${dateObj.toLocaleString('default', { month: 'short' })}-${String(dateObj.getDate()).padStart(2, '0')}`;
 
                 tableBody.innerHTML += `
                     <tr>
                         <td>${employee.id}</td>
-                        <td>${employee.onborad}</td>
+                         <td>${formattedDate}</td>
                         <td>${employee['E-name']}</td>
                         <td>${employee['E-mail']}</td>
                         <td>${employee['E-desg']}</td>
@@ -1135,9 +1308,18 @@ function fetchCodeDatas() {
 				      </li>
 				    </ul>
 				  </div>
-				` : '';
+				` : '';			
+				
+				let formattedStartDate = code.startDate;
 
-
+				// ✅ Check if it's a valid date
+				if (code.startDate && code.startDate !== "-") {
+				    const dateObj = new Date(code.startDate);
+				    if (!isNaN(dateObj)) {
+				        formattedStartDate = `${dateObj.getFullYear()}-${dateObj.toLocaleString('default', { month: 'short' })}-${String(dateObj.getDate()).padStart(2, '0')}`;
+				    }
+				}
+	
                 tableBody.innerHTML += `
                     <tr ${rowClass}>
                       
@@ -1146,7 +1328,7 @@ function fetchCodeDatas() {
                         <td>${code.clientName}</td>
                         <td>${code.description}</td>
                         <td>${code.projectType}</td>
-                        <td>${code.startDate}</td>
+						<td>${formattedStartDate}</td>
                         <td>${code.country}</td>
                         <td>${dropdownMenu}</td>
                     </tr>
@@ -1243,14 +1425,14 @@ document.getElementById("confirmDeleteBtn").addEventListener("click", function (
 
 let selectedChargeCodeId = null; 
 
-/* Function to show modal instead of confirm */
+
 function completeChargeCode(id) {
     selectedChargeCodeId = id; 
     var completeModal = new bootstrap.Modal(document.getElementById("completeModal"));
     completeModal.show(); 
 }
 
-/* Handle modal confirmation button click */
+
 document.getElementById("confirmCompleteBtn").addEventListener("click", function() {
     if (selectedChargeCodeId) {
         fetch(`/completeChargeCode/${selectedChargeCodeId}`, {
@@ -1537,20 +1719,29 @@ function fetchHoliday() {
         .then(data => {
             const tableBody = document.getElementById("holiday-table-body");
             tableBody.innerHTML = ""; 
-            data.forEach(leave => {
-                tableBody.innerHTML += `
-				<tr>
-				    
-				    <td>${leave["holidayname"]}</td>  <!-- Use correct JSON key -->
-				     <td>${leave["holidaydate"]}</td>
-					 <td>${leave.year}  </td>
-				      <td>
-				      <button class="btn btn-success btn-sm" onclick="editholiday('${leave.id}' )"><i class="bi bi-pencil-square"></i></button>
-					  <button class="btn btn-danger btn-sm" onclick="Deleteholiday('${leave.id}')"><i class="bi bi-trash3"></i></button>
-				   </td>
-				                 
-                `;
-            });
+			data.forEach(leave => {
+			    // Format holiday date
+			    let formattedHolidayDate = leave["holidaydate"];
+			    if (formattedHolidayDate && formattedHolidayDate !== "-") {
+			        const dateObj = new Date(formattedHolidayDate);
+			        if (!isNaN(dateObj)) {
+			            formattedHolidayDate = `${dateObj.getFullYear()}-${dateObj.toLocaleString('default', { month: 'short' })}-${String(dateObj.getDate()).padStart(2, '0')}`;
+			        }
+			    }
+
+			    tableBody.innerHTML += `
+			        <tr>
+			            <td>${leave["holidayname"]}</td>
+			            <td>${formattedHolidayDate}</td>
+			            <td>${leave.year}</td>
+			            <td>
+			                <button class="btn btn-success btn-sm" onclick="editholiday('${leave.id}')"><i class="bi bi-pencil-square"></i></button>
+			                <button class="btn btn-danger btn-sm" onclick="Deleteholiday('${leave.id}')"><i class="bi bi-trash3"></i></button>
+			            </td>
+			        </tr>
+			    `;
+			});
+
 			paginateTable("holiday-table-body");
         })
         .catch(error => console.error("Error fetching Expense Details:", error));

@@ -308,7 +308,7 @@
 					      </div>
 					      <div class="modal-body">
 					        Are you sure you want to delete this charge code?<br><br>
-					        <strong>Warning:</strong> This action cannot be undone!
+					        <strong>Warning:</strong> This action cannot be Undo!
 					      </div>
 					      <div class="modal-footer">
 					        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -515,6 +515,34 @@
 					          </div>
 
 					        </div>
+					      </div>
+					    </div>
+					  </div>
+					</div>
+					
+					
+					
+					<!-- Modal to show full timesheet -->
+					<div class="modal fade" id="adminTimesheetModal" tabindex="-1" aria-hidden="true">
+					  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+					    <div class="modal-content">
+					      <div class="modal-header">
+							<h5 class="modal-title">
+							   Timesheet Preview - <span id="modalUsername" class="text-primary"></span> | <span id="modalPeriod" class="text-secondary"></span>
+							 </h5>
+					        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+					      </div>
+					      <div class="modal-body">
+					        <table class="table table-bordered text-center">
+					          <thead class="table-light">
+					            <tr id="adminTimesheetHeader">
+					              <!-- JavaScript will inject the date columns dynamically -->
+					            </tr>
+					          </thead>
+					          <tbody id="adminTimesheetBody">
+					            <!-- JavaScript will inject rows dynamically -->
+					          </tbody>
+					        </table>
 					      </div>
 					    </div>
 					  </div>

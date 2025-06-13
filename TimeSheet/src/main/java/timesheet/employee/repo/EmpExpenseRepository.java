@@ -8,4 +8,8 @@ import timesheet.employee.dao.EmpExpensedao;
 
 public interface EmpExpenseRepository extends JpaRepository<EmpExpensedao, Integer> {
     List<EmpExpensedao> findByUsernameAndPeriod(String username, String period);
+
+	boolean existsById(Long id);
+
+	void deleteById(Long id);
 }

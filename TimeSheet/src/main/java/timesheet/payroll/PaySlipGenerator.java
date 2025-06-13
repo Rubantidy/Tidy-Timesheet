@@ -4,6 +4,8 @@ import java.io.ByteArrayOutputStream;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
@@ -109,7 +111,8 @@ public class PaySlipGenerator {
 	    empTable.addCell(createValueCell(approvedPaysliprepo.getAccountNumber(), normalFont));
 
 	    empTable.addCell(createLabelCell("DOJ", labelFont));
-	    empTable.addCell(createValueCell(approvedPaysliprepo.getOnboardDate(), normalFont));
+	    empTable.addCell(createValueCell(formatDate(approvedPaysliprepo.getOnboardDate()), normalFont));
+
 
 	    empTable.addCell(createLabelCell("STD Days", labelFont));
 	    empTable.addCell(createValueCell(String.valueOf(approvedPaysliprepo.getStdWorkDays()), normalFont));
@@ -175,9 +178,16 @@ public class PaySlipGenerator {
 	    document.add(Chunk.NEWLINE);
 
 	    // Footer
-	    Paragraph footer = new Paragraph("Payslip Approved at:" + approvedPaysliprepo.getApprovedAt() + " | Salary processed at: " + approvedPaysliprepo.getSalaryProcessAt(), smallFont);
+	    String approvedAtFormatted = formatDateTime(approvedPaysliprepo.getApprovedAt());
+	    String salaryProcessedFormatted = formatDateTime(approvedPaysliprepo.getSalaryProcessAt());
+
+	    Paragraph footer = new Paragraph(
+	        "Payslip Approved at: " + approvedAtFormatted + " | Salary processed at: " + salaryProcessedFormatted,
+	        smallFont
+	    );
 	    footer.setAlignment(Element.ALIGN_CENTER);
 	    document.add(footer);
+
 
 	    document.add(Chunk.NEWLINE);
 
@@ -225,6 +235,41 @@ public class PaySlipGenerator {
 	    cell.setPadding(5);
 	    return cell;
 	}
+
+
+	private String formatDate(String rawDate) {
+	    try {
+	        if (rawDate == null || rawDate.trim().equals("-")) return "-";
+
+	        DateTimeFormatter inputFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	        LocalDate date = LocalDate.parse(rawDate, inputFormat);
+
+	        DateTimeFormatter outputFormat = DateTimeFormatter.ofPattern("dd-MMM-yyyy", Locale.ENGLISH);
+	        return date.format(outputFormat);
+	    } catch (Exception e) {
+	        return rawDate; // fallback
+	    }
+	}
+	
+	private String formatDateTime(String rawDateTime) {
+	    try {
+	        if (rawDateTime == null || rawDateTime.trim().equals("-")) return "-";
+
+	        // Replace the colon after the date part only if present
+	        rawDateTime = rawDateTime.replaceFirst("(\\d{4}-\\d{2}-\\d{2}):", "$1");
+
+	        DateTimeFormatter inputFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+	        LocalDateTime dateTime = LocalDateTime.parse(rawDateTime.trim(), inputFormat);
+
+	        DateTimeFormatter outputFormat = DateTimeFormatter.ofPattern("dd-MMM-yyyy - hh:mm a", Locale.ENGLISH);
+	        return dateTime.format(outputFormat);
+	    } catch (Exception e) {
+	        e.printStackTrace(); // optional for debugging
+	        return rawDateTime; // fallback
+	    }
+	}
+
+
 
 
 

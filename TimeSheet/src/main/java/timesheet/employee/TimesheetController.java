@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,6 +30,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.google.gson.Gson;
 
+import jakarta.transaction.Transactional;
 import timesheet.admin.dao.AllowedLeaves;
 import timesheet.admin.dao.Assignment;
 import timesheet.admin.dao.CasualLeaveTracker;
@@ -743,6 +745,40 @@ public class TimesheetController {
             @RequestParam("username") String username,
             @RequestParam("period") String period) {
         return expenseRepository.findByUsernameAndPeriod(username, period);
+    }
+    
+    @DeleteMapping("/deleteEmpExpense/{id}")
+    @Transactional
+    public ResponseEntity<String> deleteExpense(@PathVariable Long id) {
+        if (expenseRepository.existsById(id)) {
+            expenseRepository.deleteById(id);
+            return ResponseEntity.ok("Expense deleted successfully.");
+        } else {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Expense not found.");
+        }
+    }
+
+
+    
+    
+    @GetMapping("/timesheetGrid")
+    public Map<String, Map<String, String>> getGrid(
+            @RequestParam String username,
+            @RequestParam String period) {
+
+        List<TimesheetEntry> cells = timesheetRepository.findByUsernameAndPeriod(username, period);
+        Map<String, Map<String, String>> grid = new HashMap<>();
+
+        for (TimesheetEntry cell : cells) {
+            String[] parts = cell.getCellIndex().split("_");
+            String row = parts[0];
+            String col = parts[1];
+            String val = cell.getChargeCode() + "|" + cell.getHours();
+
+            grid.computeIfAbsent(row, k -> new HashMap<>()).put(col, val);
+        }
+
+        return grid;
     }
 
 

@@ -531,7 +531,6 @@ async function appreovPaylisp() {
 			    `;
 
 			    // Optionally reset the selects too:
-			    document.getElementById("monthPicker").value = "";
 			    document.getElementById("employeeSelect").innerHTML = '<option value="">Select Employee</option>';
 				fetchPayslipData();
 				
@@ -558,9 +557,31 @@ function fetchPayslipData() {
             const tableBody = document.getElementById("payslip-table-body");
             tableBody.innerHTML = "";
 
+			const formatDateTime = (datetimeStr) => {
+			  if (!datetimeStr || datetimeStr === "-") return datetimeStr;
+
+			  const fixedStr = datetimeStr.replace(":", " ");
+
+			  const dateObj = new Date(fixedStr);
+			  if (isNaN(dateObj)) return datetimeStr;
+
+			  const day = String(dateObj.getDate()).padStart(2, '0');
+			  const month = dateObj.toLocaleString('default', { month: 'short' });
+			  const year = dateObj.getFullYear();
+
+			  const timeFormatted = dateObj.toLocaleTimeString('en-US', {
+			    hour: '2-digit',
+			    minute: '2-digit',
+			    hour12: true
+			  });
+
+			  return `${day}-${month}-${year} | ${timeFormatted}`;
+			};
+
+			
             data.forEach(payslip => {
                 const [year, month] = payslip.month.split("-");
-                const displayMonth = new Date(year, month - 1).toLocaleString('default', { month: 'long' }) + " - " + year;
+                const displayMonth = new Date(year, month - 1).toLocaleString('default', { month: 'short' }) + " - " + year;
                 const monthParam = `${year}-${month.padStart(2, '0')}`;
 
                 const formattedBasicSalary = "₹ " + Number(payslip.basicSalary).toLocaleString('en-IN', {
@@ -584,7 +605,7 @@ function fetchPayslipData() {
                         <td>${payslip.totalWorkingDays}</td>	
                         <td>${formattedNetPay}</td>	
                         <td>${payslip.bankName}</td>
-                        <td>${payslip.salaryProcessAt}</td>	
+						<td>${formatDateTime(payslip.salaryProcessAt)}</td>
                         <td>
                             <button class="btn btn-sm btn-primary" onclick="downloadPayslipAdmin('${payslip.username}', '${monthParam}')">
                                 View PDF
@@ -680,7 +701,13 @@ document.addEventListener("DOMContentLoaded", function () {
             // Fill summary fields
             document.getElementById("summaryUsername").textContent = data.username || "-";
             document.getElementById("summaryDesignation").textContent = data.designation || "-";
-            document.getElementById("summaryMonth").textContent = data.month || "-";
+			if (data.month) {
+			    const [year, month] = data.month.split("-");
+			    const monthName = new Date(year, month - 1).toLocaleString('default', { month: 'short' }); 
+			    document.getElementById("summaryMonth").textContent = `${year}-${monthName}`;
+			} else {
+			    document.getElementById("summaryMonth").textContent = "-";
+			}
             document.getElementById("summaryStdWorkDays").textContent = data.stdWorkDays ?? "-";
             document.getElementById("summaryTotalLeaves").textContent = data.totalLeaves ?? "-";
 			document.getElementById("summaryLOP").textContent = data.lop ?? "-";
@@ -821,15 +848,30 @@ function fetchinitialSalary() {
         });
 
         const bankBtnClass = Salary.bankaccount === "1" ? "btn btn-success" : "btn-outline-secondary";
+		
+		
+		const formatDate = (dateStr) => {
+		  if (!dateStr || dateStr === "-") return dateStr;
+		  const dateObj = new Date(dateStr);
+		  if (isNaN(dateObj)) return dateStr;
+		  const day = String(dateObj.getDate()).padStart(2, '0');
+		  const month = dateObj.toLocaleString('default', { month: 'short' });
+		  const year = dateObj.getFullYear();
+		  return `${day}-${month}-${year}`;
+		};
+
+		const formattedDOJ = formatDate(Salary["doj"]);
+		const formattedEffectiveFrom = formatDate(Salary.effectiveFrom);
+
 
         tableBody.innerHTML += `
           <tr>
             <td>${Salary.id}</td>
             <td>${Salary['E-name']}</td>
-            <td>${Salary["doj"]}</td>
+            <td>${formattedDOJ}</td>
             <td>${formattedMonthly}</td>
             <td>${formattedYearly}</td>
-            <td>${Salary.effectiveFrom}</td>
+            <td>${formattedEffectiveFrom}</td>
             <td>${Salary.reason}</td>
             <td>
               <button class="btn ${bankBtnClass} btn-sm ms-2" title="View Bank Details" onclick="viewBankDetails('${Salary['E-name']}')">

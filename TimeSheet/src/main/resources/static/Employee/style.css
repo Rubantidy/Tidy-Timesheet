@@ -666,3 +666,11 @@
    }
 
 
+   
+   /*view timesheet*/
+   .bg-light {
+         background-color: #d3d3d3 !important;
+     }
+     .text-muted {
+         color: #d3d3d3 !important;
+     }

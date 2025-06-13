@@ -636,7 +636,9 @@ document.addEventListener("DOMContentLoaded", function () {
 						                   </td>
 										   <td>
 										   <button class="btn btn-success btn-sm"><i class="bi bi-pencil-square"></i></button>
-										   	<button class="btn btn-danger btn-sm"><i class="bi bi-trash3"></i></button>
+										   <button class="btn btn-danger btn-sm" onclick="deleteExpense(${expense.id})">
+										                   <i class="bi bi-trash3"></i>
+										               </button>
 														  </td>
 	                `;
 
@@ -666,6 +668,27 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
 });
+
+function deleteExpense(id) {
+    if (confirm("Are you sure you want to delete this expense?")) {
+        fetch(`/deleteEmpExpense/${id}`, {
+            method: "DELETE"
+        })
+        .then(async response => {
+            const text = await response.text();
+            if (!response.ok) {
+                throw new Error(text || "Failed to delete expense");
+            }
+            showAlert(text || "Expense deleted successfully." , "success");
+            fetchExpenses(); // Reload table after deletion
+        })
+        .catch(err => {
+            console.error("Error deleting expense:", err);
+            alert(err.message || "Failed to delete the expense.");
+        });
+    }
+}
+
 
 
 document.addEventListener("DOMContentLoaded", function () {
