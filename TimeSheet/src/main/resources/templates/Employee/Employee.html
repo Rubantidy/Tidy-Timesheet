@@ -19,7 +19,7 @@
 	<script src="/js/bootstrap.bundle.min.js"></script>
 
 
-	<link rel="icon" type="image/x-icon" href="img/d.png">
+	<link rel="icon" type="image/x-icon" href="img/fav.png">
 
 </head>
 <body class="time-body">  
@@ -1451,18 +1451,18 @@
 						   option.textContent = `${code.code} - ${code.description}`;
 						   option.dataset.value = code.code;
 
-						  /* // ✅ Apply style for "Complete" status
+						   // ✅ Apply style for "Complete" status
 						   if (code.status === "Complete") {
-						       option.style.backgroundColor = "#f06e6e";  // Green background
+						       option.style.backgroundColor = "#d99891";  // Green background
 						       option.style.fontWeight = "bold";
 						       option.style.color = "#3b3535"; // Optional for readability
-						   }*/
+						   }
 
 				           option.addEventListener("click", function () {
-							/*if (code.status === "Complete") {
+							if (code.status === "Complete") {
 							      showAlert("⚠ This charge code is marked as Complete and cannot be selected.", "danger");
 							      return;
-							  }*/
+							  }
 							  
 				               const selectedText = option.textContent;
 				               const username = sessionStorage.getItem("userName");

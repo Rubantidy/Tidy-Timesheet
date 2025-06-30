@@ -20,6 +20,8 @@ public class CasualLeaveTracker {
 
     private boolean isTaken = false;
 
+    private boolean clCarriedForward = false; // ✅ NEW FIELD
+
     public CasualLeaveTracker() {}
 
     public CasualLeaveTracker(String username, int year, int month) {
@@ -27,6 +29,7 @@ public class CasualLeaveTracker {
         this.year = year;
         this.month = month;
         this.isTaken = false;
+        this.clCarriedForward = false; // ✅ initialize
     }
 
 	public Long getId() {
@@ -69,11 +72,21 @@ public class CasualLeaveTracker {
 		this.isTaken = isTaken;
 	}
 
-	@Override
-	public String toString() {
-		return "CasualLeaveTracker [id=" + id + ", username=" + username + ", year=" + year + ", month=" + month
-				+ ", isTaken=" + isTaken + "]";
-	}
+	 public boolean isClCarriedForward() {
+	        return clCarriedForward;
+	   }
+
+	 public void setClCarriedForward(boolean clCarriedForward) {
+	        this.clCarriedForward = clCarriedForward;
+	   }
+
+		@Override
+		public String toString() {
+			return "CasualLeaveTracker [id=" + id + ", username=" + username + ", year=" + year + ", month=" + month
+					+ ", isTaken=" + isTaken + ", clCarriedForward=" + clCarriedForward + "]";
+		}
+	    
+	
     
     
     

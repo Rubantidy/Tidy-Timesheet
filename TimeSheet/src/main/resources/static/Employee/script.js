@@ -70,7 +70,7 @@ navLinks.forEach(link => {
 
 	   
 	    filteredData.forEach(code => {
-	        let rowColor = code.status === "Complete" ? "style='background-color: #f06e6e; font-weight: bold;'" : ""; 
+	        let rowColor = code.status === "Complete" ? "style='background-color: #d99891; font-weight: bold;'" : ""; 
 	        
 	        employeeTableBody.innerHTML += `
 	            <tr ${rowColor}>
@@ -391,6 +391,116 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
+document.addEventListener("DOMContentLoaded", function () {
+    const periodDropdown = document.getElementById("periodDropdown");
+	const calender = document.getElementById('calendarPicker');
+	const preview = document.getElementById('prevPeriod');
+	const nextpre = document.getElementById('nextPeriod');
+    const updateBtn = document.getElementById("bankUpdateBtn");
+
+	function checkAndDisableUpdateBtn() {
+	  const selectedPeriod = periodDropdown.options[periodDropdown.selectedIndex].text;
+	  const startDate = selectedPeriod.split(" - ")[0];  
+	  const startDay = parseInt(startDate.split("/")[0]);
+
+	  // Check if bank details are already saved (i.e., not empty)
+	  const accountHolder = document.getElementById('bankAccountHolder').textContent.trim();
+	  const accountNumber = document.getElementById('fullAccountNumber').value.trim();
+	  const ifsc = document.getElementById('bankIFSC').textContent.trim();
+	  const bankName = document.getElementById('bankName').textContent.trim();
+
+	  const isBankDetailsFilled = accountHolder && accountNumber && ifsc && bankName;
+
+	  if (startDay >= 16 && isBankDetailsFilled) {
+	    updateBtn.disabled = true;
+	    updateBtn.classList.add("disabled");
+	  } else {
+	    updateBtn.disabled = false;
+	    updateBtn.classList.remove("disabled");
+	  }
+	}
+
+
+    // Call once on load
+    checkAndDisableUpdateBtn();
+
+    // Call again when dropdown changes
+    periodDropdown.addEventListener("change", checkAndDisableUpdateBtn);
+	calender.addEventListener("change", checkAndDisableUpdateBtn);
+	preview.addEventListener("click", checkAndDisableUpdateBtn);
+	nextpre.addEventListener("click", checkAndDisableUpdateBtn);
+});
+
+
+document.addEventListener("DOMContentLoaded", function () {
+    const periodDropdown = document.getElementById("periodDropdown");
+    const calender = document.getElementById("calendarPicker");
+    const preview = document.getElementById("prevPeriod");
+    const nextpre = document.getElementById("nextPeriod");
+
+    function getSelectedPeriod() {
+        return periodDropdown.options[periodDropdown.selectedIndex].text;
+    }
+
+    async function fetchAndShowPayslipSummary() {
+        const username = sessionStorage.getItem("userName");
+        const extractedPeriod = getSelectedPeriod();
+
+        // Extract "2025-05" from "01/05/2025 - 15/05/2025"
+        const dateParts = extractedPeriod.split(" - ")[0].split("/");
+        const formattedMonth = `${dateParts[2]}-${dateParts[1]}`;
+
+        try {
+            const response = await fetch(`/payslip/EmpPayslipSummary?username=${encodeURIComponent(username)}&month=${formattedMonth}`);
+
+            if (!response.ok) {
+                throw new Error("Payslip data not found");
+            }
+
+            const data = await response.json();
+
+            // Fill summary fields
+            document.getElementById("summaryUsername").textContent = data.username || "-";
+            document.getElementById("summaryDesignation").textContent = data.designation || "-";
+			if (data.month) {
+			    const [year, month] = data.month.split("-");
+			    const monthName = new Date(year, month - 1).toLocaleString('default', { month: 'short' }); 
+			    document.getElementById("summaryMonth").textContent = `${year}-${monthName}`;
+			} else {
+			    document.getElementById("summaryMonth").textContent = "-";
+			}
+            document.getElementById("summaryStdWorkDays").textContent = data.stdWorkDays ?? "-";
+            document.getElementById("summaryTotalLeaves").textContent = data.totalLeaves ?? "-";
+			document.getElementById("summaryLOP").textContent = data.lop ?? "-";
+            document.getElementById("summaryWorkingDays").textContent = data.totalWorkingDays ?? "-";
+            document.getElementById("summaryBasicSalary").textContent = data.basicSalary ? `₹${data.basicSalary.toFixed(2)}` : "-";
+            document.getElementById("summaryDeductions").textContent = data.deductions ? `₹${data.deductions.toFixed(2)}` : "-";
+            document.getElementById("summaryNetPay").textContent = data.netPay ? `₹${data.netPay.toFixed(2)}` : "-";
+
+        } catch (err) {
+            console.error("Error fetching payslip summary:", err);
+            clearPayslipSummaryUI();
+        }
+    }
+
+  function clearPayslipSummaryUI() {
+        const fields = [
+            "summaryUsername", "summaryDesignation", "summaryMonth",
+            "summaryStdWorkDays", "summaryTotalLeaves", "summaryWorkingDays",
+            "summaryLOP", "summaryBasicSalary", "summaryDeductions", "summaryNetPay",
+        ];
+        fields.forEach(id => document.getElementById(id).textContent = "-");
+    }
+
+    // Auto-update when period changes
+    periodDropdown.addEventListener("change", fetchAndShowPayslipSummary);
+    calender.addEventListener("change", fetchAndShowPayslipSummary);
+    preview.addEventListener("click", () => setTimeout(fetchAndShowPayslipSummary, 200));
+    nextpre.addEventListener("click", () => setTimeout(fetchAndShowPayslipSummary, 200));
+
+    // Initial load
+    fetchAndShowPayslipSummary();
+});
 
 
 /*icons funtions*/
@@ -669,6 +779,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 
+
+
+
 function deleteExpense(id) {
     if (confirm("Are you sure you want to delete this expense?")) {
         fetch(`/deleteEmpExpense/${id}`, {
@@ -797,16 +910,16 @@ function generateSummary() {
 			const allowedLeave = data.allowedLeave || {};
 
 			document.getElementById("earnedLeave").textContent = 
-			    `Earned Casual Leave: ${(allowedLeave.earnedLeave || 0).toFixed(2)} days`;
+			    `Earned Casual Leave: ${(allowedLeave.earnedLeave || 0).toFixed(2)}`;
 
 			document.getElementById("remainingSick").textContent = 
-			    `Remaining Sick Leave: ${(allowedLeave.sickLeave || 0).toFixed(2)} / 6 days`;
+			    `Remaining Sick Leave: ${(allowedLeave.sickLeave || 0).toFixed(2)} out of 6`;
 
 			document.getElementById("remainingFloating").textContent = 
-			    `Remaining Floating Leave: ${(allowedLeave.floatingLeave || 0).toFixed(2)} / 2 days`;
+			    `Remaining Floating Leave: ${(allowedLeave.floatingLeave || 0).toFixed(2)} out of 2`;
 
 			document.getElementById("remainingCasual").textContent = 
-			    `Remaining Casual Leave: ${(allowedLeave.casualLeave || 0).toFixed(2)} / 12 days`;
+			    `Remaining Casual Leave: ${(allowedLeave.casualLeave || 0).toFixed(2)} out of 12`;
 
 			document.getElementById("paidLeave").textContent = 
 			    `Loss of Pay: ${Math.max(0, paidLeaveDays.toFixed(1))} days (taken on this Period)`;

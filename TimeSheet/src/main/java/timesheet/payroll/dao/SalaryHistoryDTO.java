@@ -3,13 +3,13 @@ package timesheet.payroll.dao;
 import java.time.LocalDate;
 
 public class SalaryHistoryDTO {
-    private LocalDate effectiveFrom;
+    private String effectiveFrom;
     private Double oldsalary;
     private Double newsalary;
     private Double hikePercent;
     private String reason;
 
-    public SalaryHistoryDTO(LocalDate effectiveFrom, Double oldsalary, Double newsalary, Double hikePercent, String reason) {
+    public SalaryHistoryDTO(String effectiveFrom, Double oldsalary, Double newsalary, Double hikePercent, String reason) {
         this.effectiveFrom = effectiveFrom;
         this.oldsalary = oldsalary;
         this.newsalary = newsalary;
@@ -18,7 +18,7 @@ public class SalaryHistoryDTO {
     }
 
     // Getters
-    public LocalDate getEffectiveFrom() { return effectiveFrom; }
+    public String getEffectiveFrom() { return effectiveFrom; }
     public Double getOldsalary() { return oldsalary; }
     public Double getNewsalary() { return newsalary; }
     public Double getHikePercent() { return hikePercent; }

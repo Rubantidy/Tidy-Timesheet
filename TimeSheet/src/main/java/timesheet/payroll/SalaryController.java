@@ -85,7 +85,6 @@ public class SalaryController {
 
 	        // Set default values
 	        salaryData.setReason("Onboarding");
-	        salaryData.setEffectiveFrom(LocalDate.now());
 
 	        Employeedao empData = EmpRepo.findByeName(salaryData.getEmployeename());
 
@@ -100,7 +99,7 @@ public class SalaryController {
 	            Double.valueOf(salaryData.getMonthsalary()),
 	            null, 
 	            "Onboarding",
-	            LocalDate.now()
+	            salaryData.getEffectiveFrom()
 	        );
 	        salaryHistoryRepo.save(history); 
 
@@ -151,6 +150,7 @@ public class SalaryController {
 	         double newSalary = Double.parseDouble(hikeData.get("newSalary").toString());
 	         double hikePercent = Double.parseDouble(hikeData.get("hikePercent").toString());
 	         String reason = hikeData.get("reason").toString();
+	         String effectiveFrom = hikeData.get("effectiveFrom").toString();  
 
 	         // Fetch AddSalary record
 	         AddSalary salary = addSalaryRepo.findById(id)
@@ -162,7 +162,7 @@ public class SalaryController {
 	         salary.setMonthsalary(String.valueOf((int) newSalary));
 	         salary.setYearsalary(String.valueOf((int) newSalary * 12));
 	         salary.setReason(reason);
-	         salary.setEffectiveFrom(LocalDate.now());
+	         salary.setEffectiveFrom(effectiveFrom); 
 	         addSalaryRepo.save(salary);
 
 	         // Save to SalaryHistory table
@@ -172,7 +172,7 @@ public class SalaryController {
 	             newSalary,
 	             hikePercent,
 	             reason,
-	             LocalDate.now()
+	             effectiveFrom
 	         );
 	         salaryHistoryRepo.save(history);
 	         
@@ -186,7 +186,7 @@ public class SalaryController {
 	     }
 	 }
 
-
+//
 	 @GetMapping("/getSalaryHistory")
 	    public ResponseEntity<List<SalaryHistoryDTO>> getSalaryHistory(@RequestParam String employeeName) {
 	        List<SalaryHistory> historyList = salaryHistoryRepo.findByEmployeeNameOrderByEffectiveFromDesc(employeeName);
@@ -217,25 +217,24 @@ public class SalaryController {
 
 	             record.setMonthsalary(String.valueOf(monthly));
 	             record.setYearsalary(String.valueOf(yearly));
-	             record.setEffectiveFrom(LocalDate.now());
-	             record.setReason("Onboarding/Manual Edit");
+	             record.setReason(dto.getReason());
+	             record.setEffectiveFrom(dto.getEffectiveFrom()); // ✅ update date
 
 	             addSalaryRepo.save(record);
-	             
+
 	             double oldsalary = 0;
 	             SalaryHistory history = new SalaryHistory(
-	            		dto.getName(),
-	     	            oldsalary,
-	     	            Double.valueOf(dto.getUpdatedSalary()),
-	     	            null, 
-	     	            "Onboarding/Manual Edit",
-	     	            LocalDate.now()
-	     	        );
-	     	        salaryHistoryRepo.save(history);
-	     	        
+	                 dto.getName(),
+	                 oldsalary,
+	                 Double.valueOf(dto.getUpdatedSalary()),
+	                 null,
+	                 dto.getReason(),
+	                 dto.getEffectiveFrom() // ✅ set effective date in history
+	             );
+	             salaryHistoryRepo.save(history);
 
-	     	       Employeedao empData = EmpRepo.findByeName(dto.getName());
-	     	       emailservice.EditedSalary(empData, monthly, yearly);
+	             Employeedao empData = EmpRepo.findByeName(dto.getName());
+	             emailservice.EditedSalary(empData, monthly, yearly);
 
 	             return ResponseEntity.ok("Salary updated successfully for " + dto.getName() + "!");
 	         } catch (NumberFormatException e) {

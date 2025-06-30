@@ -120,10 +120,10 @@ public class PaySlipGenerator {
 	    empTable.addCell(createLabelCell("Worked Days", labelFont));
 	    empTable.addCell(createValueCell(String.valueOf(approvedPaysliprepo.getTotalWorkingDays()), normalFont));
 	    
-	    empTable.addCell(createLabelCell("Total Absens", labelFont));
+	    empTable.addCell(createLabelCell("Paid Leaves", labelFont));
 	    empTable.addCell(createValueCell(String.valueOf(approvedPaysliprepo.getTotalLeaves().intValue()), normalFont));
 	    
-	    empTable.addCell(createLabelCell("LOP Days", labelFont));
+	    empTable.addCell(createLabelCell("Loss of Pay", labelFont));
 	    empTable.addCell(createValueCell(String.valueOf(approvedPaysliprepo.getLop().intValue()), normalFont));
 
 

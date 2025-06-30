@@ -107,7 +107,7 @@ function showContent(section) {
 		<!-- Search Box -->
 		<input type="text" id="searchAssignedEmployee" class="form-control mb-2" 
 		       placeholder="Search Assigned Employee..." style="display: none;">
-
+			   			   			  
 		<!-- Scrollable Assigned Employees Table -->
 		<div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 5px; display: none;" id="assignedEmployeeTableContainer">
 		    <table id="assignedEmployeeTable" class="table table-bordered table-striped">
@@ -123,8 +123,51 @@ function showContent(section) {
 		        </tbody>
 		    </table>
 		</div> <br>
+		
+		
+		<!-- Time Approval filters -->
+		<div class="d-flex flex-wrap align-items-center gap-3 px-2 py-3 bg-light rounded shadow-sm">
+		  
+		  <!-- Employee Dropdown -->
+		  <div class="dropdown">
+		    <button class="btn btn-outline-primary dropdown-toggle" type="button" id="employeeDropdownBtn"
+		            data-bs-toggle="dropdown" aria-expanded="false" style="min-width: 180px;">
+		      Select Employee
+		    </button>
+		    <ul class="dropdown-menu shadow border-0" aria-labelledby="employeeDropdownBtn"
+		        style="max-height: 300px; overflow: hidden; width: 400px; min-width: 250px;">
+		      
+		      <!-- Search Input -->
+		      <li style="position: sticky; top: 0; background: white; z-index: 10; padding: 8px 10px;">
+		        <input type="text" class="form-control form-control-sm" id="employeeSearchInput"
+		               placeholder="Search employee..." onkeyup="filterEmployeeList()" autocomplete="off">
+		      </li>
 
+		      <!-- Employee List -->
+		      <div id="employeeDropdownList" style="max-height: 220px; overflow-y: auto;"></div>
+		    </ul>
+		  </div>
 
+		  <!-- Year Filter -->
+		  <select id="yearFilter" class="form-select form-select-sm" style="width: 110px;" onchange="handleDateFilterChange(event)">
+		    <option value="">Year</option>
+		  </select>
+
+		  <!-- Month Filter -->
+		  <select id="monthFilter" class="form-select form-select-sm" style="width: 140px;" onchange="handleDateFilterChange(event)">
+		    <option value="">Month</option>
+		  </select>
+
+		  <!-- Clear Filter Button -->
+		  <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-1"
+		          onclick="clearEmployeeFilter()" title="Clear Filter">
+		    <i class="bi bi-x-circle"></i> Clear
+		  </button>
+
+		</div>
+
+		<br>
+	
 		<div class="d-flex gap-3">
 		    <div class="card text-center bg-warning text-white" style="cursor: pointer;" onclick="showSection('pending')">
 		        <div class="card-body">
@@ -362,11 +405,11 @@ function showContent(section) {
 					             <tr><th>Employee Name</th><td>-</td></tr>
 					             <tr><th>Onboarded Date</th><td>-</td></tr>
 					             <tr><th>Designation</th><td>-</td></tr>
-								 <tr><th>STD Work days</th><td>-</td></tr>
-								 <tr><th>Total Leaves</th><td>-</td></tr>
-					             <tr><th>Total Working Days</th><td>-</td></tr>								 
-					             <tr><th>LOP</th><td>-</td></tr>
-					             <tr><th>Basic Salary</th><td>₹</td></tr>
+								 <tr><th>Basic Salary</th><td>₹</td></tr>
+								 <tr><th>STD Days</th><td>-</td></tr>
+								 <tr><th>Worked Days</th><td>-</td></tr>
+								 <tr><th>Paid Leaves</th><td>-</td></tr>					             								 
+					             <tr><th>Loss of Pay</th><td>-</td></tr>					             
 					             <tr><th>Deductions</th><td>₹</td></tr>
 					             <tr class="table-success"><th>Net Pay</th><td><strong>₹</strong></td></tr>
 					           </tbody>
@@ -409,6 +452,7 @@ function showContent(section) {
 	    }
 	else if(section === "charge-code") {
 		fetchCodeDatas();
+		
 	}
 	else if(section === "expense-code") {
 
@@ -451,10 +495,11 @@ function showContent(section) {
 			    }
 				
 				else if(section === "approval") {
-						fetchPendingApprovals();
-						fetchApprovalslist();
-						fetchIssuelist();
 						fetchCounts();
+						loadDropdownEmployees();
+						fetchFilteredTables();
+						populateYearFilter();
+						clearEmployeeFilter();
 					}
 					else if(section === "salary-process"){
 						fetchinitialSalary();
@@ -465,8 +510,8 @@ function showContent(section) {
 						
 				}
 					
-				
-					
+						
+				/*Charge code assinges employees*/
 				function listAssignedEmployees() {
 				    const searchInput = document.getElementById("searchAssignedEmployee");
 				    const employeeTableBody = document.getElementById("assignedEmployeeTableBody");
@@ -476,7 +521,7 @@ function showContent(section) {
 				    if (tableContainer.style.display === "block") {
 				        searchInput.style.display = "none";
 				        tableContainer.style.display = "none";
-				        return; // ✅ Exit function if hiding the table
+				        return; 
 				    }
 
 				    fetch("/assigned-employees") 
@@ -545,10 +590,8 @@ function showContent(section) {
 					 }
 				}
 
-		document.addEventListener("DOMContentLoaded", function () {
-							
-							    
-				
+					document.addEventListener("DOMContentLoaded", function () {
+														    				
 				if (
 				document.getElementById("issueCount") &&
 				document.getElementById("approvedCount") &&
@@ -556,69 +599,228 @@ function showContent(section) {
 								
 					) {
 							        
-						fetchPendingApprovals();
-						fetchApprovalslist();
-						fetchIssuelist();
 						 fetchCounts();
+						 fetchFilteredTables();
 					 } 
 				});
 
 
 							
-		function fetchCounts() {
-				fetch('/counts')
-					.then(response => response.json())
-					 .then(data => {
-							         
+				// ⬇️ Actual count fetch logic with year + month + employee
+				function fetchCounts() {
+				    let url = '/counts';
+				    const params = [];
 
-						let pendingCountElem = document.getElementById("pendingCount");
-						let approvedCountElem = document.getElementById("approvedCount");
-						let issueCountElem = document.getElementById("issueCount");
+				    if (selectedUsername) params.push(`employee=${encodeURIComponent(selectedUsername)}`);
+				    if (selectedYear) params.push(`year=${selectedYear}`);
+				    if (selectedMonth) params.push(`month=${selectedMonth}`);
 
+				    if (params.length > 0) {
+				        url += "?" + params.join("&");
+				    }
 
-				
-						pendingCountElem.textContent = data.pending ?? 0;
-						 approvedCountElem.textContent = data.approved ?? 0;
-						issueCountElem.textContent = data.issue ?? 0;
-						})
-							 .catch(error => console.error("❌ Error fetching counts:", error));
+				    fetch(url)
+				        .then(response => response.json())
+				        .then(data => {
+				            document.getElementById("pendingCount").textContent = data.pending ?? 0;
+				            document.getElementById("approvedCount").textContent = data.approved ?? 0;
+				            document.getElementById("issueCount").textContent = data.issue ?? 0;
+				        })
+				        .catch(error => console.error("❌ Error fetching counts:", error));
 				}
 
+
+								/*Filtering the employees*/
+								let selectedUsername = null;
+								let selectedYear = null;
+								let selectedMonth = null;
+
+								// ⬇️ Load employees into dropdown
+								function loadDropdownEmployees() {
+								    fetch("/getEmployees")
+								        .then(res => res.json())
+								        .then(data => {
+								            const listContainer = document.getElementById("employeeDropdownList");
+								            listContainer.innerHTML = "";
+
+								            data.forEach(emp => {
+								                if (emp.status === 'active') {
+								                    const item = document.createElement("li");
+								                    item.className = "dropdown-item employee-item";
+								                    item.textContent = `${emp['E-name']} - ${emp['E-desg']}`;
+								                    item.setAttribute("data-name", (emp['E-name'] + ' ' + emp['E-desg']).toLowerCase());
+								                    item.onclick = () => selectEmployee(emp['E-name'], emp['E-desg']);
+								                    listContainer.appendChild(item);
+								                }
+								            });
+								        });
+								}
+
+								// ⬇️ Filter employees inside dropdown
+								function filterEmployeeList() {
+								    const query = document.getElementById("employeeSearchInput").value.toLowerCase();
+								    const items = document.querySelectorAll(".employee-item");
+
+								    items.forEach(item => {
+								        const name = item.getAttribute("data-name");
+								        item.style.display = name.includes(query) ? "block" : "none";
+								    });
+								}
+
+								// ⬇️ Select employee logic
+								function selectEmployee(name, desg) {
+								    selectedUsername = name;
+								    document.getElementById("employeeDropdownBtn").innerText = `${name} - ${desg}`;
+								    document.getElementById("employeeSearchInput").value = "";
+								    filterEmployeeList();
+
+								    fetchCounts();
+								    fetchFilteredTables();
+								}
+
+								// ⬇️ Clear employee + filter state
+								function clearEmployeeFilter() {
+								    selectedUsername = null;
+								    selectedYear = null;
+								    selectedMonth = null;
+
+								    // Reset Employee Dropdown
+								    document.getElementById("employeeDropdownBtn").innerText = "Select Employee";
+								    document.getElementById("employeeSearchInput").value = "";
+								    filterEmployeeList();
+
+								    // Reset Year and Month Dropdowns
+								    const yearSelect = document.getElementById("yearFilter");
+								    const monthSelect = document.getElementById("monthFilter");
+
+								    yearSelect.value = "";
+								    monthSelect.innerHTML = '<option value=""> Month </option>'; // Reset month dropdown
+
+								    // Refresh year filter options
+								    populateYearFilter();
+
+								    // Show all cards & fetch all data
+								    showAllCards();
+								    fetchCounts();
+								    fetchFilteredTables();
+								}
+
+
+								// ⬇️ Show all cards logic
+								function showAllCards() {
+								    const allCards = document.querySelectorAll('.card-container');
+								    allCards.forEach(card => card.style.display = "block");
+								}
+
 							
 
-						
-							function fetchPendingApprovals() {
-							    fetch("/getPendingApprovals")
-							        .then(response => response.json())
-							        .then(data => {
-										populateTable("pendingSummaryBody", data, "Pending");
-										paginateTable("pendingSummaryBody");
-									})
-							        .catch(error => console.error("Error fetching pending approvals:", error));
-							}
+								function populateYearFilter() {
+								    const yearSelect = document.getElementById("yearFilter");
+								    const currentYear = new Date().getFullYear();
 
-						
-							function fetchApprovalslist() {
-							    fetch("/getApprovalslist")
-							        .then(response => response.json())
-									.then(data => {
-									          populateTable("approvedSummaryBody", data, "Approved");
-									          paginateTable("approvedSummaryBody"); // ✅ Apply pagination here
-									      }) 
-							        .catch(error => console.error("Error fetching approvals list:", error));
-							}
+								    yearSelect.innerHTML = '<option value="">Year</option>';
+								    for (let year = currentYear; year >= currentYear - 5; year--) {
+								        let option = document.createElement("option");
+								        option.value = year;
+								        option.textContent = year;
+								        yearSelect.appendChild(option);
+								    }
+								}
 
-							
-							function fetchIssuelist() {
-							    fetch("/getIssuelist")
-							        .then(response => response.json())
-							        .then(data => { 
-										populateTable("issueSummaryBody", data, "Issue");
-										paginateTable("issueSummaryBody"); 
-										
-									})
-							        .catch(error => console.error("Error fetching issue list:", error));
-							}
+								function populateMonthFilter(selectedYear) {
+								    const monthSelect = document.getElementById("monthFilter");
+								    const currentDate = new Date();
+								    const currentYear = currentDate.getFullYear();
+								    const currentMonth = currentDate.getMonth() + 1;
+
+								    const months = [
+								        { value: "01", label: "January" },
+								        { value: "02", label: "February" },
+								        { value: "03", label: "March" },
+								        { value: "04", label: "April" },
+								        { value: "05", label: "May" },
+								        { value: "06", label: "June" },
+								        { value: "07", label: "July" },
+								        { value: "08", label: "August" },
+								        { value: "09", label: "September" },
+								        { value: "10", label: "October" },
+								        { value: "11", label: "November" },
+								        { value: "12", label: "December" }
+								    ];
+
+								    monthSelect.innerHTML = '<option value="">Month</option>';
+
+								    months.forEach((month, index) => {
+								        if (selectedYear === String(currentYear) && index + 1 > currentMonth) return;
+								        const option = document.createElement("option");
+								        option.value = month.value;
+								        option.textContent = month.label;
+								        monthSelect.appendChild(option);
+								    });
+								}
+
+								function handleDateFilterChange(event) {
+								    selectedYear = document.getElementById("yearFilter").value;
+								    selectedMonth = document.getElementById("monthFilter").value;
+
+								    if (event.target.id === "yearFilter") {
+								        populateMonthFilter(selectedYear);
+								        document.getElementById("monthFilter").value = "";
+								        selectedMonth = null;
+								    }
+
+								    fetchCounts();
+									fetchFilteredTables();
+								}
+
+								function fetchFilteredTables() {
+								    const selectedYear = document.getElementById("yearFilter").value;
+								    const selectedMonth = document.getElementById("monthFilter").value;
+
+								    function filterByEmployeeMonthYear(data) {
+								        return data.filter(entry => {
+								            const matchesEmployee = !selectedUsername || entry.username === selectedUsername;
+
+								            // Extract month and year from entry.period
+								            if (entry.period && entry.period.length >= 10) {
+								                const periodMonth = entry.period.substring(3, 5);  // MM
+								                const periodYear = entry.period.substring(6, 10);  // YYYY
+
+								                const matchesYear = !selectedYear || periodYear === selectedYear;
+								                const matchesMonth = !selectedMonth || periodMonth === selectedMonth;
+
+								                return matchesEmployee && matchesYear && matchesMonth;
+								            }
+
+								            return false;
+								        });
+								    }
+
+								    fetch("/getPendingApprovals")
+								        .then(response => response.json())
+								        .then(data => {
+								            const filteredData = filterByEmployeeMonthYear(data);
+								            populateTable("pendingSummaryBody", filteredData, "Pending");
+								            paginateTable("pendingSummaryBody");
+								        });
+
+								    fetch("/getApprovalslist")
+								        .then(response => response.json())
+								        .then(data => {
+								            const filteredData = filterByEmployeeMonthYear(data);
+								            populateTable("approvedSummaryBody", filteredData, "Approved");
+								            paginateTable("approvedSummaryBody");
+								        });
+
+								    fetch("/getIssuelist")
+								        .then(response => response.json())
+								        .then(data => {
+								            const filteredData = filterByEmployeeMonthYear(data);
+								            populateTable("issueSummaryBody", filteredData, "Issue");
+								            paginateTable("issueSummaryBody");
+								        });
+								}
+
 							
 /*
 							function formatPeriod(periodStr) {
@@ -780,15 +982,19 @@ function showContent(section) {
 							    .then(response => response.json())
 							    .then(result => {
 							        showAlert(result.message, "success");
-							        fetchPendingApprovals();
-									fetchCounts();
-									fetchApprovalslist();
+
+							        // ✅ Reset filters to show full data
+							        selectedUsername = null;
+
+							        fetchCounts();
+							        fetchFilteredTables();
 							    })
 							    .catch(error => console.error("Error approving timesheet:", error));
 
 							    let approvalModal = bootstrap.Modal.getInstance(document.getElementById("approvalConfirmModal"));
 							    approvalModal.hide();
 							});
+
 
 							
 							function handleIssue(username, period) {
@@ -817,9 +1023,11 @@ function showContent(section) {
 							    .then(response => response.json())
 							    .then(result => {
 							        showAlert(result.message, "success");
-									fetchPendingApprovals();
+									
+									selectedUsername = null;
+
 									fetchCounts();
-									fetchIssuelist();
+									fetchFilteredTables();
 							    })
 							    .catch(error => console.error("Error raising issue:", error));
 
@@ -828,13 +1036,13 @@ function showContent(section) {
 							});
 
 			
-			function updateEmployeeButton(username, period, status) {
-			    sessionStorage.setItem(`approvalStatus_${username}_${period}`, status);
-			}
+								function updateEmployeeButton(username, period, status) {
+								    sessionStorage.setItem(`approvalStatus_${username}_${period}`, status);
+								}
 
 
 	
-			function viewTimesheetGrid(username, period) {
+									function viewTimesheetGrid(username, period) {
 										    fetch(`/timesheetGrid?username=${encodeURIComponent(username)}&period=${encodeURIComponent(period)}`)
 										        .then(response => response.json())
 										        .then(data => {
@@ -1462,16 +1670,24 @@ document.getElementById("confirmCompleteBtn").addEventListener("click", function
 
 let selectedEmployees = [];
 
-
 function openAssignModal(codeId, chargeCode, description) {
     selectedEmployees = [];
     document.getElementById("selectedEmployeesContainer").innerHTML = "";
 
-
     document.getElementById("chargeCodeDisplay").innerText = chargeCode;
-    document.getElementById("chargeCodeDescription").innerText = description;  
+    document.getElementById("chargeCodeDescription").innerText = description;
 
-   
+    
+    document.getElementById("employeeDropdown").addEventListener("click", () => {
+        
+        document.getElementById("employeeSearch").value = "";
+        
+        let employees = document.querySelectorAll("#employeeList li");
+        employees.forEach(emp => {
+            emp.style.display = "block";
+        });
+    });
+
     const modal = new bootstrap.Modal(document.getElementById("assignModal"));
     modal.show();
 }
@@ -1487,7 +1703,6 @@ function filterEmployees() {
 }
 
 function addEmployeetofield(name, role) {
-
     if (!selectedEmployees.includes(name)) {
         selectedEmployees.push(name);
         updateSelectedEmployees();
@@ -1501,7 +1716,7 @@ function updateSelectedEmployees() {
     selectedEmployees.forEach(employee => {
         let employeeDiv = document.createElement("div");
         employeeDiv.className = "d-flex align-items-center justify-content-between bg-light p-2 rounded mb-1";
-        
+
         employeeDiv.innerHTML = `
             <span>${employee}</span>
             <button class="btn btn-danger btn-sm" onclick="removeEmployee('${employee}')">&times;</button>
@@ -1515,6 +1730,7 @@ function removeEmployee(employeeName) {
     selectedEmployees = selectedEmployees.filter(emp => emp !== employeeName);
     updateSelectedEmployees();
 }
+
 
 function assignEmployees() {
 	
@@ -1720,19 +1936,12 @@ function fetchHoliday() {
             const tableBody = document.getElementById("holiday-table-body");
             tableBody.innerHTML = ""; 
 			data.forEach(leave => {
-			    // Format holiday date
-			    let formattedHolidayDate = leave["holidaydate"];
-			    if (formattedHolidayDate && formattedHolidayDate !== "-") {
-			        const dateObj = new Date(formattedHolidayDate);
-			        if (!isNaN(dateObj)) {
-			            formattedHolidayDate = `${dateObj.getFullYear()}-${dateObj.toLocaleString('default', { month: 'short' })}-${String(dateObj.getDate()).padStart(2, '0')}`;
-			        }
-			    }
+			    // Format holiday date			   				
 
 			    tableBody.innerHTML += `
 			        <tr>
 			            <td>${leave["holidayname"]}</td>
-			            <td>${formattedHolidayDate}</td>
+			            <td>${leave["holidaydate"]}</td>
 			            <td>${leave.year}</td>
 			            <td>
 			                <button class="btn btn-success btn-sm" onclick="editholiday('${leave.id}')"><i class="bi bi-pencil-square"></i></button>
@@ -1741,7 +1950,6 @@ function fetchHoliday() {
 			        </tr>
 			    `;
 			});
-
 			paginateTable("holiday-table-body");
         })
         .catch(error => console.error("Error fetching Expense Details:", error));
@@ -1927,6 +2135,7 @@ function createForm(type) {
 								    </div>
 								${inputField("DOJ", "text", "doj", "", "", true, )} 
 								${inputField("Salary(Month)", "number", "Salary_M", "", "", false, "min='1000'")}
+								${inputField("Effective From", "date", "effective")}
 								${formButtons()}
 							</form>
 						</div>

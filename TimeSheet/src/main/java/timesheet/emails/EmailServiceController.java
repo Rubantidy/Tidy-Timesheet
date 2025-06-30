@@ -187,7 +187,8 @@ public class EmailServiceController {
 	            + "<h2>Hello " + empData.geteName() + ",</h2>"
 	            + "<p>We are pleased to inform you that your salary has been revised based on the recent evaluation. Here are the updated details:</p>"
 	            + "<p><strong>Previous Salary:</strong> ₹" + oldSalary + "</p>"
-	            + "<p><strong>New Salary:</strong> ₹" + newSalary + "</p>"
+	            + "<p><strong>New Salary - Month:</strong> ₹" + newSalary + "</p>"
+	            + "<p><strong>New Salary - Year:</strong> ₹" + (newSalary * 12) + "</p>"
 	            + "<p><strong>Hike Percentage:</strong> " + hikePercent + "%</p>"
 	            + "<p><strong>Reason:</strong> " + reason + "</p>"
 	            + "<br>"
@@ -216,15 +217,16 @@ public class EmailServiceController {
        helper.setSubject("Payslip Approved for " + month);
 
        String emailContent = "<html><body>"
-           + "<h2>Dear " + employeeName + ",</h2>"
-           + "<p>Your payslip for <strong>" + month + "</strong> has been approved successfully.</p>"
-           + "<p>You can access your payslip details on the <a href=\"https://timex.tidyds.com\">Tidy Timesheet Portal</a>.</p>"
-           + "<br>"
-           + "<p>If you have any questions, please contact HR.</p>"
-           + "<br>"
-           + "<img src='cid:logoImage' style='height: 60px;'><br><br>"
-           + "<p>Best Regards,<br><b>Tidy Digital Solutions Team</b></p>"
-           + "</body></html>";
+    		    + "<p>Dear " + employeeName + ",</p>"
+    		    + "<p>We are pleased to inform you that your payslip for <strong>" + month + "</strong> has been approved.</p>"
+    		    + "<p>You can view your payslip by logging into the <a href='https://timex.tidyds.com' target='_blank'>Tidy Timesheet Portal</a>.</p>"
+    		    + "<p>If you have any questions or concerns, please reach out to the HR department.</p>"
+    		    + "<br>"
+    		    + "<p>Best regards,<br>"
+    		    + "<strong>Tidy Digital Solutions Team</strong></p>"
+    		    + "<br>"
+    		    + "<img src='cid:logoImage' alt='Tidy Digital Solutions' style='height: 60px;'>"
+    		    + "</body></html>";
 
        helper.setText(emailContent, true);
 

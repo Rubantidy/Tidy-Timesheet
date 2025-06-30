@@ -32,7 +32,8 @@ public class AddSalary {
 	
     private String reason;
 
-    private LocalDate effectiveFrom;
+    @JsonProperty("effective")
+    private String effectiveFrom;
 	
 	
 	public int getId() {
@@ -80,10 +81,12 @@ public class AddSalary {
 	public void setReason(String reason) {
 		this.reason = reason;
 	}
-	public LocalDate getEffectiveFrom() {
+
+	
+	public String getEffectiveFrom() {
 		return effectiveFrom;
 	}
-	public void setEffectiveFrom(LocalDate effectiveFrom) {
+	public void setEffectiveFrom(String effectiveFrom) {
 		this.effectiveFrom = effectiveFrom;
 	}
 	@Override
@@ -92,6 +95,8 @@ public class AddSalary {
 				+ Monthsalary + ", Yearsalary=" + Yearsalary + ", Bankaccount=" + Bankaccount + ", reason=" + reason
 				+ ", effectiveFrom=" + effectiveFrom + "]";
 	}
+
+	
 
 	
 	

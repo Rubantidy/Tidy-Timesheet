@@ -230,7 +230,7 @@ public class TimesheetController {
             })
             .collect(Collectors.toList());
 
-        Set<String> submittedPeriods = entriesForMonth.stream()
+        Set<String> submittedPeriods = entriesForMonth.stream( )    
             .map(TimesheetEntry::getPeriod)
             .collect(Collectors.toSet());
 
@@ -251,23 +251,32 @@ public class TimesheetController {
                 }
 
                 boolean wasTakenBefore = tracker.isTaken();
+                boolean wasCarriedForward = tracker.isClCarriedForward(); // 👈 Add this field to tracker (boolean)
 
                 if (clDaysTaken == 0) {
-                    // ✅ No CL taken, carry forward 1
-                    leave.setEarncasualLeave(currentEarnedCL + 1);
+                    // ✅ No CL taken this month
+                    if (!wasCarriedForward) {
+                        leave.setEarncasualLeave(currentEarnedCL + 1); // Increase only once
+                        tracker.setClCarriedForward(true);             // ✅ mark that earnedCL was increased
+                    }
                     tracker.setTaken(false);
                     if (wasTakenBefore) {
-                        leave.setCasualTaken(leave.getCasualTaken() - 1);
+                        leave.setCasualTaken(leave.getCasualTaken() - 1); // If previously marked taken, now remove
                     }
                 } else {
-                    // ✅ Some CL taken: calculate how much from earned and monthly
+                    // ✅ CL was taken this month
                     int usedEarnedCL = (int) Math.min(clDaysTaken, currentEarnedCL);
                     int usedMonthlyCL = (int) Math.min(monthlyCL, clDaysTaken - usedEarnedCL);
-
                     int unusedMonthlyCL = monthlyCL - usedMonthlyCL;
 
-                    // Reduce only used earned CL
-                    leave.setEarncasualLeave(currentEarnedCL - usedEarnedCL + unusedMonthlyCL); // 👈 add unused monthly CL to earned
+                    // Update earnedCL
+                    leave.setEarncasualLeave(currentEarnedCL - usedEarnedCL + unusedMonthlyCL);
+
+                    // 🔁 Revert if earlier carried forward but now CL is taken
+                    if (wasCarriedForward && tracker.isClCarriedForward()) {
+                        leave.setEarncasualLeave(leave.getEarncasualLeave() - 1);
+                        tracker.setClCarriedForward(false);
+                    }
 
                     int newTotalUsed = usedEarnedCL + usedMonthlyCL;
                     int currentCasualTaken = leave.getCasualTaken();
@@ -281,11 +290,9 @@ public class TimesheetController {
                     tracker.setTaken(true);
                 }
 
-
                 casualLeaveTrackerRepo.save(tracker);
                 allowedleaverepo.save(leave);
             }
-
         }
 
         return ResponseEntity.ok("Timesheet saved successfully");
@@ -572,16 +579,62 @@ public class TimesheetController {
     }
 
     @GetMapping("/counts")
-    public ResponseEntity<Map<String, Integer>> getCounts() {
-    	 Map<String, Integer> counts = new HashMap<>();
-         counts.put("pending", summaryRepository.countByStatus("Pending"));
-         counts.put("approved", summaryRepository.countByStatus("Approved"));
-         counts.put("issue", summaryRepository.countByStatus("Issue"));
-     
+    public ResponseEntity<Map<String, Integer>> getCounts(
+            @RequestParam(required = false) String employee,
+            @RequestParam(required = false) String year,
+            @RequestParam(required = false) String month) {
 
+    	 List<SummaryEntry> allEntries = summaryRepository.findAll();
+
+        // Filter by employee if given
+        if (employee != null && !employee.isEmpty()) {
+            allEntries = allEntries.stream()
+                    .filter(entry -> entry.getUsername().equalsIgnoreCase(employee))
+                    .collect(Collectors.toList());
+        }
+
+        if (year != null && !year.isEmpty()) {
+            allEntries = allEntries.stream()
+                    .filter(entry -> {
+                        String period = entry.getPeriod();
+                        if (period != null && period.length() >= 10) {
+                            String yearPart = period.substring(6, 10); // example: "01/06/2025"
+                            return yearPart.equals(year);
+                        }
+                        return false;
+                    })
+                    .collect(Collectors.toList());
+        }
+
+        if (month != null && !month.isEmpty()) {
+            allEntries = allEntries.stream()
+                    .filter(entry -> {
+                        String period = entry.getPeriod();
+                        if (period != null && period.length() >= 5) {
+                            String monthPart = period.substring(3, 5); // extract MM from "dd/MM/yyyy"
+                            return monthPart.equals(month);
+                        }
+                        return false;
+                    })
+                    .collect(Collectors.toList());
+        }
+
+
+        // Count based on status
+        int pending = (int) allEntries.stream().filter(entry -> "Pending".equalsIgnoreCase(entry.getStatus())).count();
+        int approved = (int) allEntries.stream().filter(entry -> "Approved".equalsIgnoreCase(entry.getStatus())).count();
+        int issue = (int) allEntries.stream().filter(entry -> "Issue".equalsIgnoreCase(entry.getStatus())).count();
+
+        Map<String, Integer> counts = new HashMap<>();
+        counts.put("pending", pending);
+        counts.put("approved", approved);
+        counts.put("issue", issue);
 
         return ResponseEntity.ok(counts);
     }
+
+
+
     
     @PostMapping("/approve")
     public ResponseEntity<Map<String, String>> approveTimesheet(@RequestBody Map<String, String> request) {

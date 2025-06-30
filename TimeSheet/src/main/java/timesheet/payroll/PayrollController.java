@@ -5,6 +5,8 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
@@ -160,7 +162,7 @@ public class PayrollController {
 	        MonthlySummary summary = summaryOpt.get();
 
 	        result.put("stddays", summary.getTotalWorkingDays() + (totalSundays + totalHolidays));
-	        result.put("totalworked", (summary.getTotalWorkingDays() - summary.getTotalLOPDays()) + (totalSundays+ totalHolidays));
+	        result.put("totalworked", (summary.getTotalWorkingDays() - summary.getTotalAbsences()) + (totalSundays+ totalHolidays));
 	        result.put("totalleaves", summary.getTotalAbsences());
 	        result.put("lop", summary.getTotalLOPDays());
 
@@ -214,12 +216,15 @@ public class PayrollController {
 	        payslipData.setAccountNumber(bankDetails.getAccountNumber());
 	        payslipData.setLocation("Salem");
 
-	        LocalDateTime now = LocalDateTime.now();
+	        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
 	        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd: HH:mm");
 	        String formattedDateTime = now.format(formatter);
 
 	        payslipData.setSalaryProcessAt(formattedDateTime);
 	        payslipData.setApprovedAt(formattedDateTime);
+
+	        
+	        System.out.println(formattedDateTime);
 
 	        approvedPayslip.save(payslipData);
 

@@ -34,14 +34,14 @@ public class SalaryHistory {
     private String reason;
 
     @Column(name = "effective_from", nullable = false)
-    private LocalDate effectiveFrom;
+    private String effectiveFrom;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     public SalaryHistory() {}
 
-    public SalaryHistory(String employeeName, Double oldsalary, Double salary, Double hikePercent, String reason, LocalDate effectiveFrom) {
+    public SalaryHistory(String employeeName, Double oldsalary, Double salary, Double hikePercent, String reason, String effectiveFrom) {
         this.employeeName = employeeName;
         this.oldsalary = oldsalary;
         this.newsalary = salary;
@@ -84,11 +84,13 @@ public class SalaryHistory {
 		this.reason = reason;
 	}
 
-	public LocalDate getEffectiveFrom() {
+
+
+	public String getEffectiveFrom() {
 		return effectiveFrom;
 	}
 
-	public void setEffectiveFrom(LocalDate effectiveFrom) {
+	public void setEffectiveFrom(String effectiveFrom) {
 		this.effectiveFrom = effectiveFrom;
 	}
 
@@ -124,6 +126,8 @@ public class SalaryHistory {
 				+ ", newsalary=" + newsalary + ", hikePercent=" + hikePercent + ", reason=" + reason
 				+ ", effectiveFrom=" + effectiveFrom + ", updatedAt=" + updatedAt + "]";
 	}
+
+
 	
 	
 

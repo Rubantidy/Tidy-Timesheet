@@ -14,7 +14,7 @@
 
 
 	 
-	<link rel="icon" type="image/x-icon" href="img/d.png">
+	<link rel="icon" type="image/x-icon" href="img/fav.png">
 	
 
 
@@ -38,15 +38,21 @@
 				<hr>
 				<li class="nav-item"><a class="nav-link text-white" href="#" onclick="showContent('approval')"><i class="bi bi-app-indicator"></i>Time Approvals</a></li>
 				<li class="nav-item dropdown">
-				        <a class="nav-link text-white dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
-				            <i class="bi bi-paypal"></i> Payroll
-				        </a>
-				        <ul class="dropdown-menu bg-dark border-0 shadow" style="margin-left: 10px;">
-				            <li><a class="nav-link text-white" href="#" onclick="showContent('payroll-summary')">Payroll Summary</a></li>
-				            <li><a class="nav-link text-white" href="#" onclick="showContent('salary-process')">Salary Process</a></li>
-				            <li><a class="nav-link text-white" href="#" onclick="showContent('payslip')">Payslip</a></li>
-				        </ul>
-				    </li>
+				    <a class="nav-link text-white dropdown-toggle" href="#" id="payrollDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+				        <i class="bi bi-paypal"></i> Payroll
+				    </a>
+				    <ul class="dropdown-menu bg-dark border-0 shadow" style="margin-left: 10px;" data-bs-auto-close="outside">
+				       <!--  <li>
+				            <a class="nav-link text-white" href="#" onclick="event.stopPropagation(); event.preventDefault(); showContent('payroll-summary')">Payroll Summary</a>
+				        </li> -->
+				        <li>
+				            <a class="nav-link text-white" href="#" onclick="event.stopPropagation(); event.preventDefault(); showContent('salary-process')">Salary Process</a>
+				        </li>
+				        <li>
+				            <a class="nav-link text-white" href="#" onclick="event.stopPropagation(); event.preventDefault(); showContent('payslip')">Payslip</a>
+				        </li>
+				    </ul>
+				</li>
 			</ul>
         </nav>
         
@@ -84,10 +90,7 @@
              
             <!-- Dynamic Content -->
             <h2 id="content-title" class="mb-3">Dashboard</h2>
-            <div id="content-box" class="p-4 border rounded shadow bg-white">
-                <p>Welcome to the Dashboard</p>
-				
-            </div>
+            <div id="content-box" class="p-4 border rounded shadow bg-white"></div>
 			<div id="summery"></div>
 			
         </div>
@@ -113,7 +116,7 @@
 					                    </button>
 					                    <ul class="dropdown-menu w-100" aria-labelledby="employeeDropdown" style="max-height: 250px; overflow-y: auto;">
 					                        <!-- Search Box -->
-					                        <li class="p-2">
+					                        <li class="p-2" style="position: sticky; top: 0;">
 					                            <input type="text" id="employeeSearch" class="form-control" placeholder="Search employee..." onkeyup="filterEmployees()">
 					                        </li>
 					                        <!-- Employee List (Fetched Dynamically) -->
@@ -585,11 +588,9 @@
 		    });
 		});
 
-		
-		
+				
 		document.addEventListener("DOMContentLoaded", function() {
 		          const userName = sessionStorage.getItem('userName');
-
 
 		          if (userName) {
 		              const userNameElement = document.getElementById('userName');

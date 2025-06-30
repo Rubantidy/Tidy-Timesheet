@@ -4,8 +4,17 @@ public class SalaryEditDto {
     private int id;
     private String name;
     private String updatedSalary;
-
-    // Getters and setters
+    private String effectiveFrom;
+    private String reason;
+    
+    
+    public String getEffectiveFrom() {
+		return effectiveFrom;
+	}
+	public void setEffectiveFrom(String effectiveFrom) {
+		this.effectiveFrom = effectiveFrom;
+	}
+	// Getters and setters
     public int getId() {
         return id;
     }
@@ -26,5 +35,13 @@ public class SalaryEditDto {
     public void setName(String name) {
         this.name = name;
     }
+	public String getReason() {
+		return reason;
+	}
+	public void setReason(String reason) {
+		this.reason = reason;
+	}
+    
+    
 }
 

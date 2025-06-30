@@ -89,47 +89,6 @@ function updateDOJ() {
 }
 
 
-document.addEventListener("DOMContentLoaded", function () {
-    const periodDropdown = document.getElementById("periodDropdown");
-	const calender = document.getElementById('calendarPicker');
-	const preview = document.getElementById('prevPeriod');
-	const nextpre = document.getElementById('nextPeriod');
-    const updateBtn = document.getElementById("bankUpdateBtn");
-
-	function checkAndDisableUpdateBtn() {
-	  const selectedPeriod = periodDropdown.options[periodDropdown.selectedIndex].text;
-	  const startDate = selectedPeriod.split(" - ")[0];  
-	  const startDay = parseInt(startDate.split("/")[0]);
-
-	  // Check if bank details are already saved (i.e., not empty)
-	  const accountHolder = document.getElementById('bankAccountHolder').textContent.trim();
-	  const accountNumber = document.getElementById('fullAccountNumber').value.trim();
-	  const ifsc = document.getElementById('bankIFSC').textContent.trim();
-	  const bankName = document.getElementById('bankName').textContent.trim();
-
-	  const isBankDetailsFilled = accountHolder && accountNumber && ifsc && bankName;
-
-	  if (startDay >= 16 && isBankDetailsFilled) {
-	    updateBtn.disabled = true;
-	    updateBtn.classList.add("disabled");
-	  } else {
-	    updateBtn.disabled = false;
-	    updateBtn.classList.remove("disabled");
-	  }
-	}
-
-
-    // Call once on load
-    checkAndDisableUpdateBtn();
-
-    // Call again when dropdown changes
-    periodDropdown.addEventListener("change", checkAndDisableUpdateBtn);
-	calender.addEventListener("change", checkAndDisableUpdateBtn);
-	preview.addEventListener("click", checkAndDisableUpdateBtn);
-	nextpre.addEventListener("click", checkAndDisableUpdateBtn);
-});
-
-
 //Employee
 function openBankEditModal() {
   document.getElementById('inputAccountHolder').value = document.getElementById('bankAccountHolder').textContent;
@@ -407,11 +366,11 @@ async function loadPayslipDetails() {
                   <tr><th>Employee Name</th><td>${data.name}</td></tr>
                   <tr><th>Onboarded Date</th><td>${data.onboardDate}</td></tr>
                   <tr><th>Designation</th><td>${data.designation}</td></tr>
-				  <tr><th>STD Work days</th><td>${data.stddays}</td></tr>
-				  <tr><th>Total Leaves</th><td>${data.totalleaves}</td></tr>
-                  <tr><th>Total Working Days</th><td>${data.totalworked}</td></tr>			
-                  <tr><th>LOP</th><td>${data.lop}</td></tr>
-                  <tr><th>Basic Salary</th><td>₹${parseFloat(data.basicSalary).toLocaleString()}</td></tr>
+				  <tr><th>Basic Salary</th><td>₹${parseFloat(data.basicSalary).toLocaleString()}</td></tr>
+				  <tr><th>STD Days</th><td>${data.stddays}</td></tr>
+				  <tr><th>Worked Days</th><td>${data.totalworked}</td></tr>	
+				  <tr><th>Paid Leaves</th><td>${data.totalleaves - data.lop}</td></tr>		
+                  <tr><th>Loss of Pay</th><td>${data.lop}</td></tr>                 
                   <tr><th>Deductions</th><td>₹${parseFloat(data.deduction).toLocaleString()}</td></tr>
                   <tr class="table-success"><th>Net Pay</th><td><strong>₹${parseFloat(data.netPay).toLocaleString()}</strong></td></tr>
                 </tbody>
@@ -471,16 +430,19 @@ async function appreovPaylisp() {
         const rows = document.querySelectorAll("#payslip-preview-container table tbody tr");
 
      
-        const employeeName = rows[0].cells[1].innerText;
-        const onboardDate = rows[1].cells[1].innerText;
-        const designation = rows[2].cells[1].innerText;
-        const stdWorkDays = rows[3].cells[1].innerText;
-        const totalLeaves = rows[4].cells[1].innerText;
-        const totalWorkingDays = rows[5].cells[1].innerText;
-        const lop = rows[6].cells[1].innerText;
-        const basicSalary = rows[7].cells[1].innerText.replace(/₹|,/g, "");
-        const deductions = rows[8].cells[1].innerText.replace(/₹|,/g, "");
-        const netPay = rows[9].cells[1].innerText.replace(/₹|,/g, "");
+		const employeeName = rows[0].cells[1].innerText;
+		const onboardDate = rows[1].cells[1].innerText;
+		const designation = rows[2].cells[1].innerText;
+		const basicSalary = rows[3].cells[1].innerText.replace(/₹|,/g, "");
+		const stdWorkDays = rows[4].cells[1].innerText;
+		const totalWorkingDays = rows[5].cells[1].innerText;
+		const totalLeaves = rows[6].cells[1].innerText;
+		const lop = rows[7].cells[1].innerText;
+		const deductions = rows[8].cells[1].innerText.replace(/₹|,/g, "");
+		const netPay = rows[9].cells[1].innerText.replace(/₹|,/g, "");
+		
+		console.log(basicSalary);
+		console.log(stdWorkDays);
 
     
         const payload = {
@@ -488,11 +450,11 @@ async function appreovPaylisp() {
             month: month,
             onboardDate: onboardDate,
             designation: designation,
+			basicSalary: parseFloat(basicSalary),
             stdWorkDays: parseInt(stdWorkDays),
+			totalWorkingDays: parseInt(totalWorkingDays),
             totalLeaves: parseInt(totalLeaves),
-            totalWorkingDays: parseInt(totalWorkingDays),
-            lop: parseFloat(lop),
-            basicSalary: parseFloat(basicSalary),
+            lop: parseFloat(lop),          
             deductions: parseFloat(deductions),
             netPay: parseFloat(netPay),
             
@@ -671,75 +633,7 @@ function downloadPayslip() {
         });
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-    const periodDropdown = document.getElementById("periodDropdown");
-    const calender = document.getElementById("calendarPicker");
-    const preview = document.getElementById("prevPeriod");
-    const nextpre = document.getElementById("nextPeriod");
 
-    function getSelectedPeriod() {
-        return periodDropdown.options[periodDropdown.selectedIndex].text;
-    }
-
-    async function fetchAndShowPayslipSummary() {
-        const username = sessionStorage.getItem("userName");
-        const extractedPeriod = getSelectedPeriod();
-
-        // Extract "2025-05" from "01/05/2025 - 15/05/2025"
-        const dateParts = extractedPeriod.split(" - ")[0].split("/");
-        const formattedMonth = `${dateParts[2]}-${dateParts[1]}`;
-
-        try {
-            const response = await fetch(`/payslip/EmpPayslipSummary?username=${encodeURIComponent(username)}&month=${formattedMonth}`);
-
-            if (!response.ok) {
-                throw new Error("Payslip data not found");
-            }
-
-            const data = await response.json();
-
-            // Fill summary fields
-            document.getElementById("summaryUsername").textContent = data.username || "-";
-            document.getElementById("summaryDesignation").textContent = data.designation || "-";
-			if (data.month) {
-			    const [year, month] = data.month.split("-");
-			    const monthName = new Date(year, month - 1).toLocaleString('default', { month: 'short' }); 
-			    document.getElementById("summaryMonth").textContent = `${year}-${monthName}`;
-			} else {
-			    document.getElementById("summaryMonth").textContent = "-";
-			}
-            document.getElementById("summaryStdWorkDays").textContent = data.stdWorkDays ?? "-";
-            document.getElementById("summaryTotalLeaves").textContent = data.totalLeaves ?? "-";
-			document.getElementById("summaryLOP").textContent = data.lop ?? "-";
-            document.getElementById("summaryWorkingDays").textContent = data.totalWorkingDays ?? "-";
-            document.getElementById("summaryBasicSalary").textContent = data.basicSalary ? `₹${data.basicSalary.toFixed(2)}` : "-";
-            document.getElementById("summaryDeductions").textContent = data.deductions ? `₹${data.deductions.toFixed(2)}` : "-";
-            document.getElementById("summaryNetPay").textContent = data.netPay ? `₹${data.netPay.toFixed(2)}` : "-";
-
-        } catch (err) {
-            console.error("Error fetching payslip summary:", err);
-            clearPayslipSummaryUI();
-        }
-    }
-
-    function clearPayslipSummaryUI() {
-        const fields = [
-            "summaryUsername", "summaryDesignation", "summaryMonth",
-            "summaryStdWorkDays", "summaryTotalLeaves", "summaryWorkingDays",
-            "summaryLOP", "summaryBasicSalary", "summaryDeductions", "summaryNetPay",
-        ];
-        fields.forEach(id => document.getElementById(id).textContent = "-");
-    }
-
-    // Auto-update when period changes
-    periodDropdown.addEventListener("change", fetchAndShowPayslipSummary);
-    calender.addEventListener("change", fetchAndShowPayslipSummary);
-    preview.addEventListener("click", () => setTimeout(fetchAndShowPayslipSummary, 200));
-    nextpre.addEventListener("click", () => setTimeout(fetchAndShowPayslipSummary, 200));
-
-    // Initial load
-    fetchAndShowPayslipSummary();
-});
 
 
 
@@ -861,7 +755,7 @@ function fetchinitialSalary() {
 		};
 
 		const formattedDOJ = formatDate(Salary["doj"]);
-		const formattedEffectiveFrom = formatDate(Salary.effectiveFrom);
+		const formattedEffectiveFrom = formatDate(Salary["effective"]);
 
 
         tableBody.innerHTML += `
@@ -921,11 +815,13 @@ function opensalaryedit(employeeId) {
         .then(data => {
             const editFormHTML = `
                 <div class="card p-3 mb-3">
-                    <h4>*Update Employee Salary</h4>
+                    <h4>Update Employee Salary</h4>
                     <form onsubmit="submitupdatedsalary(event, '${data.id}', '${data['E-name']}', ${data.Salary_M})">
                         ${inputField("Employee Name", "text", "ename", "", data["E-name"], true)}
 						${inputField("DOJ", "text", "doj", "", data.doj, true)}
                         ${inputField("Current Salary", "number", "currentSalary", "", data.Salary_M, false, "min='1000'")}
+						${inputField("Reason", "text", "reason", "", data.reason, false)}
+						${inputField("Effective From", "date", "effective", "", data["effective"], false)}
                         ${formButtons()}
                     </form>
                 </div>
@@ -938,6 +834,8 @@ function submitupdatedsalary(event, id, name) {
     event.preventDefault();
 
     const updatedSalary = document.querySelector("[name='currentSalary']").value;
+	const effectiveFrom = document.querySelector("[name='effective']").value;
+	const reason = document.querySelector("[name='reason']").value;
 
     if (!updatedSalary || updatedSalary < 1000) {
         showAlert("Salary must be at least ₹1000", "danger");
@@ -963,7 +861,9 @@ function submitupdatedsalary(event, id, name) {
             body: JSON.stringify({
                 id,
 				name,
-                updatedSalary
+                updatedSalary,
+				reason,
+				effectiveFrom 			
             })
         })
         .then(res => res.text())
@@ -995,6 +895,7 @@ function openHikeForm(employeeId) {
                         ${inputField("Hike Percentage (%)", "number", "hikePercent", "", "", false, "oninput='calculateNewSalaryHike()'")}
                         ${inputField("New Salary", "number", "newSalary", "newSalaryInput", "", true)}
                         ${inputField("Reason", "text", "reason")}
+						${inputField("Effective From", "date", "effective")}
                         ${formButtons()}
                     </form>
                 </div>
@@ -1021,32 +922,36 @@ function calculateNewSalaryHike() {
 function submitSalaryHike(event, id, name, currentSalary) {
     event.preventDefault();
 
-   
     const message = `Are you sure you want to give Salary hike to <strong>${name}</strong>?`;
     document.getElementById('salaryHikeConfirmMessage').innerHTML = message;
 
-    
     const salaryHikeModal = new bootstrap.Modal(document.getElementById('salaryHikeConfirmModal'));
     salaryHikeModal.show();
 
- 
+    // Remove previous click listeners
     const confirmBtn = document.getElementById('confirmSalaryHikeBtn');
-
-
-    confirmBtn.replaceWith(confirmBtn.cloneNode(true)); 
+    confirmBtn.replaceWith(confirmBtn.cloneNode(true));
     const newConfirmBtn = document.getElementById('confirmSalaryHikeBtn');
 
     newConfirmBtn.addEventListener('click', () => {
-		showLoader();
+        showLoader();
+
         const hikePercent = document.querySelector("[name='hikePercent']").value;
         const newSalary = document.querySelector("[name='newSalary']").value;
         const reason = document.querySelector("[name='reason']").value;
+        const effectiveFrom = document.querySelector("[name='effective']").value;
 
         fetch('/updateSalaryWithHike', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                id, name, currentSalary, newSalary, hikePercent, reason
+                id,
+                name,
+                currentSalary,
+                newSalary,
+                hikePercent,
+                reason,
+                effectiveFrom   // ⬅️ added this
             })
         })
         .then(res => res.text())
@@ -1054,15 +959,16 @@ function submitSalaryHike(event, id, name, currentSalary) {
             salaryHikeModal.hide();
             hideForm();
             showAlert(msg, "success");
-            fetchinitialSalary(); 
+            fetchinitialSalary();
         })
         .catch(err => {
             salaryHikeModal.hide();
             showAlert('Error: ' + err.message, "danger");
         })
-		.finally(() => hideLoader());
+        .finally(() => hideLoader());
     });
 }
+
 
 
 function showSalaryHistory(empName) {
